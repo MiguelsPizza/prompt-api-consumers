@@ -1,3 +1,4 @@
 node_modules
 prompt-api-playground-react/.vite
 .vite
+prompt-api-playground-react/dist
