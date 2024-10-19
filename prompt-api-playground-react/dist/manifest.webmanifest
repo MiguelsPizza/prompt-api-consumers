@@ -1,0 +1,1 @@
+{"name":"promp-api-pwa","short_name":"prompt-api-demo-react","start_url":"/","display":"standalone","background_color":"#ffffff","lang":"en","scope":"/","description":"a fork of tomayac/prompt-api-playground altered to demo the corresponding react hook lib and offline functionality","theme_color":"#ffffff"}

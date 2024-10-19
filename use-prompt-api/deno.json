@@ -1,0 +1,4 @@
+{
+  "name": "@scope/use-prompt-api",
+  "exports": "./index.js"
+}

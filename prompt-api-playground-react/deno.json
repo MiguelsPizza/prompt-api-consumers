@@ -1,0 +1,16 @@
+{
+  "name": "@scope/prompt-api-playground-react",
+  "exports": "./dist/index.js",
+  "tasks": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "imports": {
+    "vite": "npm:vite@^5.2.10",
+    "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^4.2.1",
+    "vite-plugin-pwa": "npm:vite-plugin-pwa@^0.20.0",
+    "workbox-core": "npm:workbox-core@^7.1.0",
+    "workbox-window": "npm:workbox-window@^7.1.0"
+  }
+}
