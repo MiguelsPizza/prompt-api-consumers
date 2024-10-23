@@ -1,14 +1,7 @@
 // deno-lint-ignore-file no-window
 // useLanguageModel.ts
 // @ts-types="npm:@types/react@^18.3.11"
-import { useEffect, useState } from "react";
-import "npm:@types/dom-chromium-ai";
-
-declare global {
-  interface Window {
-    ai: AI;
-  }
-}
+import { useEffect, useState } from 'react';
 
 /**
  * The result object returned by the useLanguageModel hook.
@@ -69,9 +62,10 @@ export function useLanguageModel(
     setDownloadProgress(null);
 
     const monitor = (m: AICreateMonitor) => {
-      m.addEventListener("downloadprogress", (e: DownloadProgressEvent) => {
+      m.addEventListener('downloadprogress', (e: DownloadProgressEvent) => {
         if (isMounted) {
-          setDownloadProgress(e.loaded / e.total);
+          const progress = e.loaded / e.total;
+          setDownloadProgress(progress);
         }
       });
     };
@@ -83,24 +77,29 @@ export function useLanguageModel(
     };
 
     if (
-      window.ai && window.ai.languageModel && window.ai.languageModel.create
+      window.ai &&
+      window.ai.languageModel &&
+      window.ai.languageModel.create
     ) {
-      window.ai.languageModel.create(createOptions).then((session) => {
-        if (isMounted) {
-          setSession(session);
-          setLoading(false);
-        }
-      }).catch((err) => {
-        if (isMounted) {
-          setError(
-            err instanceof Error ? err : new Error("Unknown error occurred"),
-          );
-          setLoading(false);
-        }
-      });
+      window.ai.languageModel
+        .create(createOptions)
+        .then((session) => {
+          if (isMounted) {
+            setSession(session);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          if (isMounted) {
+            setError(
+              err instanceof Error ? err : new Error('Unknown error occurred'),
+            );
+            setLoading(false);
+          }
+        });
     } else {
       if (isMounted) {
-        setError(new Error("Language Model API not available"));
+        setError(new Error('Language Model API not available'));
         setLoading(false);
       }
     }

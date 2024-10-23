@@ -1,0 +1,20 @@
+{
+  "name": "use-prompt-api",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/use-prompt-api.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/dom-chromium-ai": "^0.0.2",
+    "@types/react": "^18.3.11",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^3.5.2"
+  }
+}

@@ -1,14 +1,7 @@
 // deno-lint-ignore-file no-window
 // useLanguageModelAvailability.ts
 // @ts-types="npm:@types/react@^18.3.11"
-import { useEffect, useState } from "react";
-import "npm:@types/dom-chromium-ai";
-
-declare global {
-  interface Window {
-    ai: AI;
-  }
-}
+import { useEffect, useState } from 'react';
 
 /**
  * A custom React hook for checking the availability and capabilities of an AI language model.
@@ -54,10 +47,9 @@ export function useLanguageModelAvailability(): {
   /** Any error that occurred during the availability check */
   error: Error | null;
 } {
-  const [available, setAvailable] = useState<AICapabilityAvailability>("no");
-  const [capabilities, setCapabilities] = useState<
-    AILanguageModelCapabilities | null
-  >(null);
+  const [available, setAvailable] = useState<AICapabilityAvailability>('no');
+  const [capabilities, setCapabilities] =
+    useState<AILanguageModelCapabilities | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -67,26 +59,30 @@ export function useLanguageModelAvailability(): {
     setError(null);
 
     if (
-      window.ai && window.ai.languageModel &&
+      window.ai &&
+      window.ai.languageModel &&
       window.ai.languageModel.capabilities
     ) {
-      window.ai.languageModel.capabilities().then((capabilities) => {
-        if (isMounted) {
-          setCapabilities(capabilities);
-          setAvailable(capabilities.available);
-          setLoading(false);
-        }
-      }).catch((err) => {
-        if (isMounted) {
-          setError(
-            err instanceof Error ? err : new Error("Unknown error occurred"),
-          );
-          setLoading(false);
-        }
-      });
+      window.ai.languageModel
+        .capabilities()
+        .then((capabilities) => {
+          if (isMounted) {
+            setCapabilities(capabilities);
+            setAvailable(capabilities.available);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          if (isMounted) {
+            setError(
+              err instanceof Error ? err : new Error('Unknown error occurred'),
+            );
+            setLoading(false);
+          }
+        });
     } else {
       if (isMounted) {
-        setAvailable("no");
+        setAvailable('no');
         setLoading(false);
       }
     }
