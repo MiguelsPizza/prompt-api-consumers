@@ -13,7 +13,7 @@
   "devDependencies": {
     "@types/dom-chromium-ai": "^0.0.2",
     "@types/react": "^18.3.11",
-    "typescript": "^5.0.2",
+    "typescript": "^5.6.2",
     "vite": "^4.4.5",
     "vite-plugin-dts": "^3.5.2"
   }

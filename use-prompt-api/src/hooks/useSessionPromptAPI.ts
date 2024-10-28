@@ -17,7 +17,6 @@ export function useSessionPromptAPI(
     systemPrompt,
     initialPrompts = [],
     signal: creationSignal,
-    monitor,
   } = modelOptions;
 
   // Refs

@@ -1,36 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { BasePromptAPIResult, ModelConversation } from './types';
+import { useCallback, useEffect, useState } from 'react';
+import { ModelConversation } from './types';
 
-interface StatelessPromptAPIOptions {
-  modelOptions: AILanguageModelCreateOptionsWithSystemPrompt;
+interface StatelessPromptAPIResult {
+  available: AICapabilityAvailability;
+  capabilities: AILanguageModelCapabilities | null;
+  response: string | null;
+  loading: boolean;
+  error: Error | null;
+  abortController: AbortController | null;
+  sendPrompt: (input: string, options?: AILanguageModelPromptOptions & {
+    streaming?: boolean;
+    history?: ModelConversation;
+  }) => Promise<void | string>;
+  abort: () => void;
+  getTokenCount: (history: ModelConversation) => Promise<number | null>;
 }
 
-export function useStatelessPromptAPI(
-  options: StatelessPromptAPIOptions
-): BasePromptAPIResult {
-  const { modelOptions } = options;
-
-  // Refs
-  const mountedRef = useRef<boolean>(true);
-  const accumulatedResponseRef = useRef<string>('');
-
-  // State
+export function useStatelessPromptAPI(sessionOptions: Omit<AILanguageModelCreateOptionsWithSystemPrompt, 'initialPrompts'>): StatelessPromptAPIResult {
   const [available, setAvailable] = useState<AICapabilityAvailability>('no');
   const [capabilities, setCapabilities] = useState<AILanguageModelCapabilities | null>(null);
-  const [history, setHistory] = useState<ModelConversation>([]);
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  // Check capabilities
   useEffect(() => {
     const checkCapabilities = async () => {
       if (!window.ai?.languageModel?.capabilities) {
@@ -41,26 +34,31 @@ export function useStatelessPromptAPI(
 
       try {
         const caps = await window.ai.languageModel.capabilities();
-        if (mountedRef.current) {
-          setCapabilities(caps);
-          setAvailable(caps.available);
-        }
+        setCapabilities(caps);
+        setAvailable(caps.available);
       } catch (err) {
-        if (mountedRef.current) {
-          setError(err instanceof Error ? err : new Error('Failed to check capabilities'));
-        }
+        setError(err instanceof Error ? err : new Error('Failed to check capabilities'));
       }
     };
 
     checkCapabilities();
+
   }, []);
+
+  // useEffect(() => {
+  //   return () => {
+  //     abortController?.abort()
+  //   }
+  // })
 
   const sendPrompt = useCallback(async (
     input: string,
-    options: AILanguageModelPromptOptions & { streaming?: boolean } = {}
-  ): Promise<void> => {
-    const { streaming = false, signal } = options;
-
+    promptOptions: AILanguageModelPromptOptions & {
+      streaming?: boolean;
+      history?: ModelConversation;
+    } = {}
+  ): Promise<void | string> => {
+    const { streaming = false, signal, history = [] } = promptOptions;
     if (!input?.trim()) {
       setError(new Error('Input cannot be empty'));
       return;
@@ -69,25 +67,24 @@ export function useStatelessPromptAPI(
     setLoading(true);
     setError(null);
     setResponse(null);
-    accumulatedResponseRef.current = '';
 
     const controller = new AbortController();
+    const sessionAbortSignal: AbortSignal[] = sessionOptions.signal ? [sessionOptions.signal] : []
+    const promptAbortSignal: AbortSignal[] = signal ? [signal] : []
+
     setAbortController(controller);
-    const combinedSignal = signal
-      ? AbortSignal.any([signal, controller.signal])
-      : controller.signal;
+    const combinedSignal = AbortSignal.any([controller.signal, ...promptAbortSignal, ...sessionAbortSignal])
 
     let session: AILanguageModel | null = null;
-
+    const promptsWSession = sessionOptions.systemPrompt ? [{role: 'system', content: sessionOptions.systemPrompt}, ...history] : history
     try {
       session = await window.ai.languageModel.create({
-        ...modelOptions,
-        initialPrompts: history,
+        monitor: sessionOptions.monitor,
+        temperature: sessionOptions.temperature,
+        topK: sessionOptions.topK,
+        initialPrompts: promptsWSession,
         signal: combinedSignal,
       } as AILanguageModelCreateOptionsWithSystemPrompt);
-
-      const userPrompt: AILanguageModelUserPrompt = { role: 'user', content: input };
-      setHistory(prev => [...prev, userPrompt]);
 
       if (streaming) {
         const stream = session.promptStreaming(input, { signal: combinedSignal });
@@ -95,46 +92,25 @@ export function useStatelessPromptAPI(
 
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
-
-          accumulatedResponseRef.current = value;
-          if (mountedRef.current) {
-            setResponse(value);
-          }
-        }
-
-        if (mountedRef.current) {
-          setHistory(prev => [...prev, {
-            role: 'assistant',
-            content: accumulatedResponseRef.current
-          }]);
+          if (done) return value;
+          setResponse(value);
         }
       } else {
         const result = await session.prompt(input, { signal: combinedSignal });
-
-        if (mountedRef.current) {
-          setResponse(result);
-          setHistory(prev => [...prev, { role: 'assistant', content: result }]);
-        }
+        setResponse(result);
+        return result
       }
     } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError' && mountedRef.current) {
+      console.error(err);
+      if (err instanceof Error && err.name !== 'AbortError') {
         setError(err);
       }
     } finally {
       session?.destroy();
-      if (mountedRef.current) {
-        setLoading(false);
-        setAbortController(null);
-      }
+      setLoading(false);
+      setAbortController(null);
     }
-  }, [modelOptions, history]);
-
-  const clearHistory = useCallback(() => {
-    setHistory([]);
-    setResponse(null);
-    accumulatedResponseRef.current = '';
-  }, []);
+  }, [sessionOptions]);
 
   const abort = useCallback(() => {
     abortController?.abort();
@@ -142,9 +118,9 @@ export function useStatelessPromptAPI(
     setLoading(false);
   }, [abortController]);
 
-  const getTokenCount = useCallback(async (): Promise<number | null> => {
+  const getTokenCount = useCallback(async (history: ModelConversation): Promise<number | null> => {
     try {
-      const session = await window.ai.languageModel.create(modelOptions);
+      const session = await window.ai.languageModel.create(sessionOptions);
       const count = await session.countPromptTokens(
         history.reduce((str, { content }) => `${str}\n${content}`, '')
       );
@@ -154,25 +130,17 @@ export function useStatelessPromptAPI(
       console.error('Failed to count tokens:', err);
       return null;
     }
-  }, [modelOptions, history]);
-
-  const reset = useCallback(async () => {
-    abort();
-    clearHistory();
-  }, [abort, clearHistory]);
+  }, [sessionOptions]);
 
   return {
     available,
     capabilities,
-    history,
     response,
     loading,
     error,
     abortController,
     sendPrompt,
-    clearHistory,
     abort,
     getTokenCount,
-    reset,
   };
 }
