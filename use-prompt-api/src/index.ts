@@ -3,7 +3,7 @@
 // import { useLanguageModelPrompt } from './useLanguageModelPrompt.ts';
 import { useSessionPromptAPI } from "./hooks/useSessionPromptAPI";
 import { useStatelessPromptAPI } from "./hooks/useStatelessPromptAPI";
-import { ModelConversation } from '../dist/hooks/types';
+import { ModelConversation } from './hooks/types'
 
 export { useSessionPromptAPI, useStatelessPromptAPI}
 export type {ModelConversation}

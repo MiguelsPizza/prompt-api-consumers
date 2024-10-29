@@ -1,28 +1,70 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ModelConversation } from './types';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface StatelessPromptAPIResult {
   available: AICapabilityAvailability;
   capabilities: AILanguageModelCapabilities | null;
-  response: string | null;
+  streamingResponse: string | null;
   loading: boolean;
   error: Error | null;
   abortController: AbortController | null;
   sendPrompt: (input: string, options?: AILanguageModelPromptOptions & {
     streaming?: boolean;
-    history?: ModelConversation;
-  }) => Promise<void | string>;
+  }) => Promise<void | string | null>;
   abort: () => void;
-  getTokenCount: (history: ModelConversation) => Promise<number | null>;
+  sessionTokens: number
 }
 
-export function useStatelessPromptAPI(sessionOptions: Omit<AILanguageModelCreateOptionsWithSystemPrompt, 'initialPrompts'>): StatelessPromptAPIResult {
+export function useStatelessPromptAPI({ initialPrompts = [], monitor, signal, systemPrompt, temperature, topK }: AILanguageModelCreateOptionsWithSystemPrompt): StatelessPromptAPIResult {
   const [available, setAvailable] = useState<AICapabilityAvailability>('no');
   const [capabilities, setCapabilities] = useState<AILanguageModelCapabilities | null>(null);
-  const [response, setResponse] = useState<string | null>(null);
+  const [streamingResponse, setStreamingResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [sessionTokens, setSessionTokens] = useState<number>(0)
+
+  const session = useRef<AILanguageModel | null>(null)
+
+  useEffect(() => {
+    (async () => {
+      // Cleanup previous session before creating new one
+      if (session.current) {
+        session.current.destroy();
+        session.current = null;
+      }
+
+      if (available === 'readily' || available === 'after-download') {
+        console.log('creating session')
+        const promptsWSession = systemPrompt
+          ? [{ role: 'system', content: systemPrompt }, ...initialPrompts]
+          : initialPrompts
+
+        try {
+          session.current = await window.ai.languageModel.create({
+            monitor: monitor,
+            temperature: temperature,
+            topK: topK,
+            initialPrompts: promptsWSession,
+            signal: signal,
+          } as AILanguageModelCreateOptionsWithSystemPrompt);
+        } catch (err) {
+          console.error('Failed to create session:', err);
+          setError(err instanceof Error ? err : new Error('Failed to create session'));
+        }
+      }
+    })()
+  }, [available, systemPrompt, initialPrompts, monitor, temperature, topK, signal])
+
+  useEffect(() => {
+    return () => {
+      if (session.current) {
+        session.current.destroy();
+        session.current = null;
+      }
+    };
+  }, []);
+
+
 
   useEffect(() => {
     const checkCapabilities = async () => {
@@ -45,20 +87,11 @@ export function useStatelessPromptAPI(sessionOptions: Omit<AILanguageModelCreate
 
   }, []);
 
-  // useEffect(() => {
-  //   return () => {
-  //     abortController?.abort()
-  //   }
-  // })
-
   const sendPrompt = useCallback(async (
     input: string,
-    promptOptions: AILanguageModelPromptOptions & {
-      streaming?: boolean;
-      history?: ModelConversation;
-    } = {}
-  ): Promise<void | string> => {
-    const { streaming = false, signal, history = [] } = promptOptions;
+    promptOptions: AILanguageModelPromptOptions & { streaming?: boolean; } = {}
+  ): Promise<void | string | null> => {
+    const { streaming = false, signal } = promptOptions;
     if (!input?.trim()) {
       setError(new Error('Input cannot be empty'));
       return;
@@ -66,38 +99,32 @@ export function useStatelessPromptAPI(sessionOptions: Omit<AILanguageModelCreate
 
     setLoading(true);
     setError(null);
-    setResponse(null);
+    setStreamingResponse(null);
 
     const controller = new AbortController();
-    const sessionAbortSignal: AbortSignal[] = sessionOptions.signal ? [sessionOptions.signal] : []
+    const sessionAbortSignal: AbortSignal[] = signal ? [signal] : []
     const promptAbortSignal: AbortSignal[] = signal ? [signal] : []
 
     setAbortController(controller);
     const combinedSignal = AbortSignal.any([controller.signal, ...promptAbortSignal, ...sessionAbortSignal])
-
-    let session: AILanguageModel | null = null;
-    const promptsWSession = sessionOptions.systemPrompt ? [{role: 'system', content: sessionOptions.systemPrompt}, ...history] : history
     try {
-      session = await window.ai.languageModel.create({
-        monitor: sessionOptions.monitor,
-        temperature: sessionOptions.temperature,
-        topK: sessionOptions.topK,
-        initialPrompts: promptsWSession,
-        signal: combinedSignal,
-      } as AILanguageModelCreateOptionsWithSystemPrompt);
-
+      if (!session.current) throw new Error('Session not availible')
       if (streaming) {
-        const stream = session.promptStreaming(input, { signal: combinedSignal });
+        const stream = session.current.promptStreaming(input, { signal: combinedSignal });
         const reader = stream.getReader();
-
+        let returnVal: string | null = null
         while (true) {
           const { done, value } = await reader.read();
-          if (done) return value;
-          setResponse(value);
+          returnVal = value || returnVal
+          if (done) {
+            console.log({ done, value })
+            return returnVal
+          };
+          setStreamingResponse(value);
         }
       } else {
-        const result = await session.prompt(input, { signal: combinedSignal });
-        setResponse(result);
+        const result = await session.current.prompt(input, { signal: combinedSignal });
+        setStreamingResponse(result);
         return result
       }
     } catch (err) {
@@ -105,12 +132,12 @@ export function useStatelessPromptAPI(sessionOptions: Omit<AILanguageModelCreate
       if (err instanceof Error && err.name !== 'AbortError') {
         setError(err);
       }
+      throw err
     } finally {
-      session?.destroy();
       setLoading(false);
       setAbortController(null);
     }
-  }, [sessionOptions]);
+  }, [signal]);
 
   const abort = useCallback(() => {
     abortController?.abort();
@@ -118,29 +145,24 @@ export function useStatelessPromptAPI(sessionOptions: Omit<AILanguageModelCreate
     setLoading(false);
   }, [abortController]);
 
-  const getTokenCount = useCallback(async (history: ModelConversation): Promise<number | null> => {
-    try {
-      const session = await window.ai.languageModel.create(sessionOptions);
-      const count = await session.countPromptTokens(
-        history.reduce((str, { content }) => `${str}\n${content}`, '')
-      );
-      session.destroy();
-      return count;
-    } catch (err) {
-      console.error('Failed to count tokens:', err);
-      return null;
-    }
-  }, [sessionOptions]);
+  useEffect(() => {
+    if (!session.current) return
+    const historyStr = initialPrompts?.map(({ content }) => content).join('') ?? ''
+    const systemStr = systemPrompt ?? ''
+    session.current.countPromptTokens(
+      [historyStr, systemStr].reduce((str, content) => `${str}${content}`)
+      ,).then((count) => setSessionTokens(count))
+  }, [initialPrompts, systemPrompt]);
 
   return {
     available,
     capabilities,
-    response,
+    streamingResponse,
     loading,
     error,
     abortController,
     sendPrompt,
-    abort,
-    getTokenCount,
+    sessionTokens,
+    abort
   };
 }
