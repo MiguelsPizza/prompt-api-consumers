@@ -5,12 +5,80 @@ import { ChatMessages } from './components/chat/ChatMessages';
 import { Sidebar } from './components/chat/Sidebar';
 import { ChatHeader } from './components/chat/ChatHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
-import { PlusCircle } from 'lucide-react';
+import { AlertCircle, Download, PlusCircle, XCircle } from 'lucide-react';
 import { Button } from './components/ui/button';
+import { Progress } from './components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from './components/ui/alert';
+import { useAICapabilities } from '../../use-prompt-api/src/hooks/useAICapabilities';
 
 export default function ChatInterface() {
   const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const {
+    available,
+    error,
+    downloadProgress,
+    isDownloading,
+    startDownload,
+    cancelDownload
+  } = useAICapabilities();
+
+  const AIStatusCard = () => {
+    if (error) {
+      return (
+        <Alert variant="destructive" className="max-w-[400px]">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error.message}</AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (available === 'after-download') {
+      return (
+        <Card className="w-[400px]">
+          <CardHeader>
+            <CardTitle>Download Required</CardTitle>
+            <CardDescription>
+              The AI model needs to be downloaded before you can start chatting
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {isDownloading && downloadProgress && (
+              <div className="space-y-2">
+                <Progress
+                  value={(downloadProgress.loaded / downloadProgress.total) * 100}
+                />
+                <p className="text-sm text-muted-foreground">
+                  {Math.round((downloadProgress.loaded / downloadProgress.total) * 100)}%
+                </p>
+              </div>
+            )}
+            <div className="flex justify-center gap-2">
+              {!isDownloading ? (
+                <Button onClick={startDownload} className="flex gap-2">
+                  <Download className="h-5 w-5" />
+                  Download Model
+                </Button>
+              ) : (
+                <Button
+                  onClick={cancelDownload}
+                  variant="destructive"
+                  className="flex gap-2"
+                >
+                  <XCircle className="h-5 w-5" />
+                  Cancel Download
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return <CreateConversationCard />;
+  };
 
   const currentConversation = useLiveQuery(
     async () => {
@@ -108,7 +176,7 @@ export default function ChatInterface() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        {currentConversationId ? (
+      {currentConversationId && available === 'readily' ? (
           <>
             <ChatHeader
               sidebarCollapsed={sidebarCollapsed}
@@ -120,7 +188,7 @@ export default function ChatInterface() {
             <ChatMessages currentConversation={currentConversation} />
           </>
         ) : (
-          <CreateConversationCard />
+          <AIStatusCard />
         )}
       </div>
     </div>

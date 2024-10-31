@@ -2,18 +2,21 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, ArrowDown, Square } from 'lucide-react';
+import { Send, ArrowDown, Square, AlertCircle } from 'lucide-react';
 import { db } from '../../local-db/db';
 import { MessageCard } from './MessageCard';
 import { ThinkingCard } from './ThinkingCard';
 import { useStatelessPromptAPI } from 'use-prompt-api';
 import { ChatMessagesProps, Message } from '../../types/chat';
+import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 
 export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [input, setInput] = useState('');
+  const { toast } = useToast()
 
   const messages = useLiveQuery(
     async () => {
@@ -36,12 +39,13 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
 
   //don't pass in the user prompt if it makes it into the arr before the request is sent
   //this is not a great solution
-  const initialPrompts =  useMemo(() => (messages.at(-1)?.role === 'user' ? messages.slice(-1) : messages), [messages]) as (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[]
+  const initialPrompts = useMemo(() => (messages.at(-1)?.role === 'user' ? messages.slice(-1) : messages), [messages]) as (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[]
 
   const {
     streamingResponse,
     loading,
     sendPrompt,
+    error,
     abort
   } = useStatelessPromptAPI({
     systemPrompt: currentConversation?.system_prompt ?? undefined,
@@ -76,14 +80,25 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
       await db.conversation.update(currentConversation.id, { updated_at: now });
     } catch (error) {
       console.error('Error adding message to conversation:', error);
+      toast({
+        variant: "destructive",
+        title: "Chat Error",
+        description: error instanceof Error ? error.message : "Failed to add message to chat",
+      });
     }
   };
 
   const handleSubmit = async () => {
     console.log(input, currentConversation)
-    if (!input.trim() || !currentConversation?.id) return;
+    if (!currentConversation?.id) {
+      toast({
+        variant: "destructive",
+        title: "Chat Error",
+        description: "No conversation started",
+      });
+      return
+    }
     try {
-      console.log('here')
       await addMessageToConversation({ role: 'user', content: input });
       setInput('');
       const res = await sendPrompt(input, { streaming: true });
@@ -91,7 +106,13 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
       if (!res) throw new Error('Model Failed to respond')
       await addMessageToConversation({ role: 'assistant', content: res });
     } catch (error) {
-      console.error('Error sending prompt:', error);
+      console.error({ error });
+      toast({
+        variant: "destructive",
+        title: "Chat Error",
+        description: error instanceof Error ? error.message : "Failed to send message",
+        action: <ToastAction altText="Try again" onClick={() => handleSubmit()}>Try again</ToastAction>,
+      });
     }
   };
 
@@ -138,6 +159,12 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
           ref={scrollAreaRef}
           className="absolute inset-0 overflow-y-auto p-4"
         >
+          {error && (
+            <div className="mb-4 p-4 rounded-md bg-destructive/10 text-destructive flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              <span>{error.message}</span>
+            </div>
+          )}
           {messages.map(({ role, content, id }) => (
             <MessageCard
               key={id}
@@ -177,15 +204,22 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message here..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!loading) {
+                  handleSubmit();
+                }
+              }
+            }}
+            placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
             className="pr-12"
           />
           <Button
             type="submit"
             size="icon"
-            className="absolute right-2 bottom-2"
+            className="absolute right-2 bottom-2 hover:bg-gray-100 transition-colors"
             onClick={(e) => {
-              console.log({loading}, 'sending prompt')
               e.preventDefault();
               if (loading) {
                 abort();
@@ -193,6 +227,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
                 handleSubmit();
               }
             }}
+            title={loading ? "Stop generating" : "Send message"}
           >
             {loading ? <Square className="h-4 w-4" /> : <Send className="h-4 w-4" />}
           </Button>
