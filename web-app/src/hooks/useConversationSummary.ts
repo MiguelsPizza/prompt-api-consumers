@@ -63,6 +63,12 @@ export function useConversationSummary(
           console.log('Creating headline model');
           const headline = await window.ai.languageModel.create({
             systemPrompt: `You take in a summary of a conversation between a user and LLM and generate a short headline/description of the conversation.
+
+            For example, if given this summary:
+            "The user asked about React hooks and the LLM explained useEffect, useState and custom hooks with code examples"
+            You would respond with:
+            HEADLINE: React Hooks Tutorial and Examples
+
             You must format your response exactly like this:
             HEADLINE: <your headline here>`,
           });
