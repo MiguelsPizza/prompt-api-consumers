@@ -11,7 +11,6 @@
 //   modelOptions?: AILanguageModelCreateOptionsWithSystemPrompt | AILanguageModelCreateOptionsWithoutSystemPrompt
 // }
 
-
 // /**
 //  * Options for sending prompts to the model
 //  */

@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 
-
-
-
 // Add interfaces before the class implementations
 interface IAICapabilityError {
   readonly code: 'API_UNAVAILABLE' | 'CAPABILITY_CHECK_FAILED';
@@ -16,15 +13,27 @@ interface IAIDownloadError {
   message: string;
 }
 
-class AICapabilityError<T extends 'API_UNAVAILABLE' | 'CAPABILITY_CHECK_FAILED'> extends Error implements IAICapabilityError {
-  constructor(message: string, public readonly code: T) {
+class AICapabilityError<T extends 'API_UNAVAILABLE' | 'CAPABILITY_CHECK_FAILED'>
+  extends Error
+  implements IAICapabilityError
+{
+  constructor(
+    message: string,
+    public readonly code: T,
+  ) {
     super(message);
     this.name = 'AICapabilityError';
   }
 }
 
-class AIDownloadError<T extends 'DOWNLOAD_CANCELLED' | 'DOWNLOAD_FAILED'> extends Error implements IAIDownloadError {
-  constructor(message: string, public readonly code: T) {
+class AIDownloadError<T extends 'DOWNLOAD_CANCELLED' | 'DOWNLOAD_FAILED'>
+  extends Error
+  implements IAIDownloadError
+{
+  constructor(
+    message: string,
+    public readonly code: T,
+  ) {
     super(message);
     this.name = 'AIDownloadError';
   }
@@ -38,14 +47,16 @@ interface AICapabilitiesResult {
   // Availability status
   available: AICapabilityAvailability;
   capabilities: AILanguageModelCapabilities | null;
-  error: UseAICapabilitiesError | null
+  error: UseAICapabilitiesError | null;
 
   // Download progress
   downloadProgress: { loaded: number; total: number } | null;
   isDownloading: boolean;
 
   // Model capabilities
-  supportsLanguage: (languageTag: Intl.UnicodeBCP47LocaleIdentifier) => AICapabilityAvailability;
+  supportsLanguage: (
+    languageTag: Intl.UnicodeBCP47LocaleIdentifier,
+  ) => AICapabilityAvailability;
   defaultTemperature: number | null;
   defaultTopK: number | null;
   maxTopK: number | null;
@@ -58,17 +69,30 @@ interface AICapabilitiesResult {
 
 export function useAICapabilities(): AICapabilitiesResult {
   const [available, setAvailable] = useState<AICapabilityAvailability>('no');
-  const [capabilities, setCapabilities] = useState<AILanguageModelCapabilities | null>(null);
+  const [capabilities, setCapabilities] =
+    useState<AILanguageModelCapabilities | null>(null);
   const [error, setError] = useState<UseAICapabilitiesError | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState<{ loaded: number; total: number } | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<{
+    loaded: number;
+    total: number;
+  } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
 
   const checkCapabilities = useCallback(async () => {
-   // Add check for window object (SSR safety)
-    if (typeof window === 'undefined' || !window.ai?.languageModel?.capabilities) {
+    // Add check for window object (SSR safety)
+    if (
+      typeof window === 'undefined' ||
+      !window.ai?.languageModel?.capabilities
+    ) {
       setAvailable('no');
-      setError(new AICapabilityError('Language Model API not available', 'API_UNAVAILABLE'));
+      setError(
+        new AICapabilityError(
+          'Language Model API not available',
+          'API_UNAVAILABLE',
+        ),
+      );
       return;
     }
 
@@ -83,8 +107,8 @@ export function useAICapabilities(): AICapabilitiesResult {
       setError(
         new AICapabilityError(
           err instanceof Error ? err.message : 'Failed to check capabilities',
-          'CAPABILITY_CHECK_FAILED'
-        )
+          'CAPABILITY_CHECK_FAILED',
+        ),
       );
     }
     // usually I'd clean this up but I'm not sure with this one since it's a background process of the browser
@@ -104,13 +128,23 @@ export function useAICapabilities(): AICapabilitiesResult {
   const startDownload = useCallback(async () => {
     // Add additional checks before starting download
     if (!window.ai?.languageModel?.create) {
-      setError(new AIDownloadError('Language Model API not available', 'DOWNLOAD_FAILED'));
+      setError(
+        new AIDownloadError(
+          'Language Model API not available',
+          'DOWNLOAD_FAILED',
+        ),
+      );
       return;
     }
 
     if (available !== 'after-download') {
-      console.log('here')
-      setError(new AIDownloadError('Download not required in current state', 'DOWNLOAD_FAILED'));
+      console.log('here');
+      setError(
+        new AIDownloadError(
+          'Download not required in current state',
+          'DOWNLOAD_FAILED',
+        ),
+      );
       return;
     }
 
@@ -132,21 +166,25 @@ export function useAICapabilities(): AICapabilitiesResult {
           monitor.addEventListener('downloadprogress', (event) => {
             setDownloadProgress({
               loaded: event.loaded,
-              total: event.total
+              total: event.total,
             });
           });
-        }
+        },
       });
       // Recheck capabilities after download
       await checkCapabilities();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        setError(new AIDownloadError('Download cancelled', 'DOWNLOAD_CANCELLED'));
+        setError(
+          new AIDownloadError('Download cancelled', 'DOWNLOAD_CANCELLED'),
+        );
       } else {
-        setError(new AIDownloadError(
-          err instanceof Error ? err.message : 'Download failed',
-          'DOWNLOAD_FAILED'
-        ));
+        setError(
+          new AIDownloadError(
+            err instanceof Error ? err.message : 'Download failed',
+            'DOWNLOAD_FAILED',
+          ),
+        );
       }
     } finally {
       if (tempSession) {
@@ -163,10 +201,12 @@ export function useAICapabilities(): AICapabilitiesResult {
   }, [abortController]);
 
   const supportsLanguage = useCallback(
-    (languageTag: Intl.UnicodeBCP47LocaleIdentifier): AICapabilityAvailability => {
+    (
+      languageTag: Intl.UnicodeBCP47LocaleIdentifier,
+    ): AICapabilityAvailability => {
       return capabilities?.supportsLanguage(languageTag) ?? 'no';
     },
-    [capabilities]
+    [capabilities],
   );
 
   return {
@@ -181,6 +221,6 @@ export function useAICapabilities(): AICapabilitiesResult {
     defaultTopK: capabilities?.defaultTopK ?? null,
     maxTopK: capabilities?.maxTopK ?? null,
     startDownload,
-    cancelDownload
+    cancelDownload,
   };
 }

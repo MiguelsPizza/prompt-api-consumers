@@ -1,5 +1,9 @@
-
-export type ModelConversation = (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[] | [AILanguageModelSystemPrompt, ...(AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[]]
+export type ModelConversation =
+  | (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[]
+  | [
+      AILanguageModelSystemPrompt,
+      ...(AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[],
+    ];
 
 export interface BasePromptAPIResult {
   available: AICapabilityAvailability;
@@ -9,7 +13,10 @@ export interface BasePromptAPIResult {
   loading: boolean;
   error: Error | null;
   abortController: AbortController | null;
-  sendPrompt: (input: string, options?: AILanguageModelPromptOptions) => Promise<void | string>;
+  sendPrompt: (
+    input: string,
+    options?: AILanguageModelPromptOptions,
+  ) => Promise<void | string>;
   clearHistory: () => void;
   abort: () => void;
   getTokenCount: () => Promise<number | null>;

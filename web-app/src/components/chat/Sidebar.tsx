@@ -9,7 +9,7 @@ export const Sidebar = ({
   sidebarCollapsed,
   onNewChat,
   onDeleteConversation,
-  onSelectConversation
+  onSelectConversation,
 }: SidebarProps) => {
   if (sidebarCollapsed) return null;
 
@@ -27,10 +27,7 @@ export const Sidebar = ({
       <ScrollArea className="flex-1">
         <div className="p-4">
           {conversations?.map((conversation) => (
-            <div
-              key={conversation.id}
-              className="flex items-center mb-2 group"
-            >
+            <div key={conversation.id} className="flex items-center mb-2 group">
               <Button
                 variant="ghost"
                 className="flex-1 justify-start bg-gray-800 text-white hover:bg-gray-700 hover:text-green-500 transition-colors duration-300"

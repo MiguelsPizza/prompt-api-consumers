@@ -1,5 +1,5 @@
-import DOMPurify from "dompurify";
-import { marked } from "marked";
+import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 
 export const renderMarkdown = (content: string) => {
   try {

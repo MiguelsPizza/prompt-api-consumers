@@ -1,4 +1,4 @@
-import { Conversation } from "@/local-db/db";
+import { Conversation } from '@/local-db/db';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -15,7 +15,7 @@ export interface SidebarProps {
   currentConversationId: number | null;
   sidebarCollapsed: boolean;
   onNewChat: () => void;
-  onDeleteConversation: (id: number) => void;
+  onDeleteConversation: (id: number,sideEffect?: () => any) => void;
   onSelectConversation: (id: number) => void;
 }
 
@@ -24,5 +24,5 @@ export interface ChatHeaderProps {
   onToggleSidebar: () => void;
   currentConversation?: Conversation;
   currentConversationId: number | null;
-  onDeleteConversation: (id: number) => void;
+  onDeleteConversation: (id: number,sideEffect?: () => any) => void;
 }
