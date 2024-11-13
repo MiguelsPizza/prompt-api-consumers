@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createContext, PropsWithChildren, useContext } from 'react';
 
 // Add interfaces before the class implementations
 interface IAICapabilityError {
@@ -15,8 +15,7 @@ interface IAIDownloadError {
 
 class AICapabilityError<T extends 'API_UNAVAILABLE' | 'CAPABILITY_CHECK_FAILED'>
   extends Error
-  implements IAICapabilityError
-{
+  implements IAICapabilityError {
   constructor(
     message: string,
     public readonly code: T,
@@ -28,8 +27,7 @@ class AICapabilityError<T extends 'API_UNAVAILABLE' | 'CAPABILITY_CHECK_FAILED'>
 
 class AIDownloadError<T extends 'DOWNLOAD_CANCELLED' | 'DOWNLOAD_FAILED'>
   extends Error
-  implements IAIDownloadError
-{
+  implements IAIDownloadError {
   constructor(
     message: string,
     public readonly code: T,
@@ -67,7 +65,10 @@ interface AICapabilitiesResult {
   cancelDownload: () => void;
 }
 
-export function useAICapabilities(): AICapabilitiesResult {
+const AICapabilitiesContext = createContext<AICapabilitiesResult | null>(null);
+
+
+export function AICapabilitiesProvider({ children }: PropsWithChildren) {
   const [available, setAvailable] = useState<AICapabilityAvailability>('no');
   const [capabilities, setCapabilities] =
     useState<AILanguageModelCapabilities | null>(null);
@@ -209,7 +210,7 @@ export function useAICapabilities(): AICapabilitiesResult {
     [capabilities],
   );
 
-  return {
+  const value: AICapabilitiesResult = {
     available,
     capabilities,
     error,
@@ -217,10 +218,22 @@ export function useAICapabilities(): AICapabilitiesResult {
     isDownloading,
     supportsLanguage,
     defaultTemperature: capabilities?.defaultTemperature ?? null,
-    // maxTemperature: capabilities?.maxTemperature ?? null,
     defaultTopK: capabilities?.defaultTopK ?? null,
     maxTopK: capabilities?.maxTopK ?? null,
     startDownload,
     cancelDownload,
   };
+  return (
+    <AICapabilitiesContext.Provider value={value} >
+      {children}
+    </AICapabilitiesContext.Provider>
+  );
+}
+
+export function useAICapabilities() {
+  const context = useContext(AICapabilitiesContext);
+  if (!context) {
+    throw new Error('useAICapabilities must be used within AICapabilitiesProvider');
+  }
+  return context;
 }

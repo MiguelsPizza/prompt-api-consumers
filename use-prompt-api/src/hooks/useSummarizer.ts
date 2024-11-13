@@ -45,6 +45,7 @@ export function useSummarizer({
   signal,
   sharedContext,
 }: AISummarizerCreateOptions = {}): UseSummarizerResult {
+
   const [streamingResponse, setStreamingResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<UseSummarizerError | null>(null);
@@ -56,6 +57,11 @@ export function useSummarizer({
     if (session.current) {
       session.current.destroy();
       session.current = null;
+    }
+
+    if(!window.ai?.summarizer){
+      setError(new SummarizerError('Summarizer not Ready', "SESSION_UNAVAILABLE"))
+      return
     }
 
     window.ai.summarizer

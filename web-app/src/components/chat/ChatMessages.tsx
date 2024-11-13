@@ -6,7 +6,7 @@ import { Send, ArrowDown, Square, AlertCircle } from 'lucide-react';
 import { db } from '../../local-db/db';
 import { MessageCard } from './MessageCard';
 import { ThinkingCard } from './ThinkingCard';
-import { useStatelessPromptAPI, useSummarizer } from 'use-prompt-api';
+import { useStatelessPromptAPI } from 'use-prompt-api';
 import { ChatMessagesProps, Message } from '../../types/chat';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
@@ -15,6 +15,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [inputTokens, setInputTokens] = useState(0);
   const [input, setInput] = useState('');
   const { toast } = useToast();
 
@@ -30,6 +31,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
     }, [currentConversation?.id]) ?? [];
 
 
+
   //don't pass in the user prompt if it makes it into the arr before the request is sent
   //this is not a great solution
   const initialPrompts = useMemo(
@@ -37,13 +39,22 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
     [messages],
   ) as (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[];
 
-  const { streamingResponse, loading, sendPrompt, error, abort, abortController } =
+  const { streamingResponse, loading, sendPrompt, error, abort, sessionAvailable, session, sessionTokens } =
     useStatelessPromptAPI({
       systemPrompt: currentConversation?.system_prompt ?? undefined,
       temperature: currentConversation?.temperature ?? 0.7,
       topK: currentConversation?.top_k ?? 10,
       initialPrompts: initialPrompts,
     });
+
+    console.log({session})
+  // Add this effect to count input tokens
+  useEffect(() => {
+    if (!sessionAvailable || !session) return;
+    session.countPromptTokens(input)
+      .then(tokens => setInputTokens(tokens))
+      .catch(console.error);
+  }, [input, sessionAvailable]);
 
 
   const addMessageToConversation = async (message: Message) => {
@@ -56,7 +67,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
         .equals(currentConversation.id)
         .count();
 
-      await db.conversationMessage.add({
+      const id = await db.conversationMessage.add({
         conversation: currentConversation.id,
         position,
         role: message.role,
@@ -68,6 +79,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
       });
 
       await db.conversation.update(currentConversation.id, { updated_at: now });
+      return id
     } catch (error) {
       console.error('Error adding message to conversation:', error);
       toast({
@@ -91,8 +103,9 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
       });
       return;
     }
+    let tempUserMessageId: number | undefined
     try {
-      await addMessageToConversation({ role: 'user', content: input });
+      tempUserMessageId = await addMessageToConversation({ role: 'user', content: input });
       setInput('');
       const res = await sendPrompt(input, { streaming: true });
 
@@ -100,6 +113,9 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
       await addMessageToConversation({ role: 'assistant', content: res });
     } catch (error) {
       console.error({ error });
+      if (tempUserMessageId) {
+        await db.conversationMessage.delete(tempUserMessageId)
+      }
       toast({
         variant: 'destructive',
         title: 'Chat Error',
@@ -114,7 +130,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
     }
   };
 
-  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+  const scrollToBottom = () => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
@@ -139,7 +155,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
   // Auto-scroll when new messages arrive
   useEffect(() => {
     if (autoScroll) {
-      scrollToBottom('smooth');
+      scrollToBottom();
     }
   }, [messages.length, streamingResponse, autoScroll]);
 
@@ -185,6 +201,13 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
         </div>
       </div>
 
+      {/* Add token counter before the footer */}
+      <div className="px-4 py-2 text-sm text-gray-500 border-t">
+        <span>Session Tokens: {sessionTokens}</span>
+        <span className="mx-2">•</span>
+        <span>Input Tokens: {inputTokens}</span>
+      </div>
+
       {/* Footer Input */}
       <footer className="bg-white border-t p-4">
         <form
@@ -211,6 +234,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
           <Button
             type="submit"
             size="icon"
+            disabled={!sessionAvailable}
             className="absolute right-2 bottom-2 hover:bg-gray-100 transition-colors"
             onClick={(e) => {
               e.preventDefault();

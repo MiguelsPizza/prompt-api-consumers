@@ -1,4 +1,5 @@
 import { Conversation } from '@/local-db/db';
+import { Dispatch, SetStateAction } from 'react';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -14,6 +15,7 @@ export interface SidebarProps {
   conversations?: Conversation[];
   currentConversationId: number | null;
   sidebarCollapsed: boolean;
+  setSidebarCollapsed: Dispatch<SetStateAction<boolean>>
   onNewChat: () => void;
   onDeleteConversation: (id: number,sideEffect?: () => any) => void;
   onSelectConversation: (id: number) => void;

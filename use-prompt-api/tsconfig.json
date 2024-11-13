@@ -19,7 +19,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["@types/dom-chromium-ai", "@types/react"]
+    "types": ["@types/dom-chromium-ai", "@types/react", "@types/react-dom"]  // Added react-dom types
   },
   "include": ["src"]
 }

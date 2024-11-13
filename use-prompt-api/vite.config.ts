@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     lib: { entry: resolve(__dirname, 'src/index.ts'), formats: ['es'] },
     rollupOptions: {
-      external: ['react'],
+      external: ['react', 'react/jsx-runtime'],
       output: {
         globals: {
           react: 'React',

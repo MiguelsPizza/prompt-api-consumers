@@ -2,24 +2,23 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface IPromptAPIError {
   readonly code:
-    | 'SESSION_UNAVAILABLE'
-    | 'SESSION_CREATION_FAILED'
-    | 'PROMPT_FAILED'
-    | 'EMPTY_PROMPT';
+  | 'SESSION_UNAVAILABLE'
+  | 'SESSION_CREATION_FAILED'
+  | 'PROMPT_FAILED'
+  | 'EMPTY_PROMPT';
   name: string;
   message: string;
 }
 
 class PromptAPIError<
-    T extends
-      | 'SESSION_UNAVAILABLE'
-      | 'SESSION_CREATION_FAILED'
-      | 'PROMPT_FAILED'
-      | 'EMPTY_PROMPT',
-  >
+  T extends
+  | 'SESSION_UNAVAILABLE'
+  | 'SESSION_CREATION_FAILED'
+  | 'PROMPT_FAILED'
+  | 'EMPTY_PROMPT',
+>
   extends Error
-  implements IPromptAPIError
-{
+  implements IPromptAPIError {
   constructor(
     message: string,
     public readonly code: T,
@@ -49,6 +48,8 @@ interface StatelessPromptAPIResult {
   ) => Promise<void | string | null>;
   abort: () => void;
   sessionTokens: number;
+  session: AILanguageModel | null;
+  sessionAvailable: boolean;
 }
 
 export function useStatelessPromptAPI({
@@ -76,6 +77,12 @@ export function useStatelessPromptAPI({
       session.current = null;
     }
 
+    if (
+      !window.ai ||
+      !window.ai.languageModel ||
+      !window.ai.languageModel.create
+    ) return console.warn('no .ai on the window')
+
     const initialPromptsWithSystem = systemPrompt
       ? [{ role: 'system', content: systemPrompt }, ...initialPrompts]
       : initialPrompts;
@@ -89,9 +96,11 @@ export function useStatelessPromptAPI({
         signal,
       } as AILanguageModelCreateOptionsWithSystemPrompt)
       .then((newSession) => {
+        console.log('creating session')
         session.current = newSession;
       })
       .catch((err) => {
+        console.error(error)
         setError(
           new PromptAPIError(
             err instanceof Error ? err.message : 'Failed to create session',
@@ -210,5 +219,7 @@ export function useStatelessPromptAPI({
     sendPrompt,
     sessionTokens,
     abort,
+    session: session.current,
+    sessionAvailable: Boolean(session?.current)
   };
 }
