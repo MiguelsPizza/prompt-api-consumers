@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "prepare": "husky install",
     "grok": "pnpm  use prompt-api",
-    "dev": "pnpm --filter web-app run dev & pnpm --filter use-prompt-api run build --watch"
+    "dev": "pnpm --filter web-app run dev & pnpm --filter use-prompt-api run build --watch",
+    "deploy:web": "pnpm --filter use-prompt-api run build && pnpm -filter web-app run build && wrangler pages deploy ./web-app/dist"
   },
   "keywords": [],
   "author": "",

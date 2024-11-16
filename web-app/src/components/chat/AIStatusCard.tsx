@@ -1,4 +1,4 @@
-import { AlertCircle, AlertTriangle, Check, ChevronDown, Chrome, Copy, Download, ExternalLink, Globe, Info, XCircle } from 'lucide-react';
+import { AlertCircle, Check, ChevronDown, Chrome, Copy, Download, ExternalLink, Globe, Info, XCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';

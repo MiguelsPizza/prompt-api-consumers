@@ -39,22 +39,23 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
     [messages],
   ) as (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[];
 
-  const { streamingResponse, loading, sendPrompt, error, abort, sessionAvailable, session, sessionTokens } =
-    useStatelessPromptAPI({
+  const { streamingResponse, loading, sendPrompt, error, abort, session, abortController } =
+    useStatelessPromptAPI(currentConversation.id, {
       systemPrompt: currentConversation?.system_prompt ?? undefined,
       temperature: currentConversation?.temperature ?? 0.7,
       topK: currentConversation?.top_k ?? 10,
       initialPrompts: initialPrompts,
     });
 
-    console.log({session})
-  // Add this effect to count input tokens
+  // TODO: The counting seems to be Debounced in the session internals, Find a was to debounce sending the input
   useEffect(() => {
-    if (!sessionAvailable || !session) return;
-    session.countPromptTokens(input)
-      .then(tokens => setInputTokens(tokens))
+    if (!session) return;
+    session.countPromptTokens(input, { signal: abortController?.signal })
+      .then(tokens => {
+        setInputTokens(tokens)
+      })
       .catch(console.error);
-  }, [input, sessionAvailable]);
+  }, [input, Boolean(session), abortController]);
 
 
   const addMessageToConversation = async (message: Message) => {
@@ -94,7 +95,6 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
   };
 
   const handleSubmit = async () => {
-    console.log(input, currentConversation);
     if (!currentConversation?.id) {
       toast({
         variant: 'destructive',
@@ -203,9 +203,11 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
 
       {/* Add token counter before the footer */}
       <div className="px-4 py-2 text-sm text-gray-500 border-t">
-        <span>Session Tokens: {sessionTokens}</span>
+        <span>Session Tokens: {session?.tokensSoFar}</span>
         <span className="mx-2">•</span>
         <span>Input Tokens: {inputTokens}</span>
+        <span className="mx-2">•</span>
+        <span>Tokens Left: {session?.tokensLeft}</span>
       </div>
 
       {/* Footer Input */}
@@ -234,7 +236,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
           <Button
             type="submit"
             size="icon"
-            disabled={!sessionAvailable}
+            disabled={!session}
             className="absolute right-2 bottom-2 hover:bg-gray-100 transition-colors"
             onClick={(e) => {
               e.preventDefault();

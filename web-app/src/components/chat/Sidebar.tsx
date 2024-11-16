@@ -10,7 +10,7 @@ export const Sidebar = ({
   currentConversationId,
   sidebarCollapsed,
   setSidebarCollapsed,
-  onNewChat,
+  handleNewConversation,
   onDeleteConversation,
   onSelectConversation,
 }: SidebarProps) => {
@@ -22,7 +22,7 @@ export const Sidebar = ({
         <Button
           variant="outline"
           className="w-full mb-4 text-gray-900 hover:text-green-500"
-          onClick={onNewChat}
+          onClick={() => handleNewConversation()}
         >
           <PlusCircle className="mr-2 h-4 w-4" /> New chat
         </Button>

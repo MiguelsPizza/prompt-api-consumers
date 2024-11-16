@@ -23,7 +23,6 @@ export default function ChatInterface() {
   } = useConversationManager();
 
   useConversationSummary(currentConversationId);
-  console.log({ sidebarCollapsed, noConversations })
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -35,7 +34,7 @@ export default function ChatInterface() {
           currentConversationId={currentConversationId}
           sidebarCollapsed={(sidebarCollapsed || noConversations)}
           setSidebarCollapsed={setSidebarCollapsed}
-          onNewChat={handleNewConversation}
+          handleNewConversation={handleNewConversation}
           onDeleteConversation={handleDeleteConversation}
           onSelectConversation={setCurrentConversationId}
         />
@@ -49,7 +48,7 @@ export default function ChatInterface() {
           >
             <ChatHeader
               sidebarCollapsed={sidebarCollapsed}
-              onToggleSidebar={() => { console.log('toggled'), setSidebarCollapsed(!sidebarCollapsed) }}
+              onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
               currentConversation={currentConversation}
               currentConversationId={currentConversationId}
               onDeleteConversation={handleDeleteConversation}
@@ -57,8 +56,8 @@ export default function ChatInterface() {
             <ChatMessages currentConversation={currentConversation} />
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center"> {/* Changed this div's classes */}
-            <CreateConversationCard onNewConversation={handleNewConversation} />
+          <div className="flex-1 flex items-center justify-center">
+            <CreateConversationCard handleNewConversation={handleNewConversation} />
           </div>
         )}
         <div className="animate-in fade-in duration-1000">

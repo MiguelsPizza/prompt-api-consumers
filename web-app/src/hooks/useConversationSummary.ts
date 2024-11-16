@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { db } from '../local-db/db';
+import { ConversationMessage, db } from '../local-db/db';
 import { useSummarizer } from 'use-prompt-api';
 import { useLiveQuery } from 'dexie-react-hooks';
 
@@ -23,7 +23,7 @@ export function useConversationSummary(
     [currentConversationId]
   );
 
-  const messages = useLiveQuery(
+  const conv = useLiveQuery(
     async () => {
       if (!currentConversationId) return [];
       return await db.conversationMessage
@@ -34,60 +34,57 @@ export function useConversationSummary(
     [currentConversationId]
   );
 
-  useEffect(() => {
-    const abortController = new AbortController();
-    setError(null); // Reset error state on each effect run
-
-    async function updateConversationSummary() {
-      if (currentConversationId === null || !currentConversation || !messages) {
-        return;
+  async function updateConversationSummary(convId: number, messages: ConversationMessage[], abortController: AbortController) {
+    const convString = messages.reduce(
+      (acc, { content, role }) => acc + `${role}: ${content}\n`,
+      ''
+    );
+    try {
+      // Check if window.ai is available
+      if (!window.ai?.languageModel) {
+        throw new Error('Language model API is not available');
       }
 
-      if (messages.length > 1 && !currentConversation.conversation_summary) {
-        const convString = messages.reduce(
-          (acc, { content, role }) => acc + `${role}: ${content}\n`,
-          ''
-        );
-        const convAtRequestTime = currentConversation.id;
+      const convSummary = await summarize(convString, {
+        streaming: false,
+        signal: abortController.signal,
+      });
 
-        try {
-          // Check if window.ai is available
-          if (!window.ai?.languageModel) {
-            throw new Error('Language model API is not available');
-          }
+      if (!convSummary) {
+        throw new Error('Failed to generate conversation summary');
+      }
 
-          const convSummary = await summarize(convString, {
-            streaming: false,
-            signal: abortController.signal,
-          });
+      const headlineSession = await window.ai.languageModel.create({
+        systemPrompt: `You take in a LLM conversation summary and generate a Title for it in this format
+          $Title: (Title goes here)` // existing prompt
+      });
 
-          if (!convSummary) {
-            throw new Error('Failed to generate conversation summary');
-          }
+      const res = await headlineSession.prompt(convSummary);
+      headlineSession?.destroy()
 
-          const headline = await window.ai.languageModel.create({
-            systemPrompt: `You take in a summary...` // existing prompt
-          });
+      const title = res.slice(res.indexOf('$Title:'))
 
-          const res = await headline.prompt(convSummary);
-          // ... existing headline extraction ...
+      await db.conversation.update(convId, { conversation_summary: title })
 
-        } catch (error) {
-          if (!abortController.signal.aborted) {
-            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-            console.error('Failed to generate or update summary:', error);
-            setError(errorMessage);
-          }
-        }
+    } catch (error) {
+      if (!abortController.signal.aborted) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        console.error('Failed to generate or update summary:', error);
+        setError(errorMessage);
       }
     }
+  }
 
-    updateConversationSummary();
-
+  useEffect(() => {
+    if (currentConversationId === null || !currentConversation || !conv) return;
+    if (conv.length <= 1 || currentConversation.conversation_summary !== null) return
+    const abortController = new AbortController();
+    setError(null);
+    updateConversationSummary(currentConversationId, conv, abortController);
     return () => {
       abortController.abort();
     };
-  }, [currentConversationId, messages?.length]);
+  }, [currentConversationId, conv?.length]);
 
   return {
     error: error || summarizerError || null

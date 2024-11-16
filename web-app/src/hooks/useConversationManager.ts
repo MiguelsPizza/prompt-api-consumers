@@ -3,6 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../local-db/db';
 import { useToast } from './use-toast';
 
+
+export type HandlerNewConversationType =  (systemPrompt?: string | null, top_k?: number, temperature?: number) => void;
+
 export function useConversationManager() {
   const { toast } = useToast();
   const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
@@ -50,17 +53,17 @@ export function useConversationManager() {
     }
   }, []);
 
-  const handleNewConversation = useCallback(async () => {
+  const handleNewConversation: HandlerNewConversationType = useCallback(async (systemPrompt = null, top_k = 10, temperature = 0.7) => {
     try {
       const now = new Date();
       const id = await db.conversation.add({
         name: 'New conversation',
         conversation_summary: null,
-        system_prompt: null,
+        system_prompt: systemPrompt,
         created_at: now,
         updated_at: now,
-        top_k: 10,
-        temperature: 0.7,
+        top_k,
+        temperature,
       });
       setCurrentConversationId(id);
     } catch (error) {

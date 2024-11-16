@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export interface IPromptAPIError {
   readonly code:
@@ -47,12 +47,10 @@ interface StatelessPromptAPIResult {
     },
   ) => Promise<void | string | null>;
   abort: () => void;
-  sessionTokens: number;
   session: AILanguageModel | null;
-  sessionAvailable: boolean;
 }
 
-export function useStatelessPromptAPI({
+export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
   initialPrompts = [],
   monitor,
   signal,
@@ -67,14 +65,14 @@ export function useStatelessPromptAPI({
   const [error, setError] = useState<UseStatelessPromptAPIError | null>(null);
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
-  const [sessionTokens, setSessionTokens] = useState<number>(0);
 
-  const session = useRef<AILanguageModel | null>(null);
+  const [session, setSession] = useState<AILanguageModel | null>(null)
 
   useEffect(() => {
-    if (session.current) {
-      session.current.destroy();
-      session.current = null;
+    if (session) {
+      console.warn('deleting session')
+      session.destroy();
+      setSession(null)
     }
 
     if (
@@ -86,7 +84,7 @@ export function useStatelessPromptAPI({
     const initialPromptsWithSystem = systemPrompt
       ? [{ role: 'system', content: systemPrompt }, ...initialPrompts]
       : initialPrompts;
-
+    console.log('creating new session')
     window.ai.languageModel
       .create({
         monitor,
@@ -97,7 +95,7 @@ export function useStatelessPromptAPI({
       } as AILanguageModelCreateOptionsWithSystemPrompt)
       .then((newSession) => {
         console.log('creating session')
-        session.current = newSession;
+        setSession(newSession)
       })
       .catch((err) => {
         console.error(error)
@@ -108,16 +106,19 @@ export function useStatelessPromptAPI({
           ),
         );
       });
-  }, [systemPrompt, initialPrompts, monitor, temperature, topK, signal]);
-
-  useEffect(() => {
     return () => {
-      if (session.current) {
-        session.current.destroy();
-        session.current = null;
+      if (session) {
+        console.warn('cleaning up session')
+
+        session.destroy();
+        setSession(null)
       }
     };
-  }, []);
+  }, [systemPrompt, monitor, temperature, topK, signal, sessionId]);
+
+  useEffect(() => {
+
+  }, [session]);
 
   const sendPrompt = useCallback(
     async (
@@ -147,13 +148,13 @@ export function useStatelessPromptAPI({
         ...sessionAbortSignal,
       ]);
       try {
-        if (!session.current)
+        if (!session)
           throw new PromptAPIError(
             'Session not available',
             'SESSION_UNAVAILABLE',
           );
         if (streaming) {
-          const stream = session.current.promptStreaming(input, {
+          const stream = session.promptStreaming(input, {
             signal: combinedSignal,
           });
           const reader = stream.getReader();
@@ -168,7 +169,7 @@ export function useStatelessPromptAPI({
             setStreamingResponse(value);
           }
         } else {
-          const result = await session.current.prompt(input, {
+          const result = await session.prompt(input, {
             signal: combinedSignal,
           });
           setStreamingResponse(result);
@@ -190,7 +191,7 @@ export function useStatelessPromptAPI({
         setAbortController(null);
       }
     },
-    [signal],
+    [signal, session],
   );
 
   const abort = useCallback(() => {
@@ -199,27 +200,13 @@ export function useStatelessPromptAPI({
     setLoading(false);
   }, [abortController]);
 
-  useEffect(() => {
-    if (!session.current) return;
-    const historyStr =
-      initialPrompts?.map(({ content }) => content).join('') ?? '';
-    const systemStr = systemPrompt ?? '';
-    session.current
-      .countPromptTokens(
-        [historyStr, systemStr].reduce((str, content) => `${str}${content}`),
-      )
-      .then((count) => setSessionTokens(count));
-  }, [initialPrompts, systemPrompt]);
-
   return {
     streamingResponse,
     loading,
     error,
     abortController,
     sendPrompt,
-    sessionTokens,
     abort,
-    session: session.current,
-    sessionAvailable: Boolean(session?.current)
+    session,
   };
 }

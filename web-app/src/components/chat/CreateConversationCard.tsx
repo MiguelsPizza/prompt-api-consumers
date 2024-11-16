@@ -3,19 +3,20 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Slider } from '../ui/slider';
+import { HandlerNewConversationType } from '@/hooks/useConversationManager';
 
 interface CreateConversationCardProps {
-  onNewConversation: () => void;
+  handleNewConversation: HandlerNewConversationType
 }
 
-export function CreateConversationCard({ onNewConversation }: CreateConversationCardProps) {
+export function CreateConversationCard({ handleNewConversation }: CreateConversationCardProps) {
   const [temperature, setTemperature] = useState(0.7);
   const [topK, setTopK] = useState(10);
   const [systemPrompt, setSystemPrompt] = useState('');
 
   const handleCreateConversation = () => {
     // You'll need to modify your handleNewConversation function to accept these parameters
-    onNewConversation();
+    handleNewConversation(systemPrompt, topK, temperature);
   };
 
   return (
