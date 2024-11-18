@@ -14,7 +14,8 @@ export default defineConfig({
     rollupOptions: {
       input: 'src/index.html'
     },
-    emptyOutDir: true
+    emptyOutDir: true,
+    sourcemap: true
   },
   resolve: {
     alias: [{ find: '@', replacement: fileURLToPath(new URL('./src', import.meta.url)) }]
@@ -25,14 +26,17 @@ export default defineConfig({
     // Don't optimize these packages as they contain web workers and WASM files.
     // https://github.com/vitejs/vite/issues/11672#issuecomment-1415820673
     exclude: ['@journeyapps/wa-sqlite', '@powersync/web'],
-    include: [],
-    // include: ['@powersync/web > js-logger'], // <-- Include `js-logger` when it isn't installed and imported.
+    // include: [],
+    include: ['@powersync/web > js-logger'], // <-- Include `js-logger` when it isn't installed and imported.
   },
   plugins: [
     wasm(),
     topLevelAwait(),
     react(),
     VitePWA({
+      workbox: {
+        sourcemap: true,
+      },
       registerType: 'autoUpdate',
       includeAssets: ['powersync-logo.svg', 'supabase-logo.png', 'favicon.ico'],
       manifest: {
@@ -65,11 +69,18 @@ export default defineConfig({
             type: 'image/png'
           }
         ]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
       }
     })
   ],
   worker: {
     format: 'es',
-    plugins: [wasm(), topLevelAwait()]
+    plugins: () => [wasm(), topLevelAwait()],
+  },
+  css: {
+    devSourcemap: true
   }
 });

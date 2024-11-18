@@ -4,14 +4,22 @@ import { Sidebar } from './components/chat/Sidebar';
 import { ChatHeader } from './components/chat/ChatHeader';
 import { AIStatusCard } from './components/chat/AIStatusCard';
 import { useConversationManager } from './hooks/useConversationManager';
-import { useConversationSummary } from './hooks/useConversationSummary';
+// import { useConversationSummary } from './hooks/useConversationSummary';
 import { CreateConversationCard } from './components/chat/CreateConversationCard';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from './local-db/db';
+// import { useLiveQuery } from 'dexie-react-hooks';
+import { db, conversations as conversationsSchema } from './local-db/sqliteDb';
+import { useSuspenseQuery } from "@powersync/tanstack-react-query"
+import { count } from 'drizzle-orm';
+import { toCompilableQuery } from '@powersync/drizzle-driver';
 
 export default function ChatInterface() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const noConversations = (useLiveQuery(async () => db.conversation.count()) ?? 0) === 0
+  const {data} = useSuspenseQuery({
+    queryKey: ['noConversationsKey'],
+    query: toCompilableQuery(db.select({ count: count() }).from(conversationsSchema))
+  })
+  const noConversations = data[0]?.count === 0
+  // const noConversations = (useLiveQuery(async () => db.conversation.count()) ?? 0) === 0
 
   const {
     currentConversationId,
@@ -22,7 +30,7 @@ export default function ChatInterface() {
     handleNewConversation,
   } = useConversationManager();
 
-  useConversationSummary(currentConversationId);
+  // useConversationSummary(currentConversationId);
 
   return (
     <div className="flex h-screen overflow-hidden">
