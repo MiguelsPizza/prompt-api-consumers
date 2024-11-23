@@ -16,12 +16,12 @@ import {
 } from '@mui/material';
 import Fab from '@mui/material/Fab';
 import React, { Suspense } from 'react';
-import { useParams } from 'react-router-dom';
 import { useSupabase } from '@/components/providers/SystemProvider';
 import { LISTS_TABLE, TODOS_TABLE, TodoRecord } from '@/library/powersync/AppSchema';
 import { NavigationPage } from '@/components/navigation/NavigationPage';
 import { TodoItemWidget } from '@/components/widgets/TodoItemWidget';
 import { DEFAULT_USER_ID } from '@/library/powersync/SupabaseConnector';
+import { useParams } from '@tanstack/react-router';
 
 /**
  * useSearchParams causes the entire element to fall back to client side rendering
@@ -31,7 +31,8 @@ import { DEFAULT_USER_ID } from '@/library/powersync/SupabaseConnector';
 const TodoEditSection = () => {
   const powerSync = usePowerSync();
   const supabase = useSupabase();
-  const { id: listID } = useParams();
+  // @ts-ignore
+  const { id: listID } = useParams({ strict: false });
 
   const {
     data: [listRecord]

@@ -1,4 +1,4 @@
-import { Outlet, createBrowserRouter } from 'react-router-dom';
+import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet } from '@tanstack/react-router';
 import LoginPage from '@/app/auth/login/page';
 import RegisterPage from '@/app/auth/register/page';
 import EntryPage from '@/app/page';
@@ -6,50 +6,87 @@ import TodoEditPage from '@/app/views/todo-lists/edit/page';
 import TodoListsPage from '@/app/views/todo-lists/page';
 import ViewsLayout from '@/app/views/layout';
 import SQLConsolePage from '@/app/views/sql-console/page';
+import React from 'react';
 
-export const TODO_LISTS_ROUTE = '/views/todo-lists';
-export const TODO_EDIT_ROUTE = '/views/todo-lists/:id';
-export const LOGIN_ROUTE = '/auth/login';
-export const REGISTER_ROUTE = '/auth/register';
-export const SQL_CONSOLE_ROUTE = '/sql-console';
+const TanStackRouterDevtools =
+  process.env.NODE_ENV === 'production'
+    ? () => null // Render nothing in production
+    : React.lazy(() =>
+        // Lazy load in development
+        import('@tanstack/router-devtools').then((res) => ({
+          default: res.TanStackRouterDevtoolsPanel,
+        })),
+      )
 
-/**
- * Navigate to this route after authentication
- */
-export const DEFAULT_ENTRY_ROUTE = '/views/todo-lists';
-
-export const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <EntryPage />
-  },
-  {
-    path: LOGIN_ROUTE,
-    element: <LoginPage />
-  },
-  {
-    path: REGISTER_ROUTE,
-    element: <RegisterPage />
-  },
-  {
-    element: (
+// Define root route
+const rootRoute = createRootRoute({
+  component: () => (
+    <>
       <ViewsLayout>
         <Outlet />
       </ViewsLayout>
-    ),
-    children: [
-      {
-        path: TODO_LISTS_ROUTE,
-        element: <TodoListsPage />
-      },
-      {
-        path: TODO_EDIT_ROUTE,
-        element: <TodoEditPage />
-      },
-      {
-        path: SQL_CONSOLE_ROUTE,
-        element: <SQLConsolePage />
-      }
-    ]
-  }
+      <TanStackRouterDevtools setIsOpen={() =>{}} />
+    </>
+  ),
+});
+
+// Define child routes
+const entryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: EntryPage,
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auth/login',
+  component: LoginPage,
+
+
+});
+
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auth/register',
+  component: RegisterPage,
+});
+
+const todoListsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/views/todo-lists',
+  component: TodoListsPage,
+});
+
+const todoEditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/views/todo-lists/:id',
+  component: TodoEditPage,
+});
+
+const sqlConsoleRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/sql-console',
+  component: SQLConsolePage,
+});
+
+// Create route tree
+const routeTree = rootRoute.addChildren([
+  entryRoute,
+  loginRoute,
+  registerRoute,
+  todoListsRoute,
+  todoEditRoute,
+  sqlConsoleRoute,
 ]);
+
+// Create router instance
+const router = createRouter({ routeTree });
+
+// Register the router instance for type safety
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+export default router;

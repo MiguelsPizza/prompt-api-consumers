@@ -1,8 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useSupabase } from '@/components/providers/SystemProvider';
 import { LoginDetailsWidget } from '@/components/widgets/LoginDetailsWidget';
-import { DEFAULT_ENTRY_ROUTE, LOGIN_ROUTE } from '@/app/router';
+import { useNavigate } from '@tanstack/react-router';
 
 export default function RegisterPage() {
   const supabase = useSupabase();
@@ -26,14 +25,14 @@ export default function RegisterPage() {
 
         if (session) {
           supabase.updateSession(session);
-          navigate(DEFAULT_ENTRY_ROUTE);
+          navigate({to: '/'});
           return;
         }
 
         alert('Registration successful, please login');
-        navigate(LOGIN_ROUTE);
+        navigate({to: '/auth/login'});
       }}
-      secondaryActions={[{ title: 'Back', onClick: () => navigate(LOGIN_ROUTE) }]}
+      secondaryActions={[{ title: 'Back', onClick: () => navigate({to: '/auth/login'}) }]}
     />
   );
 }

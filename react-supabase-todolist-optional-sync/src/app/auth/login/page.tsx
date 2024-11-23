@@ -1,8 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { LoginDetailsWidget } from '@/components/widgets/LoginDetailsWidget';
 import { useSupabase } from '@/components/providers/SystemProvider';
-import { DEFAULT_ENTRY_ROUTE } from '@/app/router';
+import { useNavigate } from '@tanstack/react-router';
 
 export default function LoginPage() {
   const supabase = useSupabase();
@@ -17,13 +16,13 @@ export default function LoginPage() {
           throw new Error('Supabase has not been initialized yet');
         }
         await supabase.login(values.email, values.password);
-        navigate(DEFAULT_ENTRY_ROUTE);
+        navigate({ to: '/' });
       }}
       secondaryActions={[
         {
           title: 'Register',
           onClick: () => {
-            navigate('/auth/register');
+            navigate({ to: '/auth/register' });
           }
         }
       ]}

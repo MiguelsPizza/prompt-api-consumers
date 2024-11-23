@@ -1,8 +1,7 @@
 import React from 'react';
 import { CircularProgress, Grid, styled } from '@mui/material';
 import { useSupabase } from '@/components/providers/SystemProvider';
-import { useNavigate } from 'react-router-dom';
-import { DEFAULT_ENTRY_ROUTE, LOGIN_ROUTE } from '@/app/router';
+import { useNavigate } from '@tanstack/react-router';
 
 export type LoginFormParams = {
   email: string;
@@ -18,7 +17,7 @@ export default function EntryPage() {
   const navigate = useNavigate();
 
   const navigateToMainView = () => {
-    navigate(DEFAULT_ENTRY_ROUTE);
+    navigate({to: '/'});
   };
 
   React.useEffect(() => {
@@ -34,7 +33,7 @@ export default function EntryPage() {
            * Redirect if on the entry view
            */
 
-          navigate(DEFAULT_ENTRY_ROUTE);
+          navigate({to: '/'});
         }
       });
       return () => l?.();

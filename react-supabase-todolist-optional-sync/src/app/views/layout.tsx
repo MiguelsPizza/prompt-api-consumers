@@ -23,37 +23,38 @@ import {
 } from '@mui/material';
 import React from 'react';
 import { usePowerSync, useStatus } from '@powersync/react';
-import { useNavigate } from 'react-router-dom';
 import { useSupabase } from '@/components/providers/SystemProvider';
 import { useNavigationPanel } from '@/components/navigation/NavigationPanelContext';
-import { DEFAULT_ENTRY_ROUTE, LOGIN_ROUTE, SQL_CONSOLE_ROUTE, TODO_LISTS_ROUTE } from '@/app/router';
 import { setSyncEnabled } from '@/library/powersync/SyncMode';
 import { switchToLocalSchema } from '@/library/powersync/AppSchema';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 
 export default function ViewsLayout({ children }: { children: React.ReactNode }) {
   const powerSync = usePowerSync();
   const status = useStatus();
   const supabase = useSupabase();
   const navigate = useNavigate();
+  const router = useRouter().routesByPath
   const [authText, setAuthText] = React.useState(supabase?.currentSession ? 'Sign Out' : 'Sign In');
 
   const [openDrawer, setOpenDrawer] = React.useState(false);
   const { title } = useNavigationPanel();
 
+
   const NAVIGATION_ITEMS = React.useMemo(
     () => [
       {
-        path: SQL_CONSOLE_ROUTE,
+        path: '/sql-console' as keyof typeof router,
         title: 'SQL Console',
         icon: () => <TerminalIcon />
       },
       {
-        path: TODO_LISTS_ROUTE,
+        path: '/views/todo-lists' as keyof typeof router,
         title: 'TODO Lists',
         icon: () => <ChecklistRtlIcon />
       },
       {
-        path: LOGIN_ROUTE,
+        path: '/auth/login' as keyof typeof router,
         title: 'Sign Out',
         beforeNavigate: async () => {
           // If user is logged in, sign out and stay on the current page
@@ -63,7 +64,7 @@ export default function ViewsLayout({ children }: { children: React.ReactNode })
             setSyncEnabled(powerSync.database.name, false);
 
             await switchToLocalSchema(powerSync);
-            navigate(DEFAULT_ENTRY_ROUTE);
+            navigate({to: '/'});
             return true;
           }
 
@@ -115,7 +116,7 @@ export default function ViewsLayout({ children }: { children: React.ReactNode })
                 onClick={async () => {
                   const redirect = await item.beforeNavigate?.();
                   if (!redirect) {
-                    navigate(item.path);
+                    navigate({to: item.path});
                   }
                   setOpenDrawer(false);
                 }}>

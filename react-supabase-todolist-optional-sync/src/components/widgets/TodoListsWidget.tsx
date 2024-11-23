@@ -1,9 +1,8 @@
 import { usePowerSync, useQuery } from '@powersync/react';
 import { List } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { ListItemWidget } from './ListItemWidget';
 import { LISTS_TABLE, ListRecord, TODOS_TABLE } from '@/library/powersync/AppSchema';
-import { TODO_LISTS_ROUTE } from '@/app/router';
+import { useNavigate } from '@tanstack/react-router';
 
 export type TodoListsWidgetProps = {
   selectedId?: string;
@@ -51,7 +50,7 @@ export function TodoListsWidget(props: TodoListsWidgetProps) {
           selected={r.id == props.selectedId}
           onDelete={() => deleteList(r.id)}
           onPress={() => {
-            navigate(TODO_LISTS_ROUTE + '/' + r.id);
+            navigate({ to: '/views/todo-lists/:id', params: { id: r.id } });
           }}
         />
       ))}
