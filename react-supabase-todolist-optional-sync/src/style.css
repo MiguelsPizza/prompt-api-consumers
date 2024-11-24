@@ -1,0 +1,208 @@
+:root {
+  --onyx: #36393bff;
+  --uranian-blue: #a5d8ffff;
+  --light-blue: #afd0d6ff;
+  color-scheme: dark light;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background-color: var(--onyx);
+  color: var(--uranian-blue);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.content-and-sidebar {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.sidebar {
+  width: 300px;
+  padding: 1rem;
+  background-color: var(--onyx);
+  color: var(--uranian-blue);
+  overflow-y: auto;
+}
+
+.conversation-history {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1rem;
+}
+
+.speech-bubble {
+  max-width: 60%;
+  margin: 0.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.user {
+  align-self: flex-end;
+  background-color: var(--uranian-blue);
+  color: var(--onyx);
+}
+
+.assistant {
+  align-self: flex-start;
+  background-color: var(--light-blue);
+  color: var(--onyx);
+}
+
+.input-form {
+  display: flex;
+  padding: 1rem;
+  background-color: var(--onyx);
+}
+
+.input-form textarea {
+  flex: 1;
+  resize: none;
+  height: 3rem;
+  padding: 0.5rem;
+  border: 1px solid var(--light-blue);
+  background-color: var(--onyx);
+  color: var(--uranian-blue);
+}
+
+.input-form button {
+  margin-left: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--uranian-blue);
+  color: var(--onyx);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+.settings label {
+  margin-top: 0.5rem;
+}
+
+table {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.5rem;
+  border: 1px solid var(--light-blue);
+  text-align: right;
+}
+
+th {
+  text-align: left;
+}
+
+.error-message {
+  padding: 1rem;
+  background-color: var(--light-blue);
+  color: var(--onyx);
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  background-color: var(--onyx);
+  color: var(--light-blue);
+}
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.left-sidebar {
+  width: 200px;
+  overflow-y: auto;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+}
+
+.conversation-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.conversation-list li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.conversation-list li.active {
+  background-color: #ddd;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.conversation-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.right-sidebar {
+  width: 300px;
+  overflow-y: auto;
+  border-left: 1px solid #ccc;
+  padding: 10px;
+}
+
+.input-form {
+  padding: 10px;
+}
+
+.form-controls {
+  margin-top: 10px;
+}
+
+.speech-bubble {
+  margin-bottom: 10px;
+}
+
+.user {
+  text-align: right;
+}
+
+.assistant {
+  text-align: left;
+}
+
+button {
+  margin-right: 5px;
+}

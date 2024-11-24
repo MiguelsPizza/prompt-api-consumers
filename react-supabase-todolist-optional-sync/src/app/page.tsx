@@ -1,5 +1,4 @@
 import React from 'react';
-import { CircularProgress, Grid, styled } from '@mui/material';
 import { useSupabase } from '@/components/providers/SystemProvider';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -17,7 +16,7 @@ export default function EntryPage() {
   const navigate = useNavigate();
 
   const navigateToMainView = () => {
-    navigate({to: '/'});
+    navigate({to: '/chat'});
   };
 
   React.useEffect(() => {
@@ -33,32 +32,14 @@ export default function EntryPage() {
            * Redirect if on the entry view
            */
 
-          navigate({to: '/'});
+          navigate({to: '/chat'});
         }
       });
       return () => l?.();
     }
 
     navigateToMainView();
-  }, []);
+  }, [connector]);
 
-  return (
-    <S.MainGrid container>
-      <S.CenteredGrid item xs={12} md={6} lg={5}>
-        <CircularProgress />
-      </S.CenteredGrid>
-    </S.MainGrid>
-  );
-}
-
-namespace S {
-  export const CenteredGrid = styled(Grid)`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  `;
-
-  export const MainGrid = styled(CenteredGrid)`
-    min-height: 100vh;
-  `;
+  return 'loading'
 }

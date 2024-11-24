@@ -1,4 +1,4 @@
-import { AbstractPowerSyncDatabase, column, ColumnsType, Schema, Table, TableV2Options } from '@powersync/web';
+import { AbstractPowerSyncDatabase, Column, column, ColumnsType, Schema, Table, TableV2Options } from '@powersync/web';
 import { setSyncEnabled } from './SyncMode';
 
 /**
@@ -16,34 +16,126 @@ import { setSyncEnabled } from './SyncMode';
  *
  */
 
-export const LISTS_TABLE = 'lists';
-export const TODOS_TABLE = 'todos';
+import { PowerSyncDatabase } from '@powersync/web';
+import { wrapPowerSyncWithDrizzle } from "@powersync/drizzle-driver";
+import { isNull, relations } from "drizzle-orm";
+import Drizzle, { real, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-const todosDef = {
-  name: 'todos',
-  columns: {
-    list_id: column.text,
-    created_at: column.text,
-    completed_at: column.text,
-    description: column.text,
-    created_by: column.text,
-    completed_by: column.text,
-    completed: column.integer
-  },
-  options: { indexes: { list: ['list_id'] } }
-};
+export const DB_NAME = 'chat_database.db'
+// const generatePowerSyncAndDrizzleSchema = <T extends ColumnsType>(tableName: string, schema: T, powersyncOptions: Omit<TableV2Options, 'viewName'> = {}) => {
+//   // const test = Drizzle['integer'].call(this, 'test')
+//   //@ts-ignore
+//   const test = Object.entries(schema).map(([key, value]) => ([key, Drizzle[value.type!.toLocaleLowerCase()].call(this, key)]))
+//   const drizzleSchema = sqliteTable(tableName, test)
+//   const powersyncTable = new Table(schema, { viewName: tableName, ...powersyncOptions })
+//   return [drizzleSchema, powersyncTable ]
+// }
 
-const listsDef = {
-  name: 'lists',
-  columns: {
-    created_at: column.text,
-    name: column.text,
-    owner_id: column.text
-  },
-  options: {}
-};
+// const [drizzle, powsery] = generatePowerSyncAndDrizzleSchema('hello', {
+//   name: column.text,
+//   conversation_summary: column.text,
+//   system_prompt: column.text,
+//   created_at: column.text, // PowerSync uses text for dates
+//   updated_at: column.text,
+//   top_k: column.real,
+//   temperature: column.real
+// }, {localOnly: true})
+// Create schema
+export const AppSchema = makeSchema(false);
 
-export function makeSchema(synced: boolean) {
+// Type definitions
+export type Database = (typeof AppSchema)['types'];
+export type ConversationType = Database['conversationsSchema'];
+export type ConversationMessageType = Database['conversationMessagesSchema'];
+
+
+// Define Drizzle tables
+export const conversations = sqliteTable("conversations", {
+  id: text("id"),
+  name: text("name"),
+  conversation_summary: text("conversation_summary"),
+  system_prompt: text("system_prompt"),
+  created_at: text("created_at"),
+  updated_at: text("updated_at"),
+  top_k: real("top_k"),
+  temperature: real("temperature"),
+  userId: text("userId")
+});
+
+export const conversationMessages = sqliteTable("conversation_messages", {
+  id: text("id"),
+  conversation_id: text("conversation_id"),
+  position: integer("position"),
+  role: text("role"),
+  content: text("content"),
+  created_at: text("created_at"),
+  updated_at: text("updated_at"),
+  temperature_at_creation: real("temperature_at_creation"),
+  top_k_at_creation: real("top_k_at_creation"),
+  userId: text("userId")
+});
+
+
+// Define relations
+export const conversationsRelations = relations(conversations, ({ many }) => ({
+  messages: many(conversationMessages)
+}));
+
+export const conversationMessagesRelations = relations(conversationMessages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationMessages.conversation_id],
+    references: [conversations.id],
+  })
+}));
+
+export const drizzleSchema = {
+  conversations,
+  conversationMessages,
+  conversationsRelations,
+  conversationMessagesRelations
+} as const;
+
+// Initialize PowerSync database
+export const powerSyncDb = new PowerSyncDatabase({
+  schema: AppSchema,
+  database: {
+    dbFilename: DB_NAME
+  }
+});
+
+// Wrap with Drizzle
+export const db = wrapPowerSyncWithDrizzle(powerSyncDb, {
+  schema: drizzleSchema
+});
+
+// export const LISTS_TABLE = 'lists';
+// export const TODOS_TABLE = 'todos';
+
+// const todosDef = {
+//   name: 'todos',
+//   columns: {
+//     list_id: column.text,
+//     created_at: column.text,
+//     completed_at: column.text,
+//     description: column.text,
+//     created_by: column.text,
+//     completed_by: column.text,
+//     completed: column.integer
+//   },
+//   options: { indexes: { list: ['list_id'] } }
+// };
+
+// const listsDef = {
+//   name: 'lists',
+//   columns: {
+//     created_at: column.text,
+//     name: column.text,
+//     owner_id: column.text
+//   },
+//   options: {}
+// };
+
+export function makeSchema(synced: boolean = false) {
   const syncedName = (table: string): string => {
     if (synced) {
       // results in lists, todos
@@ -66,20 +158,65 @@ export function makeSchema(synced: boolean) {
     }
   };
 
-  // Could iterate over table definitions to create the schema while somehow maintaining type information for record types
+  // Define tables
+  const conversationsSchema = new Table({
+    name: column.text,
+    conversation_summary: column.text,
+    system_prompt: column.text,
+    created_at: column.text, // PowerSync uses text for dates
+    updated_at: column.text,
+    top_k: column.real,
+    temperature: column.real,
+    userId: column.text
+  }, { viewName: syncedName('conversations') });
+
+  const conversationsSchemaLocal = new Table({
+    name: column.text,
+    conversation_summary: column.text,
+    system_prompt: column.text,
+    created_at: column.text, // PowerSync uses text for dates
+    updated_at: column.text,
+    top_k: column.real,
+    temperature: column.real,
+    userId: column.text
+  }, {
+    viewName: localName('conversations'), localOnly: true
+  });
+
+  const conversationMessagesSchema = new Table(
+    {
+      conversation_id: column.text,
+      position: column.integer,
+      role: column.text,
+      content: column.text,
+      created_at: column.text,
+      updated_at: column.text,
+      temperature_at_creation: column.real,
+      top_k_at_creation: column.real,
+      userId: column.text
+    },
+    { indexes: { conversation: ['conversation_id'] }, viewName: syncedName('conversationMessages') }
+  );
+
+  const conversationMessagesSchemaLocal = new Table(
+    {
+      conversation_id: column.text,
+      position: column.integer,
+      role: column.text,
+      content: column.text,
+      created_at: column.text,
+      updated_at: column.text,
+      temperature_at_creation: column.real,
+      top_k_at_creation: column.real
+    },
+    { indexes: { conversation: ['conversation_id'] }, localOnly: true, viewName: localName('conversationMessages') }
+  );
+
   return new Schema({
-    todos: new Table(todosDef.columns, { ...todosDef.options, viewName: syncedName(todosDef.name) }),
-    local_todos: new Table(todosDef.columns, {
-      ...todosDef.options,
-      localOnly: true,
-      viewName: localName(todosDef.name)
-    }),
-    lists: new Table(listsDef.columns, { ...listsDef.options, viewName: syncedName(listsDef.name) }),
-    local_lists: new Table(listsDef.columns, {
-      ...listsDef.options,
-      localOnly: true,
-      viewName: localName(listsDef.name)
-    })
+    conversationsSchema,
+    conversationMessagesSchema,
+    // conversationsSchemaLocal,
+    // conversationMessagesSchemaLocal
   });
 }
 
@@ -114,11 +251,3 @@ export async function switchToLocalSchema(db: AbstractPowerSyncDatabase) {
 }
 
 // This is only used for typing purposes
-export const AppSchema = makeSchema(false);
-
-export type Database = (typeof AppSchema)['types'];
-export type TodoRecord = Database['todos'];
-// OR:
-// export type Todo = RowType<typeof todos>;
-
-export type ListRecord = Database['lists'];

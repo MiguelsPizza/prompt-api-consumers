@@ -6,12 +6,17 @@
 .pnp.js
 .yarn/install-state.gz
 
+/dist
+/dev-dist
+/docs
 # testing
 /coverage
 
 # next.js
 /.next/
 /out/
+# source maps
+*.js.map
 
 # production
 /build

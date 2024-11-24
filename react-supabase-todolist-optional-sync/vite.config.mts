@@ -8,20 +8,20 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  root: 'src',
+  root: './',
   build: {
-    outDir: '../dist',
+    outDir: './dist',
     rollupOptions: {
-      input: 'src/index.html'
+      input: './index.html'
     },
     emptyOutDir: true,
     sourcemap: true
   },
   resolve: {
-    alias: [{ find: '@', replacement: fileURLToPath(new URL('./src', import.meta.url)) }]
+    alias: [{ find: '@', replacement: fileURLToPath(new URL('./src/library', import.meta.url)) }]
   },
-  publicDir: '../public',
-  envDir: '..', // Use this dir for env vars, not 'src'.
+  publicDir: './public',
+  envDir: './', // Use this dir for env vars, not 'src'.
   optimizeDeps: {
     // Don't optimize these packages as they contain web workers and WASM files.
     // https://github.com/vitejs/vite/issues/11672#issuecomment-1415820673
@@ -34,7 +34,10 @@ export default defineConfig({
     topLevelAwait(),
     react(),
     VitePWA({
+      srcDir: './src',
+      outDir: './dist',
       workbox: {
+
         sourcemap: true,
       },
       registerType: 'autoUpdate',

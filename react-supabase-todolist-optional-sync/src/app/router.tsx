@@ -1,33 +1,37 @@
-import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet } from '@tanstack/react-router';
-import LoginPage from '@/app/auth/login/page';
-import RegisterPage from '@/app/auth/register/page';
-import EntryPage from '@/app/page';
-import TodoEditPage from '@/app/views/todo-lists/edit/page';
-import TodoListsPage from '@/app/views/todo-lists/page';
-import ViewsLayout from '@/app/views/layout';
-import SQLConsolePage from '@/app/views/sql-console/page';
+import { createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
+import LoginPage from './auth/login/page';
+import RegisterPage from './auth/register/page';
+import EntryPage from './page';
 import React from 'react';
+import ChatInterface from './views/ChatInterface';
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === 'production'
     ? () => null // Render nothing in production
     : React.lazy(() =>
-        // Lazy load in development
-        import('@tanstack/router-devtools').then((res) => ({
-          default: res.TanStackRouterDevtoolsPanel,
-        })),
-      )
+      // Lazy load in development
+      import('@tanstack/router-devtools').then((res) => ({
+        default: res.TanStackRouterDevtoolsPanel,
+      })),
+    )
 
 // Define root route
 const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <ViewsLayout>
+  component: () => {
+    const [isOpen, setIsOpen] = React.useState(false)
+
+    return (
+      <>
         <Outlet />
-      </ViewsLayout>
-      <TanStackRouterDevtools setIsOpen={() =>{}} />
-    </>
-  ),
+        <div style={{ position: 'fixed', bottom: 10, right: 10 }}>
+          <button onClick={() => setIsOpen((prev) => !prev)}>
+            Dev Tools
+          </button>
+        </div>
+        {isOpen && <TanStackRouterDevtools setIsOpen={setIsOpen} isOpen={isOpen} />}
+      </>
+    )
+  },
 });
 
 // Define child routes
@@ -37,12 +41,16 @@ const entryRoute = createRoute({
   component: EntryPage,
 });
 
+const ChatRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/chat',
+  component: ChatInterface,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth/login',
   component: LoginPage,
-
-
 });
 
 const registerRoute = createRoute({
@@ -50,33 +58,12 @@ const registerRoute = createRoute({
   path: '/auth/register',
   component: RegisterPage,
 });
-
-const todoListsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/views/todo-lists',
-  component: TodoListsPage,
-});
-
-const todoEditRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/views/todo-lists/:id',
-  component: TodoEditPage,
-});
-
-const sqlConsoleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/sql-console',
-  component: SQLConsolePage,
-});
-
 // Create route tree
 const routeTree = rootRoute.addChildren([
   entryRoute,
   loginRoute,
   registerRoute,
-  todoListsRoute,
-  todoEditRoute,
-  sqlConsoleRoute,
+  ChatRoute
 ]);
 
 // Create router instance

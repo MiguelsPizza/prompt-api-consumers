@@ -1,7 +1,9 @@
+import { conversationMessages } from './../../../../web-app/src/local-db/sqliteDb';
 import { useCallback, useLayoutEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/powersync/AppSchema';
+import { db,  } from '@/powersync/AppSchema'
 import { useToast } from './use-toast';
+import { eq } from 'drizzle-orm';
 
 
 export type HandlerNewConversationType =  (systemPrompt?: string | null, top_k?: number, temperature?: number) => void;
@@ -25,7 +27,9 @@ export function useConversationManager() {
 
   const handleDeleteConversation = useCallback(async (id: number, sideEffect?: () => any) => {
     try {
-      await db.conversationMessage.where('conversation').equals(id).delete();
+      db.transaction(async(transaction) =>{
+      await transaction.delete(conversationMessages).where(eq(conversationMessages.id, id.toString()))
+      await transaction.conversationMessage.where('conversation').equals(id).delete();
       await db.conversation.delete(id);
 
       const newCurrentConversation = await db.conversation.toArray();
@@ -43,6 +47,7 @@ export function useConversationManager() {
       if (sideEffect) {
         sideEffect();
       }
+    })
     } catch (error) {
       console.error('Error deleting conversation:', error);
       toast({
