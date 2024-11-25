@@ -1,101 +1,117 @@
-import { AbstractPowerSyncDatabase, Column, column, ColumnsType, Schema, Table, TableV2Options } from '@powersync/web';
+import {
+  AbstractPowerSyncDatabase,
+  Column,
+  column,
+  Schema,
+  Table,
+  PowerSyncDatabase,
+  ColumnsType,
+  TableV2Options
+} from '@powersync/web';
+import { Kysely, wrapPowerSyncWithKysely } from "@powersync/kysely-driver";
 import { setSyncEnabled } from './SyncMode';
+import { sql } from 'drizzle-orm';
 
-/**
- * This schema design supports a local-only to sync-enabled workflow by managing data
- * across two versions of each table: one for local-only use without syncing before a user registers,
- * the other for sync-enabled use after the user registers/signs in.
- *
- * This is done by utilizing the viewName property to override the default view name
- * of a table.
- *
- * See the README for details.
- *
- * `switchToSyncedSchema()` copies data from the local-only tables to the sync-enabled tables
- * so that it ends up in the upload queue.
- *
- */
+export const DB_NAME = 'chat_database.db';
 
-import { PowerSyncDatabase } from '@powersync/web';
-import { wrapPowerSyncWithDrizzle } from "@powersync/drizzle-driver";
-import { isNull, relations } from "drizzle-orm";
-import Drizzle, { real, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-
-export const DB_NAME = 'chat_database.db'
-// const generatePowerSyncAndDrizzleSchema = <T extends ColumnsType>(tableName: string, schema: T, powersyncOptions: Omit<TableV2Options, 'viewName'> = {}) => {
-//   // const test = Drizzle['integer'].call(this, 'test')
-//   //@ts-ignore
-//   const test = Object.entries(schema).map(([key, value]) => ([key, Drizzle[value.type!.toLocaleLowerCase()].call(this, key)]))
-//   const drizzleSchema = sqliteTable(tableName, test)
-//   const powersyncTable = new Table(schema, { viewName: tableName, ...powersyncOptions })
-//   return [drizzleSchema, powersyncTable ]
-// }
-
-// const [drizzle, powsery] = generatePowerSyncAndDrizzleSchema('hello', {
-//   name: column.text,
-//   conversation_summary: column.text,
-//   system_prompt: column.text,
-//   created_at: column.text, // PowerSync uses text for dates
-//   updated_at: column.text,
-//   top_k: column.real,
-//   temperature: column.real
-// }, {localOnly: true})
-// Create schema
-export const AppSchema = makeSchema(false);
-
-// Type definitions
-export type Database = (typeof AppSchema)['types'];
-export type ConversationType = Database['conversationsSchema'];
-export type ConversationMessageType = Database['conversationMessagesSchema'];
-
-
-// Define Drizzle tables
-export const conversations = sqliteTable("conversations", {
-  id: text("id"),
-  name: text("name"),
-  conversation_summary: text("conversation_summary"),
-  system_prompt: text("system_prompt"),
-  created_at: text("created_at"),
-  updated_at: text("updated_at"),
-  top_k: real("top_k"),
-  temperature: real("temperature"),
-  userId: text("userId")
-});
-
-export const conversationMessages = sqliteTable("conversation_messages", {
-  id: text("id"),
-  conversation_id: text("conversation_id"),
-  position: integer("position"),
-  role: text("role"),
-  content: text("content"),
-  created_at: text("created_at"),
-  updated_at: text("updated_at"),
-  temperature_at_creation: real("temperature_at_creation"),
-  top_k_at_creation: real("top_k_at_creation"),
-  userId: text("userId")
-});
-
-
-// Define relations
-export const conversationsRelations = relations(conversations, ({ many }) => ({
-  messages: many(conversationMessages)
-}));
-
-export const conversationMessagesRelations = relations(conversationMessages, ({ one }) => ({
-  conversation: one(conversations, {
-    fields: [conversationMessages.conversation_id],
-    references: [conversations.id],
-  })
-}));
-
-export const drizzleSchema = {
-  conversations,
-  conversationMessages,
-  conversationsRelations,
-  conversationMessagesRelations
+// Define table names as const to prevent typos
+export const TableNames = {
+  CONVERSATIONS: 'conversations',
+  CONVERSATION_MESSAGES: 'conversation_messages',
 } as const;
 
-// Initialize PowerSync database
+type TableDefinition = {
+  name: string,
+  columns: ColumnsType
+  options: TableV2Options
+}
+
+// Define table schemas with 'as const' and type satisfaction
+export const conversationTableDef = {
+  name: 'conversations',
+  columns: {
+    id: column.text,
+    name: column.text,
+    conversation_summary: column.text,
+    system_prompt: column.text,
+    created_at: column.text,
+    updated_at: column.text,
+    top_k: column.real,
+    temperature: column.real,
+    userId: column.text
+  },
+  options: {
+    indexes: { user: ['userId'] }
+  }
+} as const satisfies TableDefinition;
+
+export const conversationMessagesTableDef = {
+  name: 'conversation_messages',
+  columns: {
+    id: column.text,
+    conversation_id: column.text,
+    position: column.integer,
+    role: column.text,
+    content: column.text,
+    created_at: column.text,
+    updated_at: column.text,
+    temperature_at_creation: column.real,
+    top_k_at_creation: column.real,
+    userId: column.text
+  },
+  options: {
+    indexes: {
+      conversation: ['conversation_id'],
+      position: ['position']
+    }
+  }
+} as const satisfies TableDefinition;
+
+// Helper function to generate view names
+const getViewName = (table: string, synced: boolean): string =>
+  synced ? table : `inactive_synced_${table}`;
+
+const getLocalViewName = (table: string, synced: boolean): string =>
+  synced ? `inactive_local_${table}` : table;
+
+// Schema creation function
+export function makeSchema(synced: boolean) {
+  return new Schema({
+    conversations: new Table(
+      conversationTableDef.columns,
+      {
+        ...conversationTableDef.options,
+        viewName: getViewName(conversationTableDef.name, synced)
+      }
+    ),
+    local_conversations: new Table(
+      conversationTableDef.columns,
+      {
+        ...conversationTableDef.options,
+        localOnly: true,
+        viewName: getLocalViewName(conversationTableDef.name, synced)
+      }
+    ),
+    conversation_messages: new Table(
+      conversationMessagesTableDef.columns,
+      {
+        ...conversationMessagesTableDef.options,
+        viewName: getViewName(conversationMessagesTableDef.name, synced)
+      }
+    ),
+    local_conversation_messages: new Table(
+      conversationMessagesTableDef.columns,
+      {
+        ...conversationMessagesTableDef.options,
+        localOnly: true,
+        viewName: getLocalViewName(conversationMessagesTableDef.name, synced)
+      }
+    )
+  });
+}
+
+// Initialize database with schema
+export const AppSchema = makeSchema(false);
 export const powerSyncDb = new PowerSyncDatabase({
   schema: AppSchema,
   database: {
@@ -103,151 +119,98 @@ export const powerSyncDb = new PowerSyncDatabase({
   }
 });
 
-// Wrap with Drizzle
-export const db = wrapPowerSyncWithDrizzle(powerSyncDb, {
-  schema: drizzleSchema
-});
+// Create type-safe Kysely instance
+export type Database = (typeof AppSchema)['types'];
+export const db = wrapPowerSyncWithKysely<Database>(powerSyncDb);
 
-// export const LISTS_TABLE = 'lists';
-// export const TODOS_TABLE = 'todos';
+// Schema switching function
+export async function switchToSyncedSchema(db: Kysely<Database>, userId: string) {
+  await powerSyncDb.updateSchema(makeSchema(true));
+  setSyncEnabled(powerSyncDb.database.name, true);
 
-// const todosDef = {
-//   name: 'todos',
-//   columns: {
-//     list_id: column.text,
-//     created_at: column.text,
-//     completed_at: column.text,
-//     description: column.text,
-//     created_by: column.text,
-//     completed_by: column.text,
-//     completed: column.integer
-//   },
-//   options: { indexes: { list: ['list_id'] } }
-// };
+  // Perform the migration in a transaction
+  await db.transaction().execute(async (trx) => {
+    // Migrate conversations
+    await trx
+      .insertInto('conversations')
+      .columns([
+        'id',
+        'name',
+        'conversation_summary',
+        'system_prompt',
+        'created_at',
+        'updated_at',
+        'top_k',
+        'temperature',
+        'userId'
+      ])
+      .expression(
+        (qb) => qb
+          .selectFrom('inactive_local_conversations')
+          .select([
+            'id',
+            'name',
+            'conversation_summary',
+            'system_prompt',
+            'created_at',
+            'updated_at',
+            'top_k',
+            'temperature',
+            sql<string>`${userId}`.as('userId')
+          ])
+      )
+      .execute();
 
-// const listsDef = {
-//   name: 'lists',
-//   columns: {
-//     created_at: column.text,
-//     name: column.text,
-//     owner_id: column.text
-//   },
-//   options: {}
-// };
+    // Migrate messages
+    await trx
+      .insertInto('conversation_messages')
+      .columns([
+        'id',
+        'conversation_id',
+        'position',
+        'role',
+        'content',
+        'created_at',
+        'updated_at',
+        'temperature_at_creation',
+        'top_k_at_creation',
+        'userId'
+      ])
+      .expression(
+        (qb) => qb
+          .selectFrom('inactive_local_conversation_messages')
+          .select([
+            'id',
+            'conversation_id',
+            'position',
+            'role',
+            'content',
+            'created_at',
+            'updated_at',
+            'temperature_at_creation',
+            'top_k_at_creation',
+            sql<string>`${userId}`.as('userId')
+          ])
+      )
+      .execute();
 
-export function makeSchema(synced: boolean = false) {
-  const syncedName = (table: string): string => {
-    if (synced) {
-      // results in lists, todos
-      return table;
-    } else {
-      // in the local-only mode of the demo
-      // these tables are not used
-      return `inactive_synced_${table}`;
-    }
-  };
+    // Clean up local tables
+    await trx
+      .deleteFrom('inactive_local_conversation_messages')
+      .execute();
 
-  const localName = (table: string): string => {
-    if (synced) {
-      // in the sync-enabled mode of the demo
-      // these tables are not used
-      return `inactive_local_${table}`;
-    } else {
-      // results in lists, todos
-      return table;
-    }
-  };
-
-  // Define tables
-  const conversationsSchema = new Table({
-    name: column.text,
-    conversation_summary: column.text,
-    system_prompt: column.text,
-    created_at: column.text, // PowerSync uses text for dates
-    updated_at: column.text,
-    top_k: column.real,
-    temperature: column.real,
-    userId: column.text
-  }, { viewName: syncedName('conversations') });
-
-  const conversationsSchemaLocal = new Table({
-    name: column.text,
-    conversation_summary: column.text,
-    system_prompt: column.text,
-    created_at: column.text, // PowerSync uses text for dates
-    updated_at: column.text,
-    top_k: column.real,
-    temperature: column.real,
-    userId: column.text
-  }, {
-    viewName: localName('conversations'), localOnly: true
-  });
-
-  const conversationMessagesSchema = new Table(
-    {
-      conversation_id: column.text,
-      position: column.integer,
-      role: column.text,
-      content: column.text,
-      created_at: column.text,
-      updated_at: column.text,
-      temperature_at_creation: column.real,
-      top_k_at_creation: column.real,
-      userId: column.text
-    },
-    { indexes: { conversation: ['conversation_id'] }, viewName: syncedName('conversationMessages') }
-  );
-
-  const conversationMessagesSchemaLocal = new Table(
-    {
-      conversation_id: column.text,
-      position: column.integer,
-      role: column.text,
-      content: column.text,
-      created_at: column.text,
-      updated_at: column.text,
-      temperature_at_creation: column.real,
-      top_k_at_creation: column.real
-    },
-    { indexes: { conversation: ['conversation_id'] }, localOnly: true, viewName: localName('conversationMessages') }
-  );
-
-  return new Schema({
-    conversationsSchema,
-    conversationMessagesSchema,
-    // conversationsSchemaLocal,
-    // conversationMessagesSchemaLocal
+    await trx
+      .deleteFrom('inactive_local_conversations')
+      .execute();
   });
 }
 
-export async function switchToSyncedSchema(db: AbstractPowerSyncDatabase, userId: string) {
-  await db.updateSchema(makeSchema(true));
-  setSyncEnabled(db.database.name, true);
-
-  await db.writeTransaction(async (tx) => {
-    // Copy local-only data to the sync-enabled views.
-    // This records each operation in the upload queue.
-    // Overwrites the local-only owner_id value with the logged-in user's id.
-    await tx.execute(
-      'INSERT INTO lists(id, name, created_at, owner_id) SELECT id, name, created_at, ? FROM inactive_local_lists',
-      [userId]
-    );
-
-    // Overwrites the local-only created_by value with the logged-in user's id.
-    await tx.execute(
-      'INSERT INTO todos(id, list_id, created_at, completed_at, description, completed, created_by) SELECT id, list_id, created_at, completed_at, description, completed, ? FROM inactive_local_todos',
-      [userId]
-    );
-
-    // Delete the local-only data.
-    await tx.execute('DELETE FROM inactive_local_todos');
-    await tx.execute('DELETE FROM inactive_local_lists');
-  });
-}
-
+// Switch to local schema
 export async function switchToLocalSchema(db: AbstractPowerSyncDatabase) {
   await db.updateSchema(makeSchema(false));
   setSyncEnabled(db.database.name, false);
 }
 
-// This is only used for typing purposes
+// Export types inferred from schema
+export type ConversationType = Database['conversations'];
+export type ConversationMessageType = Database['conversation_messages'];

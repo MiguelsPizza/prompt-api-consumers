@@ -15,31 +15,31 @@ export default function EntryPage() {
   const connector = useSupabase();
   const navigate = useNavigate();
 
-  const navigateToMainView = () => {
-    navigate({to: '/chat'});
-  };
+//   const navigateToMainView = () => {
+//     navigate({to: '/chat'});
+//   };
 
-  React.useEffect(() => {
-    if (!connector) {
-      console.error(`No Supabase connector has been created yet.`);
-      return;
-    }
+//   React.useEffect(() => {
+//     if (!connector) {
+//       console.error(`No Supabase connector has been created yet.`);
+//       return;
+//     }
 
-    if (!connector.ready) {
-      const l = connector.registerListener({
-        initialized: () => {
-          /**
-           * Redirect if on the entry view
-           */
+//     if (!connector.ready) {
+//       // const l = connector.registerListener({
+//       //   initialized: () => {
+//       //     /**
+//       //      * Redirect if on the entry view
+//       //      */
 
-          navigate({to: '/chat'});
-        }
-      });
-      return () => l?.();
-    }
-
-    navigateToMainView();
-  }, [connector]);
+//       //     navigate({to: '/chat'});
+//       //   }
+//       // });
+//       // return () => l?.();
+//     }
+// //  if(!)
+//     navigateToMainView();
+//   }, [connector]);
 
   return 'loading'
 }

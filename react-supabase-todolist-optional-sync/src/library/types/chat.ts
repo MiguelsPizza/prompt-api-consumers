@@ -1,5 +1,5 @@
 import { HandlerNewConversationType } from '@/hooks/useConversationManager';
-import { Conversation } from '@/local-db/db';
+import { ConversationType } from '@/powersync/AppSchema'
 import { Dispatch, SetStateAction } from 'react';
 
 export interface Message {
@@ -9,23 +9,23 @@ export interface Message {
 }
 
 export interface ChatMessagesProps {
-  currentConversation: Conversation;
+  currentConversation: ConversationType;
 }
 
 export interface SidebarProps {
-  conversations?: Conversation[];
-  currentConversationId: number | null;
+  conversations?: ConversationType[];
+  currentConversationId: string | null;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: Dispatch<SetStateAction<boolean>>
   handleNewConversation: HandlerNewConversationType
-  onDeleteConversation: (id: number,sideEffect?: () => any) => void;
-  onSelectConversation: (id: number) => void;
+  onDeleteConversation: (id: string,sideEffect?: () => any) => void;
+  onSelectConversation: (id: string) => void;
 }
 
 export interface ChatHeaderProps {
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
-  currentConversation?: Conversation;
-  currentConversationId: number | null;
-  onDeleteConversation: (id: number,sideEffect?: () => any) => void;
+  currentConversation?: ConversationType;
+  currentConversationId: string | null;
+  onDeleteConversation: (id: string,sideEffect?: () => any) => void;
 }

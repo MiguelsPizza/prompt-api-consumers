@@ -1,9 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlusCircle, Trash2 } from 'lucide-react';
-import { SidebarProps } from '../../types/chat';
+import { LogIn, PlusCircle, Trash2, Upload } from 'lucide-react';
+import { SidebarProps } from '@/types/chat';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { db } from '@/local-db/db';
+import { db  } from '@/powersync/AppSchema';
+import { Link } from '@tanstack/react-router';
+import { EnterIcon } from '@radix-ui/react-icons';
 
 export const Sidebar = ({
   conversations,
@@ -21,11 +23,27 @@ export const Sidebar = ({
       <div className="p-4">
         <Button
           variant="outline"
-          className="w-full mb-4 text-gray-900 hover:text-green-500"
+          className="w-full mb-4 flex items-center justify-center text-gray-900 hover:text-green-500 hover:bg-green-50 transition-colors duration-200"
           onClick={() => handleNewConversation()}
         >
-          <PlusCircle className="mr-2 h-4 w-4" /> New chat
+          <PlusCircle className="mr-2 h-4 w-4" /> New Chat
         </Button>
+      </div>
+      <div className="p-4">
+        <Link
+          to='/auth/login'
+          className="w-full mb-4 flex items-center justify-center px-4 py-2 rounded-md text-gray-900 hover:text-green-500 hover:bg-green-50 border border-gray-200 transition-colors duration-200"
+        >
+          <LogIn className="mr-2 h-4 w-4" /> Sign In
+        </Link>
+      </div>
+      <div className="p-4">
+        <Link
+          to='/auth/register'
+          className="w-full mb-4 flex items-center justify-center px-4 py-2 rounded-md text-gray-900 hover:text-green-500 hover:bg-green-50 border border-gray-200 transition-colors duration-200"
+        >
+          <Upload className="mr-2 h-4 w-4" /> Create Account
+        </Link>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-3">
@@ -54,10 +72,12 @@ export const Sidebar = ({
                       `}
                       onClick={() => onSelectConversation(conversation.id)}
                     >
-                      {(conversation.conversation_summary ?? conversation.name).length > 20
-                        ? `${(conversation.conversation_summary ?? conversation.name).slice(0, 20)}...`
-                        : (conversation.conversation_summary ?? conversation.name)
-                      }
+                      {(() => {
+                        const displayText = conversation?.conversation_summary || conversation?.name || '';
+                        return displayText.length > 20
+                          ? `${displayText.slice(0, 20)}...`
+                          : displayText;
+                      })()}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side='right'>
@@ -71,7 +91,12 @@ export const Sidebar = ({
                 opacity-0 group-hover:opacity-100
                 text-gray-400 hover:text-red-500 hover:bg-red-900/20
                 transition-all duration-200"
-                  onClick={async () => onDeleteConversation(conversation.id, await db.conversation.count() === 1 ? () => setSidebarCollapsed(true) : undefined)}
+                  onClick={async () => {
+                    const { count } = await db.selectFrom('conversations')
+                      .select(({ fn }) => [fn.count<number>('id').as('count')])
+                      .executeTakeFirstOrThrow();
+                    onDeleteConversation(conversation.id, count === 1 ? () => setSidebarCollapsed(true) : undefined);
+                  }}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

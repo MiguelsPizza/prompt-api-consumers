@@ -2,14 +2,14 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, ArrowDown, Square, AlertCircle } from 'lucide-react';
-import { db } from '@/powersync/AppSchema';
+import { db } from '@/local-db/db';
 import { MessageCard } from './MessageCard';
 import { ThinkingCard } from './ThinkingCard';
 import { useStatelessPromptAPI } from 'use-prompt-api';
 import { ChatMessagesProps, Message } from '../../types/chat';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { AlertCircle, ArrowDown, Send, Square } from 'lucide-react';
 
 export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);

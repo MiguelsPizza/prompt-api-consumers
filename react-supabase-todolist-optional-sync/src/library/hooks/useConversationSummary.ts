@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ConversationMessage, db } from '../local-db/db';
+import { ConversationMessageType, db } from '@/powersync/AppSchema'
 import { useSummarizer } from 'use-prompt-api';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useQuery } from '@powersync/react';
 
 export function useConversationSummary(
-  currentConversationId: number | null,
+  currentConversationId: string | null,
 ) {
   const [error, setError] = useState<string | null>(null);
 
@@ -15,32 +15,25 @@ export function useConversationSummary(
     sharedContext: "These are the initial messages in a conversation with an LLM",
   });
 
-  const currentConversation = useLiveQuery(
-    async () => {
-      if (!currentConversationId) return null;
-      return await db.conversation.get(currentConversationId);
-    },
-    [currentConversationId]
+  // Update to use Kysely query
+  const { data: [currentConversation] = [] } = useQuery(db.selectFrom('conversations')
+    .selectAll()
+    .where('id', '=', currentConversationId)
   );
 
-  const conv = useLiveQuery(
-    async () => {
-      if (!currentConversationId) return [];
-      return await db.conversationMessage
-        .where('conversation')
-        .equals(currentConversationId)
-        .sortBy('position');
-    },
-    [currentConversationId]
+  // Update to use Kysely query
+  const { data: conv = [] } = useQuery(db.selectFrom('conversation_messages')
+    .selectAll()
+    .where('conversation_id', '=', currentConversationId)
+    .orderBy('position')
   );
 
-  async function updateConversationSummary(convId: number, messages: ConversationMessage[], abortController: AbortController) {
+  async function updateConversationSummary(convId: string, messages: ConversationMessageType[], abortController: AbortController) {
     const convString = messages.reduce(
       (acc, { content, role }) => acc + `${role}: ${content}\n`,
       ''
     );
     try {
-      // Check if window.ai is available
       if (!window.ai?.languageModel) {
         throw new Error('Language model API is not available');
       }
@@ -64,7 +57,11 @@ export function useConversationSummary(
 
       const title = res.slice(res.indexOf('$Title:'))
 
-      await db.conversation.update(convId, { conversation_summary: title })
+      // Update to use Kysely query
+      await db.updateTable('conversations')
+        .set({ conversation_summary: title })
+        .where('id', '=', convId)
+        .execute();
 
     } catch (error) {
       if (!abortController.signal.aborted) {

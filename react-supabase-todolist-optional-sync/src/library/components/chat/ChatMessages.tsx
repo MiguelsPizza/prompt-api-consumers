@@ -7,9 +7,10 @@ import { db } from '@/powersync/AppSchema';
 import { MessageCard } from './MessageCard';
 import { ThinkingCard } from './ThinkingCard';
 import { useStatelessPromptAPI } from 'use-prompt-api';
-import { ChatMessagesProps, Message } from '../../types/chat';
+import { ChatMessagesProps, Message } from '@/types/chat'
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { useQuery } from '@powersync/react';
 
 export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -19,19 +20,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
   const [input, setInput] = useState('');
   const { toast } = useToast();
 
-  const messages =
-    useLiveQuery(async () => {
-      if (currentConversation?.id) {
-        return await db.conversationMessage
-          .where('conversation')
-          .equals(currentConversation.id)
-          .sortBy('position');
-      }
-      return [];
-    }, [currentConversation?.id]) ?? [];
-
-
-
+  const { data: messages } = useQuery(db.selectFrom('conversation_messages').where('conversation_id', '=', currentConversation.id).selectAll())
   //don't pass in the user prompt if it makes it into the arr before the request is sent
   //this is not a great solution
   const initialPrompts = useMemo(
@@ -63,24 +52,32 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
 
     try {
       const now = new Date();
-      const position = await db.conversationMessage
-        .where('conversation')
-        .equals(currentConversation.id)
-        .count();
+      const { count } = await db.selectFrom('conversation_messages')
+        .select(({ fn }) => [fn.count<number>('id').as('count')])
+        .where('conversation_id', '=', currentConversation.id)
+        .executeTakeFirstOrThrow();
+      const position = count;
 
-      const id = await db.conversationMessage.add({
-        conversation: currentConversation.id,
-        position,
-        role: message.role,
-        content: message.content,
-        created_at: now,
-        updated_at: now,
-        temperature_at_creation: currentConversation?.temperature ?? 0.7,
-        top_k_at_creation: currentConversation?.top_k ?? 10,
-      });
+      const res = await db.insertInto('conversation_messages')
+        .values({
+          id: crypto.randomUUID(),
+          conversation_id: currentConversation.id,
+          position,
+          role: message.role,
+          content: message.content,
+          created_at: now.toISOString(),
+          updated_at: now.toISOString(),
+          temperature_at_creation: currentConversation?.temperature ?? 0.7,
+          top_k_at_creation: currentConversation?.top_k ?? 10,
+        })
+        .returning('id')
+        .executeTakeFirstOrThrow()
 
-      await db.conversation.update(currentConversation.id, { updated_at: now });
-      return id
+      await db.updateTable('conversations')
+        .set({ updated_at: now.toISOString() })
+        .where('id', '=', currentConversation.id)
+        .executeTakeFirstOrThrow();
+      return res!.id!
     } catch (error) {
       console.error('Error adding message to conversation:', error);
       toast({
@@ -103,7 +100,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
       });
       return;
     }
-    let tempUserMessageId: number | undefined
+    let tempUserMessageId: string | undefined
     try {
       tempUserMessageId = await addMessageToConversation({ role: 'user', content: input });
       setInput('');
@@ -114,7 +111,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
     } catch (error) {
       console.error({ error });
       if (tempUserMessageId) {
-        await db.conversationMessage.delete(tempUserMessageId)
+        await db.deleteFrom('conversation_messages').where('id', '=', tempUserMessageId)
       }
       toast({
         variant: 'destructive',
@@ -180,7 +177,7 @@ export const ChatMessages = ({ currentConversation }: ChatMessagesProps) => {
             <MessageCard
               key={id}
               role={role as 'user' | 'assistant'}
-              content={content}
+              content={content!}
             />
           ))}
 

@@ -7,19 +7,20 @@ import { AICapabilitiesProvider } from 'use-prompt-api';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import ChatInterface from './views/ChatInterface';
 
 export default function App() {
   const queryClient = useMemo(() => new QueryClient(), [])
   return (
-    <SystemProvider>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <SystemProvider>
         <AICapabilitiesProvider>
           <RouterProvider router={router} />
           <PWABadge />
           <Toaster />
         </AICapabilitiesProvider>
-      </QueryClientProvider>
-    </SystemProvider>
+      </SystemProvider>
+    </QueryClientProvider>
   );
 }
 

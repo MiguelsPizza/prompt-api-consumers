@@ -1,22 +1,26 @@
-import { conversationMessages } from './../../../../web-app/src/local-db/sqliteDb';
 import { useCallback, useLayoutEffect, useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db,  } from '@/powersync/AppSchema'
+import { db } from '@/powersync/AppSchema'
 import { useToast } from './use-toast';
-import { eq } from 'drizzle-orm';
+import { useQuery } from '@powersync/react';
 
 
-export type HandlerNewConversationType =  (systemPrompt?: string | null, top_k?: number, temperature?: number) => void;
+export type HandlerNewConversationType = (systemPrompt?: string | null, top_k?: number, temperature?: number) => void;
 
 export function useConversationManager() {
   const { toast } = useToast();
-  const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
-
-  const conversations = useLiveQuery(() => db.conversation.toArray());
-  const currentConversation = useLiveQuery(
-    async () => (currentConversationId ? await db.conversation.get(currentConversationId) : undefined),
-    [currentConversationId]
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  //() => db.conversation.toArray()
+  // Update conversations query
+  const { data: conversations } = useQuery(db.selectFrom('conversations').selectAll()
   );
+
+  // Update current conversation query
+  const { data: [currentConversation] = [] } = useQuery(db.selectFrom('conversations')
+    .selectAll()
+    .where('id', '=', currentConversationId || '')
+  );
+
+  console.log(({ currentConversation }))
 
   useLayoutEffect(() => {
     if (conversations?.length && !currentConversationId) {
@@ -27,27 +31,34 @@ export function useConversationManager() {
 
   const handleDeleteConversation = useCallback(async (id: number, sideEffect?: () => any) => {
     try {
-      db.transaction(async(transaction) =>{
-      await transaction.delete(conversationMessages).where(eq(conversationMessages.id, id.toString()))
-      await transaction.conversationMessage.where('conversation').equals(id).delete();
-      await db.conversation.delete(id);
+      await db.transaction().execute(async (trx) => {
+        await trx.deleteFrom('conversation_messages')
+          .where('id', '=', id.toString())
+          .execute();
 
-      const newCurrentConversation = await db.conversation.toArray();
-      if (newCurrentConversation.length > 0) {
-        setCurrentConversationId(newCurrentConversation.at(-1)!.id);
-      } else {
-        setCurrentConversationId(null);
-      }
+        await trx.deleteFrom('conversations')
+          .where('id', '=', id.toString())
+          .execute();
 
-      toast({
-        title: "Conversation Deleted",
-        description: "The conversation has been permanently deleted.",
+        const newCurrentConversation = await trx.selectFrom('conversations')
+          .selectAll()
+          .execute();
+
+        if (newCurrentConversation.length > 0) {
+          setCurrentConversationId(newCurrentConversation.at(-1)!.id);
+        } else {
+          setCurrentConversationId(null);
+        }
+
+        toast({
+          title: "Conversation Deleted",
+          description: "The conversation has been permanently deleted.",
+        });
+
+        if (sideEffect) {
+          sideEffect();
+        }
       });
-
-      if (sideEffect) {
-        sideEffect();
-      }
-    })
     } catch (error) {
       console.error('Error deleting conversation:', error);
       toast({
@@ -61,20 +72,27 @@ export function useConversationManager() {
   const handleNewConversation: HandlerNewConversationType = useCallback(async (systemPrompt = null, top_k = 10, temperature = 0.7) => {
     try {
       const now = new Date();
-      const id = await db.conversation.add({
-        name: 'New conversation',
-        conversation_summary: null,
-        system_prompt: systemPrompt,
-        created_at: now,
-        updated_at: now,
-        top_k,
-        temperature,
-      });
-      setCurrentConversationId(id);
+      const result = await db.insertInto('conversations')
+        .values({
+          id: crypto.randomUUID(),
+          name: 'New conversation',
+          conversation_summary: null,
+          system_prompt: systemPrompt,
+          created_at: now.toLocaleDateString(),
+          updated_at: now.toLocaleDateString(),
+          top_k,
+          temperature,
+          userId: 'test'
+        })
+        .returning('id')
+        .executeTakeFirst();
+
+      setCurrentConversationId(result?.id ?? '0');
     } catch (error) {
       console.error('Error creating new conversation:', error);
     }
   }, []);
+
 
   return {
     currentConversationId,

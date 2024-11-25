@@ -1,4 +1,3 @@
-import { AppSchema, conversationMessagesRelations, conversations, db, DB_NAME, makeSchema, switchToSyncedSchema } from '@/powersync/AppSchema';
 import { SupabaseConnector } from '@/powersync/SupabaseConnector';
 import { CircularProgress } from '@mui/material';
 import { PowerSyncContext } from '@powersync/react';
@@ -7,13 +6,14 @@ import Logger from 'js-logger';
 import React, { Suspense } from 'react';
 import { NavigationPanelContextProvider } from '../navigation/NavigationPanelContext';
 import { getSyncEnabled } from '@/powersync/SyncMode';
-import { powerSyncDb, conversationMessages } from '@/powersync/AppSchema';
+import { switchToSyncedSchema, makeSchema, AppSchema, db, powerSyncDb, DB_NAME } from '@/powersync/AppSchema';
 
 const SupabaseContext = React.createContext<SupabaseConnector | null>(null);
 export const useSupabase = () => React.useContext(SupabaseContext);
-const connector = new SupabaseConnector()
+
 export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
-  const [powerSync] = React.useState(powerSyncDb);
+  const [connector] = React.useState(new SupabaseConnector());
+  const [powerSync] = React.useState(db);
 
   React.useEffect(() => {
     // Linting thinks this is a hook due to it's name
@@ -22,35 +22,28 @@ export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
     // For console testing purposes
     (window as any)._powersync = powerSync;
 
-    powerSync.init();
+    powerSyncDb.init();
     const l = connector.registerListener({
-      initialized: () => { },
+      initialized: () => {},
       sessionStarted: async () => {
         var isSyncMode = getSyncEnabled(DB_NAME);
+
         // Switch to sync mode if the user is logged in for first time
         if (!isSyncMode) {
-          await db.transaction(async (transaction) => {
-            await transaction.update(conversationMessages).set({ userId: connector.currentSession?.user.id! })
-            await transaction.update(conversations).set({ userId: connector.currentSession?.user.id! })
-          })
-          // await switchToSyncedSchema(db, connector.currentSession?.user.id!);
+          await switchToSyncedSchema(db, connector.currentSession?.user.id!);
         }
-        powerSync.connect(connector);
+        powerSyncDb.connect(connector);
       }
     });
 
     connector.init();
 
-    return () => {
-      l?.();
-      powerSync?.close();
-      (window as any)._powersync = null
-    }
+    return () => l?.();
   }, [powerSync, connector]);
 
   return (
     <Suspense fallback={<CircularProgress />}>
-      <PowerSyncContext.Provider value={powerSync}>
+      <PowerSyncContext.Provider value={powerSyncDb}>
         <SupabaseContext.Provider value={connector}>
           <NavigationPanelContextProvider>{children}</NavigationPanelContextProvider>
         </SupabaseContext.Provider>

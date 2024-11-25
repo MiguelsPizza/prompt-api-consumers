@@ -3,9 +3,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, } from "@/c
 import { Slider } from '@/components/ui/slider';
 import { Settings, ArrowRight, ArrowLeft, Trash2 } from 'lucide-react';
 import { db } from '@/powersync/AppSchema';
-import { ChatHeaderProps } from '../../types/chat';
+import { ChatHeaderProps } from '@/types/chat';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
+// Remove eq import from drizzle
+// Remove conversationsSchema import
 
 export const ChatHeader = ({
   sidebarCollapsed,
@@ -22,9 +24,10 @@ export const ChatHeader = ({
     if (!currentConversationId) return;
 
     try {
-      await db.conversation.update(currentConversationId, {
-        temperature: value[0],
-      });
+      await db.updateTable('conversations')
+        .set({ temperature: value[0] })
+        .where('id', '=', currentConversationId.toString())
+        .execute();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -38,9 +41,10 @@ export const ChatHeader = ({
     if (!currentConversationId) return;
 
     try {
-      await db.conversation.update(currentConversationId, {
-        top_k: value[0],
-      });
+      await db.updateTable('conversations')
+        .set({ top_k: value[0] })
+        .where('id', '=', currentConversationId.toString())
+        .execute();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -54,9 +58,10 @@ export const ChatHeader = ({
     if (!currentConversationId) return;
 
     try {
-      await db.conversation.update(currentConversationId, {
-        system_prompt: systemPrompt,
-      });
+      await db.updateTable('conversations')
+        .set({ system_prompt: systemPrompt })
+        .where('id', '=', currentConversationId.toString())
+        .execute();
       toast({
         title: "System Prompt Updated",
         description: "The system prompt has been successfully updated.",

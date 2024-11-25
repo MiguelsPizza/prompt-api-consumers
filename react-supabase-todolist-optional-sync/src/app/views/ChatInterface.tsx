@@ -1,25 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChatMessages } from '@/components/chat/ChatMessages';
 import { Sidebar } from '@/components/chat/Sidebar';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { AIStatusCard } from '@/components/chat/AIStatusCard';
 import { useConversationManager } from '@/hooks/useConversationManager';
 import { CreateConversationCard } from '@/components/chat/CreateConversationCard';
-import { db, conversations as conversationsSchema } from '@/powersync/AppSchema';
-import { useSuspenseQuery } from "@powersync/tanstack-react-query"
-import { count } from 'drizzle-orm';
-import { toCompilableQuery } from '@powersync/drizzle-driver';
+import { db } from '@/powersync/AppSchema';
+import { useQuery } from '@powersync/react';
+import { useConversationSummary } from '@/hooks/useConversationSummary';
+// import { useQuery, useSuspenseQuery } from "@powersync/tanstack-react-query"
 
 export default function ChatInterface() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const {data} = useSuspenseQuery({
-    queryKey: ['noConversationsKey'],
-    query: toCompilableQuery(db.select({ count: count() }).from(conversationsSchema))
-  })
-  const noConversations = data[0]?.count === 0
-  return 'hello!'
-  // const noConversations = (useLiveQuery(async () => db.conversation.count()) ?? 0) === 0
-
+  const { data } = useQuery(db.selectFrom('conversations').selectAll())
+  const noConversations = data.length === 0
   const {
     currentConversationId,
     setCurrentConversationId,
@@ -29,7 +23,8 @@ export default function ChatInterface() {
     handleNewConversation,
   } = useConversationManager();
 
-  // useConversationSummary(currentConversationId);
+
+  useConversationSummary(currentConversationId);
 
   return (
     <div className="flex h-screen overflow-hidden">
