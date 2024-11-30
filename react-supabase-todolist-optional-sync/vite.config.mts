@@ -5,6 +5,8 @@ import { fileURLToPath, URL } from 'url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -27,17 +29,17 @@ export default defineConfig({
     // https://github.com/vitejs/vite/issues/11672#issuecomment-1415820673
     exclude: ['@journeyapps/wa-sqlite', '@powersync/web'],
     // include: [],
-    include: ['@powersync/web > js-logger'], // <-- Include `js-logger` when it isn't installed and imported.
+    // include: ['@powersync/web > js-logger'], // <-- Include `js-logger` when it isn't installed and imported.
   },
   plugins: [
     wasm(),
     topLevelAwait(),
+    TanStackRouterVite(),
     react(),
     VitePWA({
       srcDir: './src',
       outDir: './dist',
       workbox: {
-
         sourcemap: true,
       },
       registerType: 'autoUpdate',
@@ -81,7 +83,7 @@ export default defineConfig({
   ],
   worker: {
     format: 'es',
-    plugins: () => [wasm(), topLevelAwait()],
+    plugins: () => [wasm(), topLevelAwait()]
   },
   css: {
     devSourcemap: true

@@ -1,1 +1,0 @@
-import{g as e}from"./index-Dyy0b0Hg.js";var o=function(){throw new Error("ws does not work in the browser. Browser clients must use the native WebSocket object")};const t=e(o),r=Object.freeze(Object.defineProperty({__proto__:null,default:t},Symbol.toStringTag,{value:"Module"}));export{r as b};

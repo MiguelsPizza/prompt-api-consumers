@@ -38,10 +38,10 @@ export const conversationTableDef = {
     updated_at: column.text,
     top_k: column.real,
     temperature: column.real,
-    userId: column.text
+    user_id: column.text
   },
   options: {
-    indexes: { user: ['userId'] }
+    indexes: { user: ['user_id'] }
   }
 } as const satisfies TableDefinition;
 
@@ -57,7 +57,7 @@ export const conversationMessagesTableDef = {
     updated_at: column.text,
     temperature_at_creation: column.real,
     top_k_at_creation: column.real,
-    userId: column.text
+    user_id: column.text
   },
   options: {
     indexes: {
@@ -111,43 +111,54 @@ export function makeSchema(synced: boolean) {
 }
 
 // Initialize database with schema
-export const AppSchema = makeSchema(false);
-export const powerSyncDb = new PowerSyncDatabase({
+export let AppSchema = makeSchema(false);
+export let powerSyncDb = new PowerSyncDatabase({
   schema: AppSchema,
   database: {
     dbFilename: DB_NAME
   }
 });
-
+console.log({db: powerSyncDb.schema})
 // Create type-safe Kysely instance
 export type Database = (typeof AppSchema)['types'];
-export const db = wrapPowerSyncWithKysely<Database>(powerSyncDb);
+export let db = wrapPowerSyncWithKysely<Database>(powerSyncDb);
 
 // Schema switching function
-export async function switchToSyncedSchema(db: Kysely<Database>, userId: string) {
-  await powerSyncDb.updateSchema(makeSchema(true));
-  setSyncEnabled(powerSyncDb.database.name, true);
+export async function switchToSyncedSchema(userId: string) {
+  try {
+    console.log('Starting schema switch process for user:', userId);
+    // Update schema
+    console.log('Updating PowerSync schema to synced mode...');
+    try {
+      AppSchema = makeSchema(true)
+      await powerSyncDb.updateSchema(AppSchema);
+      db = wrapPowerSyncWithKysely<(typeof AppSchema)['types']>(powerSyncDb);
+      console.log('db',powerSyncDb.schema)
+      console.log('Schema successfully updated to synced mode');
+    } catch (error) {
+      console.error('Failed to update schema:', error);
+      throw error;
+    }
 
-  // Perform the migration in a transaction
-  await db.transaction().execute(async (trx) => {
-    // Migrate conversations
-    await trx
-      .insertInto('conversations')
-      .columns([
-        'id',
-        'name',
-        'conversation_summary',
-        'system_prompt',
-        'created_at',
-        'updated_at',
-        'top_k',
-        'temperature',
-        'userId'
-      ])
-      .expression(
-        (qb) => qb
-          .selectFrom('inactive_local_conversations')
-          .select([
+    // Update sync setting
+    try {
+      setSyncEnabled(true);
+      console.log('Sync mode enabled in local storage');
+    } catch (error) {
+      console.error('Failed to set sync enabled:', error);
+      throw error;
+    }
+
+    // Perform the migration in a transaction
+    console.log('Starting data migration transaction...');
+    try {
+      await db.transaction().execute(async (trx) => {
+        // Migrate conversations
+        console.log('Starting conversation migration...');
+        try {
+          const conversationResult = await trx
+          .insertInto('conversations')
+          .columns([
             'id',
             'name',
             'conversation_summary',
@@ -156,30 +167,35 @@ export async function switchToSyncedSchema(db: Kysely<Database>, userId: string)
             'updated_at',
             'top_k',
             'temperature',
-            sql<string>`${userId}`.as('userId')
+            'user_id'
           ])
-      )
-      .execute();
+          .expression((qb) =>
+            qb.selectFrom('local_conversations')
+            .select(({ eb }) => [
+              'id',
+              'name',
+              'conversation_summary',
+              'system_prompt',
+              'created_at',
+              'updated_at',
+              'top_k',
+              'temperature',
+              eb.val(userId).as('user_id')  // Use expression builder to create a constant value
+            ])
+          )
+          .execute();
+          console.log('Conversations migrated successfully, affected rows:', conversationResult.length || 0);
+        } catch (error) {
+          console.error('Failed to migrate conversations:', error);
+          throw error;
+        }
 
-    // Migrate messages
-    await trx
-      .insertInto('conversation_messages')
-      .columns([
-        'id',
-        'conversation_id',
-        'position',
-        'role',
-        'content',
-        'created_at',
-        'updated_at',
-        'temperature_at_creation',
-        'top_k_at_creation',
-        'userId'
-      ])
-      .expression(
-        (qb) => qb
-          .selectFrom('inactive_local_conversation_messages')
-          .select([
+        // Migrate messages
+        console.log('Starting message migration...');
+        try {
+          const messageResult = await trx
+          .insertInto('conversation_messages')
+          .columns([
             'id',
             'conversation_id',
             'position',
@@ -189,26 +205,64 @@ export async function switchToSyncedSchema(db: Kysely<Database>, userId: string)
             'updated_at',
             'temperature_at_creation',
             'top_k_at_creation',
-            sql<string>`${userId}`.as('userId')
+            'user_id'
           ])
-      )
-      .execute();
+          .expression((qb) =>
+            qb.selectFrom('local_conversation_messages')
+            .select(({ eb }) => [
+              'id',
+              'conversation_id',
+              'position',
+              'role',
+              'content',
+              'created_at',
+              'updated_at',
+              'temperature_at_creation',
+              'top_k_at_creation',
+              eb.val(userId).as('user_id')  // Use expression builder to create a constant value
+            ])
+          )
+          .execute();
+          console.log('Messages migrated successfully, affected rows:', messageResult.length || 0);
+        } catch (error) {
+          console.error('Failed to migrate messages:', error);
+          throw error;
+        }
 
-    // Clean up local tables
-    await trx
-      .deleteFrom('inactive_local_conversation_messages')
-      .execute();
+        // Clean up local tables
+        console.log('Starting cleanup of local tables...');
+        try {
+          const messageCleanupResult = await trx
+            //@ts-ignore
+            .deleteFrom('inactive_local_conversation_messages')
+            .execute();
+          console.log('Cleaned up local messages, rows deleted:', messageCleanupResult.length || 0);
 
-    await trx
-      .deleteFrom('inactive_local_conversations')
-      .execute();
-  });
+          const conversationCleanupResult = await trx
+            //@ts-ignore
+            .deleteFrom('inactive_local_conversations')
+            .execute();
+          console.log('Cleaned up local conversations, rows deleted:', conversationCleanupResult.length || 0);
+        } catch (error) {
+          console.error('Failed to clean up local tables:', error);
+          throw error;
+        }
+      });
+      console.log('Migration transaction completed successfully');
+    } catch (error) {
+      console.error('Migration transaction failed:', error);
+      throw error;
+    }
+  } catch (error) {
+    console.error('Schema switch failed:', error);
+    throw error;
+  }
 }
 
 // Switch to local schema
 export async function switchToLocalSchema(db: AbstractPowerSyncDatabase) {
   await db.updateSchema(makeSchema(false));
-  setSyncEnabled(db.database.name, false);
+  setSyncEnabled(false);
 }
 
 // Export types inferred from schema

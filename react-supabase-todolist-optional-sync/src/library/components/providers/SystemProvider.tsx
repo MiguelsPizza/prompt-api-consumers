@@ -1,15 +1,13 @@
 import { SupabaseConnector } from '@/powersync/SupabaseConnector';
 import { CircularProgress } from '@mui/material';
 import { PowerSyncContext } from '@powersync/react';
-import { PowerSyncDatabase } from '@powersync/web';
 import Logger from 'js-logger';
 import React, { Suspense } from 'react';
-import { NavigationPanelContextProvider } from '../navigation/NavigationPanelContext';
 import { getSyncEnabled } from '@/powersync/SyncMode';
-import { switchToSyncedSchema, makeSchema, AppSchema, db, powerSyncDb, DB_NAME } from '@/powersync/AppSchema';
+import { switchToSyncedSchema, db, powerSyncDb, DB_NAME } from '@/powersync/AppSchema';
+import { SupabaseContext } from '@/utils/Contexts';
 
-const SupabaseContext = React.createContext<SupabaseConnector | null>(null);
-export const useSupabase = () => React.useContext(SupabaseContext);
+
 
 export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
   const [connector] = React.useState(new SupabaseConnector());
@@ -24,14 +22,21 @@ export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
 
     powerSyncDb.init();
     const l = connector.registerListener({
-      initialized: () => {},
+      initialized: () => {
+        Logger.debug('SupabaseConnector initialized');
+      },
       sessionStarted: async () => {
-        var isSyncMode = getSyncEnabled(DB_NAME);
-
+        console.log('hereinasf')
+        console.log('Session started');
+        var isSyncMode = getSyncEnabled();
+        console.log('Current sync mode:', isSyncMode);
+        console.log('SupabaseConnector initialized');
         // Switch to sync mode if the user is logged in for first time
-        if (!isSyncMode) {
-          await switchToSyncedSchema(db, connector.currentSession?.user.id!);
-        }
+        // if (!isSyncMode) {
+        console.log('Switching to synced schema for user:', connector.currentSession?.user.id);
+        await switchToSyncedSchema(connector.currentSession?.user.id!);
+        // }
+        console.log('Connecting PowerSync to Supabase connector');
         powerSyncDb.connect(connector);
       }
     });
@@ -45,7 +50,7 @@ export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
     <Suspense fallback={<CircularProgress />}>
       <PowerSyncContext.Provider value={powerSyncDb}>
         <SupabaseContext.Provider value={connector}>
-          <NavigationPanelContextProvider>{children}</NavigationPanelContextProvider>
+          {children}
         </SupabaseContext.Provider>
       </PowerSyncContext.Provider>
     </Suspense>

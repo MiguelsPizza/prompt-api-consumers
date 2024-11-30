@@ -39,7 +39,7 @@ export const Sidebar = ({
       </div>
       <div className="p-4">
         <Link
-          to='/auth/register'
+          to='/auth/signup'
           className="w-full mb-4 flex items-center justify-center px-4 py-2 rounded-md text-gray-900 hover:text-green-500 hover:bg-green-50 border border-gray-200 transition-colors duration-200"
         >
           <Upload className="mr-2 h-4 w-4" /> Create Account

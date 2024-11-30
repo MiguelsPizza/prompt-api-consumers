@@ -2,12 +2,14 @@ import { useCallback, useLayoutEffect, useState } from 'react';
 import { db } from '@/powersync/AppSchema'
 import { useToast } from './use-toast';
 import { useQuery } from '@powersync/react';
+import { useSupabase } from '@/utils/Contexts';
 
 
 export type HandlerNewConversationType = (systemPrompt?: string | null, top_k?: number, temperature?: number) => void;
 
 export function useConversationManager() {
   const { toast } = useToast();
+  const supabase = useSupabase()
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   //() => db.conversation.toArray()
   // Update conversations query
@@ -20,8 +22,6 @@ export function useConversationManager() {
     .where('id', '=', currentConversationId || '')
   );
 
-  console.log(({ currentConversation }))
-
   useLayoutEffect(() => {
     if (conversations?.length && !currentConversationId) {
       const conv = conversations.at(-1)!;
@@ -29,7 +29,7 @@ export function useConversationManager() {
     }
   }, [conversations?.length]);
 
-  const handleDeleteConversation = useCallback(async (id: number, sideEffect?: () => any) => {
+  const handleDeleteConversation = useCallback(async (id: string, sideEffect?: () => any) => {
     try {
       await db.transaction().execute(async (trx) => {
         await trx.deleteFrom('conversation_messages')
@@ -72,6 +72,7 @@ export function useConversationManager() {
   const handleNewConversation: HandlerNewConversationType = useCallback(async (systemPrompt = null, top_k = 10, temperature = 0.7) => {
     try {
       const now = new Date();
+      const user = await supabase?.client.auth.getUser()
       const result = await db.insertInto('conversations')
         .values({
           id: crypto.randomUUID(),
@@ -82,7 +83,7 @@ export function useConversationManager() {
           updated_at: now.toLocaleDateString(),
           top_k,
           temperature,
-          userId: 'test'
+          userId: !user?.error ? user?.data.user.id : 'Local_ID'
         })
         .returning('id')
         .executeTakeFirst();

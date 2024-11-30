@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react';
 import { ChatMessages } from '@/components/chat/ChatMessages';
 import { Sidebar } from '@/components/chat/Sidebar';
@@ -8,9 +9,12 @@ import { CreateConversationCard } from '@/components/chat/CreateConversationCard
 import { db } from '@/powersync/AppSchema';
 import { useQuery } from '@powersync/react';
 import { useConversationSummary } from '@/hooks/useConversationSummary';
-// import { useQuery, useSuspenseQuery } from "@powersync/tanstack-react-query"
 
-export default function ChatInterface() {
+export const Route = createFileRoute('/')({
+  component: ChatInterface,
+})
+
+function ChatInterface() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { data } = useQuery(db.selectFrom('conversations').selectAll())
   const noConversations = data.length === 0

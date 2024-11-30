@@ -18,7 +18,7 @@ export interface SidebarProps {
   sidebarCollapsed: boolean;
   setSidebarCollapsed: Dispatch<SetStateAction<boolean>>
   handleNewConversation: HandlerNewConversationType
-  onDeleteConversation: (id: string,sideEffect?: () => any) => void;
+  onDeleteConversation: (id: string, sideEffect?: () => any) => void;
   onSelectConversation: (id: string) => void;
 }
 
@@ -27,5 +27,5 @@ export interface ChatHeaderProps {
   onToggleSidebar: () => void;
   currentConversation?: ConversationType;
   currentConversationId: string | null;
-  onDeleteConversation: (id: string,sideEffect?: () => any) => void;
+  onDeleteConversation: (id: string, sideEffect?: () => any) => void;
 }
