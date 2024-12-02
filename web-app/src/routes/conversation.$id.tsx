@@ -6,6 +6,8 @@ import { db } from '@/powersync/AppSchema';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useConversationSummary } from '@/hooks/useConversationSummary';
+import { AssistantRuntimeProvider } from "@assistant-ui/react";
+
 
 export const Route = createFileRoute('/conversation/$id')({
   component: ConversationView,
@@ -48,6 +50,7 @@ function ConversationView() {
   const { id } = Route.useParams()
 
   useConversationSummary(id);
+
 
   return (
     <>

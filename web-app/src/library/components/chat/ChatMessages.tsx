@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, ArrowDown, Square, AlertCircle } from 'lucide-react';
 import { ConversationMessageType, db } from '@/powersync/AppSchema';
-import { MessageCard } from './MessageCard';
+import { AssistantRuntimeProvider, Thread, useExternalStoreRuntime } from '@assistant-ui/react';
 import { ThinkingCard } from './ThinkingCard';
 import { useStatelessPromptAPI } from 'use-prompt-api';
 import { useToast } from '@/hooks/use-toast';
@@ -14,21 +14,28 @@ import { getSyncEnabled } from '@/powersync/SyncMode';
 import { useConversation } from '@/utils/Contexts';
 import { getRouteApi } from '@tanstack/react-router';
 import 'highlight.js/styles/github-dark.css';
+import { ThreadPrimitive, MessagePrimitive, ComposerPrimitive } from "@assistant-ui/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User, Bot } from "lucide-react";
+import { MarkdownText } from '../ui/markdown-text';
+import { MyThread } from '../ui/thread';
+import { ScrollArea } from '../ui/scroll-area';
+
+type ThreadMessageLike = {
+  role: string;
+  content: { type: "text"; text: string }[];
+};
+
 
 export const ChatMessages = () => {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const supabase = useSupabase()
-  const [autoScroll, setAutoScroll] = useState(true);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const [inputTokens, setInputTokens] = useState(0);
-  const [input, setInput] = useState('');
   const { toast } = useToast();
 
   const { useParams } = getRouteApi('/conversation/$id')
   const { id: currentConversationId } = useParams()
 
   const { data: messages } = useQuery(db.selectFrom('conversation_messages').where('conversation_id', '=', currentConversationId).selectAll())
-  const {data: [currentConversation] = []} = useQuery(db.selectFrom('conversations').where('id', '=', currentConversationId).selectAll())
+  const { data: [currentConversation] = [] } = useQuery(db.selectFrom('conversations').where('id', '=', currentConversationId).selectAll())
   //don't pass in the user prompt if it makes it into the arr before the request is sent
   //this is not a great solution
   const initialPrompts = useMemo(
@@ -45,14 +52,14 @@ export const ChatMessages = () => {
     });
 
   // TODO: The counting seems to be Debounced in the session internals, Find a way to debounce sending the request
-  useEffect(() => {
-    if (!session) return;
-    session.countPromptTokens(input, { signal: abortController?.signal })
-      .then(tokens => {
-        setInputTokens(tokens)
-      })
-      .catch(console.error);
-  }, [input, Boolean(session), abortController]);
+  // useEffect(() => {
+  //   if (!session) return;
+  //   session.countPromptTokens(input, { signal: abortController?.signal })
+  //     .then(tokens => {
+  //       setInputTokens(tokens)
+  //     })
+  //     .catch(console.error);
+  // }, [input, Boolean(session), abortController]);
 
   // Add state for tracking the streaming message ID
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
@@ -104,7 +111,7 @@ export const ChatMessages = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (input: string) => {
     if (!currentConversation?.id) {
       toast({
         variant: 'destructive',
@@ -118,7 +125,6 @@ export const ChatMessages = () => {
 
     try {
       tempUserMessageId = await addMessageToConversation({ role: 'user', content: input });
-      setInput('');
 
       assistantMessageId = await addMessageToConversation({
         role: 'assistant',
@@ -160,7 +166,7 @@ export const ChatMessages = () => {
         description:
           error instanceof Error ? error.message : 'Failed to send message',
         action: (
-          <ToastAction altText="Try again" onClick={() => handleSubmit()}>
+          <ToastAction altText="Try again" onClick={() => handleSubmit(input)}>
             Try again
           </ToastAction>
         ),
@@ -168,129 +174,115 @@ export const ChatMessages = () => {
     }
   };
 
-  const scrollToBottom = () => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+  const handleEdit = async (input: string) => {
+    if (!currentConversation?.id) return;
+
+    try {
+      // Get the last assistant message
+      const lastAssistantMessage = messages
+        .filter(m => m.role === 'assistant')
+        .pop();
+
+      if (!lastAssistantMessage) {
+        throw new Error('No assistant message to edit');
+      }
+
+      // Update the assistant message with empty content initially
+      await db.updateTable('conversation_messages')
+        .set({ content: '' })
+        .where('id', '=', lastAssistantMessage.id)
+        .execute();
+
+      setStreamingMessageId(lastAssistantMessage.id);
+
+      // Stream the new response
+      const res = await sendPrompt(input, {
+        streaming: true,
+        onToken: async (chunk) => {
+          await db.updateTable('conversation_messages')
+            .set({ content: chunk })
+            .where('id', '=', lastAssistantMessage.id)
+            .execute();
+        }
+      });
+
+      if (!res) throw new Error('Model failed to respond');
+      setStreamingMessageId(null);
+    } catch (error) {
+      setStreamingMessageId(null);
+      toast({
+        variant: 'destructive',
+        title: 'Edit Error',
+        description: error instanceof Error ? error.message : 'Failed to edit message',
+      });
     }
   };
 
-  // Handle scroll events
-  useEffect(() => {
-    const scrollArea = scrollAreaRef.current;
-    if (!scrollArea) return;
+  const handleCancel = async () => {
+    abort();
+    setStreamingMessageId(null);
 
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = scrollArea;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setAutoScroll(isNearBottom);
-      setShowScrollButton(!isNearBottom);
-    };
-
-    scrollArea.addEventListener('scroll', handleScroll);
-    return () => scrollArea.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Auto-scroll when new messages arrive
-  useEffect(() => {
-    if (autoScroll) {
-      scrollToBottom();
+    // Clean up any incomplete messages
+    if (streamingMessageId) {
+      await db.deleteFrom('conversation_messages')
+        .where('id', '=', streamingMessageId)
+        .execute();
     }
-  }, [messages.length, streamingMessageId, autoScroll]);
+  };
+
+  const handleReload = async (parentId: string | null) => {
+    if (!currentConversation?.id) return;
+
+    try {
+      // Get the last user message before the current assistant message
+      const userMessage = messages
+        .filter(m => m.role === 'user')
+        .pop();
+
+      if (!userMessage) {
+        throw new Error('No user message to reload from');
+      }
+
+      // Retry the last interaction
+      await handleSubmit(userMessage.content);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Reload Error',
+        description: error instanceof Error ? error.message : 'Failed to reload message',
+      });
+    }
+  };
+
+  // Update the runtime creation with new handlers
+  const runtime = useExternalStoreRuntime({
+    isRunning: loading,
+    messages: messages,
+    onNew: async (message) => {
+      if (message.content[0]?.type !== "text") {
+        throw new Error("Only text messages are supported");
+      }
+      await handleSubmit(message.content[0].text);
+    },
+    onEdit: async (message) => {
+      if (message.content[0]?.type !== "text") {
+        throw new Error("Only text messages are supported");
+      }
+      await handleEdit(message.content[0].text);
+    },
+    onCancel: handleCancel,
+    onReload: handleReload,
+    convertMessage: (message: ConversationMessageType): ThreadMessageLike => ({
+      role: ((message.role as 'user' | 'assistant' | 'system') ?? 'user') as 'user' | 'assistant' | 'system',
+      content: [{ type: "text", text: message.content ?? '' }]
+    }),
+  });
 
   return (
-    <>
-      <div className="flex-1 bg-secondary relative overflow-hidden">
-        <div
-          ref={scrollAreaRef}
-          className="absolute inset-0 overflow-y-auto p-4"
-        >
-          {error && (
-            <div className="mb-4 p-4 rounded-md bg-destructive/10 text-destructive flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error.message}</span>
-            </div>
-          )}
-          {messages.map(({ role, content, id }) => (
-            <MessageCard
-              key={id}
-              role={role as 'user' | 'assistant'}
-              content={content!}
-              isStreaming={id === streamingMessageId}
-            />
-          ))}
-
-          {/* Show thinking indicator only when loading but no message created yet */}
-          {loading && !streamingMessageId && <ThinkingCard />}
-          {/* Scroll-to-Bottom Button */}
-          {showScrollButton && (
-            <Button
-              className="fixed bottom-24 left-[55%] rounded-full p-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg"
-              onClick={() => {
-                scrollToBottom();
-                setAutoScroll(true);
-              }}
-            >
-              <ArrowDown className="h-5 w-5" />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Add token counter before the footer */}
-      <div className="px-4 py-2 text-sm text-muted-foreground border-t border-border">
-        <span>Session Tokens: {session?.tokensSoFar}</span>
-        <span className="mx-2">•</span>
-        <span>Input Tokens: {inputTokens}</span>
-        <span className="mx-2">•</span>
-        <span>Tokens Left: {session?.tokensLeft}</span>
-      </div>
-
-      {/* Footer Input */}
-      <footer className="bg-background border-t border-border p-4">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-          className="relative"
-        >
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (!loading) {
-                  handleSubmit();
-                }
-              }
-            }}
-            placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
-            className="pr-12"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!session}
-            className="absolute right-2 bottom-2 hover:bg-accent transition-colors"
-            onClick={(e) => {
-              e.preventDefault();
-              if (loading) {
-                abort();
-              } else {
-                handleSubmit();
-              }
-            }}
-            title={loading ? 'Stop generating' : 'Send message'}
-          >
-            {loading ? (
-              <Square className="h-4 w-4" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </form>
-      </footer>
-    </>
+    <div className="h-[calc(100vh-4rem)] w-full overflow-hidden">
+      <AssistantRuntimeProvider runtime={runtime}>
+        <MyThread />
+      </AssistantRuntimeProvider>
+    </div>
   );
 };

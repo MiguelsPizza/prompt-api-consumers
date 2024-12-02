@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageCard } from './MessageCard';
+// import { MessageCard } from './MessageCard';
 
 export const ThinkingCard = () => {
   const [number, setNumber] = useState(1);
@@ -8,8 +8,8 @@ export const ThinkingCard = () => {
     const int = setInterval(() => setNumber((curr) => (curr + 1) % 4), 300);
     return () => clearInterval(int);
   }, []);
-
-  return (
-    <MessageCard role="assistant" content={`thinking${'.'.repeat(number)}`} />
-  );
+return null
+  // return (
+  //   <MessageCard role="assistant" content={`thinking${'.'.repeat(number)}`} />
+  // );
 };

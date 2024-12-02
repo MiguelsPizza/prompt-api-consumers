@@ -10,6 +10,9 @@
     "start": "pnpm build && pnpm preview"
   },
   "dependencies": {
+    "@assistant-ui/react": "^0.7.9",
+    "@assistant-ui/react-markdown": "^0.7.4",
+    "@assistant-ui/react-syntax-highlighter": "^0.7.3",
     "@emotion/react": "11.11.4",
     "@emotion/styled": "11.11.5",
     "@hookform/resolvers": "^3.9.1",
@@ -42,6 +45,7 @@
     "@tanstack/react-router": "^1.82.1",
     "@tanstack/router-devtools": "^1.82.1",
     "@tanstack/zod-adapter": "^1.85.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dexie": "^4.0.9",
@@ -60,6 +64,9 @@
     "react-hook-form": "^7.53.2",
     "react-markdown": "^9.0.1",
     "react-syntax-highlighter": "^15.6.1",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "use-prompt-api": "workspace:*",
