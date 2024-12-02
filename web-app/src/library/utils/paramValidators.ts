@@ -1,23 +1,31 @@
 import { z } from "zod"
+import { fallback, zodValidator } from '@tanstack/zod-adapter'
 
-export const RootSchema = z.object({
-  sidebar: z.string().nullish().transform(val => val ?? 'open').refine(val => val === 'open' || val === 'collapsed', {
-    message: "Sidebar must be either 'open' or 'collapsed'"
-  })
+const RootSearchSchema = z.object({
+  sidebar: fallback(
+    z.enum(['open', 'collapsed']),
+    'open'
+  ).default('open')
 })
 
-export const ChatInterfaceSearchSchema = RootSchema.extend({
-  conversationOptions: z.string().refine(val => val === 'open' || val === 'collapsed', {
-    message: "Conversation options must be either 'open' or 'collapsed'"
-  })
+const ChatInterfaceSearchSchema = RootSearchSchema.extend({
+  conversationOptions: fallback(
+    z.enum(['open', 'collapsed']),
+    'collapsed'
+  ).default('collapsed')
 })
 
-export const AuthSearchSchema = ChatInterfaceSearchSchema.extend({
-  authType: z.string().refine(val => val === 'signup' || val === 'login', {
-    message: "Auth type must be either 'signup' or 'login'"
-  })
+const AuthSearchSchema = ChatInterfaceSearchSchema.extend({
+  authType: fallback(
+    z.enum(['signup', 'login']),
+    'login'
+  ).default('login')
 })
 
-export type RootSearch = z.infer<typeof RootSchema>
+export const RootSchema = zodValidator(RootSearchSchema)
+export const ChatInterfaceSchema = zodValidator(ChatInterfaceSearchSchema)
+export const AuthSchema = zodValidator(AuthSearchSchema)
+
+export type RootSearch = z.infer<typeof RootSearchSchema>
 export type ChatInterfaceSearch = z.infer<typeof ChatInterfaceSearchSchema>
 export type AuthSearch = z.infer<typeof AuthSearchSchema>

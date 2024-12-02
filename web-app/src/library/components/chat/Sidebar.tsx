@@ -4,19 +4,26 @@ import { BookUser, LogIn, PlusCircle, Trash2, Upload } from 'lucide-react';
 import { SidebarProps } from '@/types/chat';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { db } from '@/powersync/AppSchema';
-import { Link } from '@tanstack/react-router';
+import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
 import { useQuery } from '@powersync/react';
 import { useConversation } from '@/utils/Contexts';
 import { useToast } from '@/hooks/use-toast';
 
 export const Sidebar = ({
   setSidebarCollapsed,
-  sidebarCollapsed
 }: SidebarProps) => {
-  const {toast} = useToast()
-  const { data: conversations } = useQuery(db.selectFrom('conversations').selectAll())
-  const { currentConversationId, handleNewConversation, setCurrentConversationId, handleDeleteConversation } = useConversation()
-  if (sidebarCollapsed) return null;
+  const { toast } = useToast()
+  const { useSearch, useParams } = getRouteApi('/conversation')
+    // @ts-expect-error Not sure how to do this properly with Tanstack router
+  const { sidebar, authType } = useSearch()
+  // @ts-expect-error Not sure how to do this properly with Tanstack router
+  const { id: currentConversationId } = useParams()
+  const { data: conversations } = useQuery(db.selectFrom('conversations').selectAll().orderBy('created_at', 'desc'))
+  const { handleNewConversation, handleDeleteConversation, navigateToConversation } = useConversation()
+  const router = useRouter()
+  const currentPath = router.state.location.pathname
+  console.log({currentPath})
+  if (sidebar === 'collapsed') return null;
 
   return (
     <>
@@ -27,7 +34,7 @@ export const Sidebar = ({
               <Button
                 variant="outline"
                 size="icon"
-                className="text-gray-900 hover:text-green-500 hover:bg-green-50 transition-colors duration-200 h-10 w-10"
+                className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${!currentPath.includes('auth')  ? 'gradient-violet' : ''}`}
                 onClick={() => handleNewConversation()}
               >
                 <PlusCircle className="h-5 w-5" />
@@ -43,7 +50,7 @@ export const Sidebar = ({
               <Button
                 variant="outline"
                 size="icon"
-                className="text-gray-900 hover:text-green-500 hover:bg-green-50 transition-colors duration-200 h-10 w-10"
+                className="text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10"
                 onClick={() => toast({
                   title: 'Coming Soon!',
                   description: 'you will be able to share and collaborate on chats with others'
@@ -59,11 +66,11 @@ export const Sidebar = ({
         <TooltipProvider>
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
-              <Link to='/conversation/auth/signup' search={{ sidebar: 'open', 'authType': 'login', 'conversationOptions': 'collapsed' }}>
+              <Link to='/conversation/auth' search={{ sidebar: 'open', 'authType': 'login', 'conversationOptions': 'collapsed' }}>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="text-gray-900 hover:text-green-500 hover:bg-green-50 transition-colors duration-200 h-10 w-10"
+                  className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'login' ? 'gradient-violet' : ''}`}
                 >
                   <LogIn className="h-5 w-5" />
                 </Button>
@@ -76,11 +83,11 @@ export const Sidebar = ({
         <TooltipProvider>
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
-              <Link to='/conversation/auth/signup' search={{ sidebar: 'open', 'authType': 'signup', 'conversationOptions': 'collapsed' }}>
+              <Link to='/conversation/auth' search={{ sidebar: 'open', 'authType': 'signup', 'conversationOptions': 'collapsed' }}>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="text-gray-900 hover:text-green-500 hover:bg-green-50 transition-colors duration-200 h-10 w-10"
+                  className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'signup' ? 'gradient-violet' : ''}`}
                 >
                   <Upload className="h-5 w-5" />
                 </Button>
@@ -98,8 +105,8 @@ export const Sidebar = ({
               <div
                 className={`
                 relative group rounded-lg overflow-hidden
-                ${conversation.id === currentConversationId ? 'bg-gray-700' : 'bg-gray-800'}
-                hover:bg-gray-700 transition-all duration-200 ease-in-out
+                ${conversation.id === currentConversationId ? 'gradient-violet' : 'bg-card'}
+                hover:gradient-violet transition-all duration-200 ease-in-out
                 transform hover:scale-[1.02] hover:shadow-lg
                 `}
               >
@@ -109,12 +116,12 @@ export const Sidebar = ({
                       variant="ghost"
                       className={`
                       w-full justify-start pr-12 py-6
-                      text-white hover:text-green-500
+                      text-foreground hover:text-primary
                       transition-colors duration-300
                       truncate
-                      ${conversation.id === currentConversationId ? 'text-green-400' : ''}
+                      ${conversation.id === currentConversationId ? 'text-primary' : ''}
                       `}
-                      onClick={() => setCurrentConversationId(conversation.id)}
+                      onClick={() => navigateToConversation(conversation.id)}
                     >
                       {(() => {
                         const displayText = conversation?.conversation_summary || conversation?.name || '';
@@ -133,7 +140,7 @@ export const Sidebar = ({
                   size="icon"
                   className="absolute right-2 top-1/2 -translate-y-1/2
                 opacity-0 group-hover:opacity-100
-                text-gray-400 hover:text-red-500 hover:bg-red-900/20
+                text-muted-foreground hover:text-destructive hover:bg-destructive/10
                 transition-all duration-200"
                   onClick={async () => {
                     const { count } = await db.selectFrom('conversations')

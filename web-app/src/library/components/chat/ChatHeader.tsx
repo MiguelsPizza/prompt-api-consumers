@@ -3,24 +3,30 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, } from "@/c
 import { Slider } from '@/components/ui/slider';
 import { Settings, ArrowRight, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
 import { db } from '@/powersync/AppSchema';
-import React from 'react';
+import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from '@tanstack/react-router';
 import { getRouteApi } from '@tanstack/react-router';
 import { useConversation } from '@/utils/Contexts';
+import { useQuery } from '@powersync/react';
 
 
 export const ChatHeader = () => {
   const { toast } = useToast();
   const {
-    currentConversation,
-    currentConversationId,
     handleDeleteConversation,
   } = useConversation()
-  const [systemPrompt, setSystemPrompt] = React.useState(currentConversation?.system_prompt ?? '');
+  const { useSearch, useParams } = getRouteApi('/conversation/$id')
+  const [systemPrompt, setSystemPrompt] = useState('')
+  const { sidebar, conversationOptions } = useSearch()
+  const { id: currentConversationId } = useParams()
+  const { data: [currentConversation] } = useQuery(
+    db.selectFrom('conversations')
+      .where('id', '=', currentConversationId)
+      .selectAll()
 
-  const { sidebar,conversationOptions } = getRouteApi('/conversation/$id').useSearch()
-  const navigate = useNavigate({from: '/conversation/$id'})
+  )
+  const navigate = useNavigate({ from: '/conversation/$id' })
 
   const sidebarCollapsed = sidebar === 'collapsed';
   const conversationOptionsCollapsed = conversationOptions === 'collapsed'
@@ -30,15 +36,6 @@ export const ChatHeader = () => {
       search: (curr) => ({
         conversationOptions: conversationOptions,
         sidebar: sidebarCollapsed ? 'open' : 'collapsed',
-      }),
-    });
-  };
-
-  const handleCloseSidebar = () => {
-    navigate({
-      search: (curr) => ({
-        conversationOptions: curr.conversationOptions,
-        sidebar: 'collapsed',
       }),
     });
   };
@@ -91,7 +88,7 @@ export const ChatHeader = () => {
     try {
       await db.updateTable('conversations')
         .set({ system_prompt: systemPrompt })
-        .where('id', '=', currentConversationId.toString())
+        .where('id', '=', currentConversationId)
         .execute();
       toast({
         title: "System Prompt Updated",
@@ -107,7 +104,7 @@ export const ChatHeader = () => {
   };
 
   return (
-    <header className="bg-white border-b p-4 flex justify-between items-center">
+    <header className="bg-background border-b p-4 flex justify-between items-center">
       <div className="flex items-center">
         <Button
           variant="outline"
@@ -121,10 +118,10 @@ export const ChatHeader = () => {
             <ArrowLeft className="h-4 w-4" />
           )}
         </Button>
-        <h1 className="text-xl font-bold">{currentConversation?.conversation_summary || "Chat"}</h1>
+        <h1 className="text-xl font-bold text-foreground">{currentConversation?.conversation_summary || "Chat"}</h1>
       </div>
 
-      <Sheet open={!conversationOptionsCollapsed} onOpenChange={() => navigate({search: curr => ({...curr, conversationOptions: curr.conversationOptions === 'collapsed' ? 'open' : 'collapsed' })})}>
+      <Sheet open={!conversationOptionsCollapsed} onOpenChange={() => navigate({ search: curr => ({ ...curr, conversationOptions: curr.conversationOptions === 'collapsed' ? 'open' : 'collapsed' }) })}>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon">
             <Settings className="h-4 w-4" />
@@ -137,7 +134,7 @@ export const ChatHeader = () => {
 
           <div className="space-y-6 mt-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-sm font-medium text-foreground">
                 Temperature: {currentConversation?.temperature}
               </label>
               <Slider
@@ -150,7 +147,7 @@ export const ChatHeader = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-sm font-medium text-foreground">
                 Top K: {currentConversation?.top_k}
               </label>
               <Slider
@@ -163,9 +160,9 @@ export const ChatHeader = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">System Prompt:</label>
+              <label className="text-sm font-medium text-foreground">System Prompt:</label>
               <textarea
-                className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
               />
@@ -182,7 +179,7 @@ export const ChatHeader = () => {
               className="w-full"
               onClick={async () => {
                 if (currentConversationId) {
-                  handleDeleteConversation(currentConversationId, handleCloseSidebar);
+                  handleDeleteConversation(currentConversationId);
                 }
               }}
             >

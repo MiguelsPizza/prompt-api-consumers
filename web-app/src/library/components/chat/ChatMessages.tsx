@@ -12,6 +12,8 @@ import { useQuery } from '@powersync/react';
 import { useSupabase } from '@/utils/Contexts';
 import { getSyncEnabled } from '@/powersync/SyncMode';
 import { useConversation } from '@/utils/Contexts';
+import { getRouteApi } from '@tanstack/react-router';
+import 'highlight.js/styles/github-dark.css';
 
 export const ChatMessages = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -21,7 +23,10 @@ export const ChatMessages = () => {
   const [inputTokens, setInputTokens] = useState(0);
   const [input, setInput] = useState('');
   const { toast } = useToast();
-  const { currentConversationId } = useConversation()
+
+  const { useParams } = getRouteApi('/conversation/$id')
+  const { id: currentConversationId } = useParams()
+
   const { data: messages } = useQuery(db.selectFrom('conversation_messages').where('conversation_id', '=', currentConversationId).selectAll())
   const {data: [currentConversation] = []} = useQuery(db.selectFrom('conversations').where('id', '=', currentConversationId).selectAll())
   //don't pass in the user prompt if it makes it into the arr before the request is sent
@@ -31,7 +36,7 @@ export const ChatMessages = () => {
     [messages],
   ) as (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[];
 
-  const { streamingResponse, loading, sendPrompt, error, abort, session, abortController } =
+  const { loading, sendPrompt, error, abort, session, abortController } =
     useStatelessPromptAPI(currentConversationId as string, {
       systemPrompt: currentConversation?.system_prompt ?? undefined,
       temperature: currentConversation?.temperature ?? 0.7,
@@ -49,10 +54,11 @@ export const ChatMessages = () => {
       .catch(console.error);
   }, [input, Boolean(session), abortController]);
 
+  // Add state for tracking the streaming message ID
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
 
   const addMessageToConversation = async (message: Partial<ConversationMessageType>) => {
     if (!currentConversation?.id) return;
-
 
     try {
       const now = new Date();
@@ -107,19 +113,47 @@ export const ChatMessages = () => {
       });
       return;
     }
-    let tempUserMessageId: string | undefined
+    let tempUserMessageId: string | undefined;
+    let assistantMessageId: string | undefined;
+
     try {
       tempUserMessageId = await addMessageToConversation({ role: 'user', content: input });
       setInput('');
-      const res = await sendPrompt(input, { streaming: true });
+
+      assistantMessageId = await addMessageToConversation({
+        role: 'assistant',
+        content: ''
+      });
+      setStreamingMessageId(assistantMessageId ?? null);
+
+      // Start streaming, updating the message content as chunks arrive
+      const res = await sendPrompt(input, {
+        streaming: true,
+        onToken: async (chunk) => {
+          if (assistantMessageId) {
+            await db.updateTable('conversation_messages')
+              .set({ content: chunk })
+              .where('id', '=', assistantMessageId)
+              .execute();
+          }
+        }
+      });
 
       if (!res) throw new Error('Model Failed to respond');
-      await addMessageToConversation({ role: 'assistant', content: res });
+      setStreamingMessageId(null);
     } catch (error) {
       console.error({ error });
       if (tempUserMessageId) {
-        await db.deleteFrom('conversation_messages').where('id', '=', tempUserMessageId).execute()
+        await db.deleteFrom('conversation_messages')
+          .where('id', '=', tempUserMessageId)
+          .execute();
       }
+      if (assistantMessageId) {
+        await db.deleteFrom('conversation_messages')
+          .where('id', '=', assistantMessageId)
+          .execute();
+      }
+      setStreamingMessageId(null);
       toast({
         variant: 'destructive',
         title: 'Chat Error',
@@ -161,15 +195,11 @@ export const ChatMessages = () => {
     if (autoScroll) {
       scrollToBottom();
     }
-  }, [messages.length, streamingResponse, autoScroll]);
-
-  const responseCard = (
-    <MessageCard role="assistant" content={streamingResponse ?? ''} />
-  );
+  }, [messages.length, streamingMessageId, autoScroll]);
 
   return (
     <>
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 bg-secondary relative overflow-hidden">
         <div
           ref={scrollAreaRef}
           className="absolute inset-0 overflow-y-auto p-4"
@@ -185,15 +215,16 @@ export const ChatMessages = () => {
               key={id}
               role={role as 'user' | 'assistant'}
               content={content!}
+              isStreaming={id === streamingMessageId}
             />
           ))}
 
-          {/* Streaming Response */}
-          {loading && (streamingResponse ? responseCard : <ThinkingCard />)}
+          {/* Show thinking indicator only when loading but no message created yet */}
+          {loading && !streamingMessageId && <ThinkingCard />}
           {/* Scroll-to-Bottom Button */}
           {showScrollButton && (
             <Button
-              className="fixed bottom-24 left-[55%] rounded-full p-2 bg-gray-100 text-gray-600 shadow-lg hover:bg-gray-200"
+              className="fixed bottom-24 left-[55%] rounded-full p-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg"
               onClick={() => {
                 scrollToBottom();
                 setAutoScroll(true);
@@ -206,7 +237,7 @@ export const ChatMessages = () => {
       </div>
 
       {/* Add token counter before the footer */}
-      <div className="px-4 py-2 text-sm text-gray-500 border-t">
+      <div className="px-4 py-2 text-sm text-muted-foreground border-t border-border">
         <span>Session Tokens: {session?.tokensSoFar}</span>
         <span className="mx-2">•</span>
         <span>Input Tokens: {inputTokens}</span>
@@ -215,7 +246,7 @@ export const ChatMessages = () => {
       </div>
 
       {/* Footer Input */}
-      <footer className="bg-white border-t p-4">
+      <footer className="bg-background border-t border-border p-4">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -241,7 +272,7 @@ export const ChatMessages = () => {
             type="submit"
             size="icon"
             disabled={!session}
-            className="absolute right-2 bottom-2 hover:bg-gray-100 transition-colors"
+            className="absolute right-2 bottom-2 hover:bg-accent transition-colors"
             onClick={(e) => {
               e.preventDefault();
               if (loading) {

@@ -15,13 +15,11 @@ export function useConversationSummary(
     sharedContext: "These are the initial messages in a conversation with an LLM",
   });
 
-  // Update to use Kysely query
   const { data: [currentConversation] = [] } = useQuery(db.selectFrom('conversations')
     .selectAll()
     .where('id', '=', currentConversationId)
   );
 
-  // Update to use Kysely query
   const { data: conv = [] } = useQuery(db.selectFrom('conversation_messages')
     .selectAll()
     .where('conversation_id', '=', currentConversationId)

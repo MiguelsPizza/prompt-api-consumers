@@ -36,7 +36,6 @@ export type UseStatelessPromptAPIError = PromptAPIError<
 >;
 
 interface StatelessPromptAPIResult {
-  streamingResponse: string | null;
   loading: boolean;
   error: UseStatelessPromptAPIError | null;
   abortController: AbortController | null;
@@ -44,6 +43,7 @@ interface StatelessPromptAPIResult {
     input: string,
     options?: AILanguageModelPromptOptions & {
       streaming?: boolean;
+      onToken?: (response: string) => void | Promise<void>;
     },
   ) => Promise<void | string | null>;
   abort: () => void;
@@ -58,15 +58,10 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
   temperature,
   topK,
 }: AILanguageModelCreateOptionsWithSystemPrompt): StatelessPromptAPIResult {
-  const [streamingResponse, setStreamingResponse] = useState<string | null>(
-    null,
-  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<UseStatelessPromptAPIError | null>(null);
-  const [abortController, setAbortController] =
-    useState<AbortController | null>(null);
-
-  const [session, setSession] = useState<AILanguageModel | null>(null)
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [session, setSession] = useState<AILanguageModel | null>(null);
 
   useEffect(() => {
     if (session) {
@@ -125,9 +120,10 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
       input: string,
       promptOptions: AILanguageModelPromptOptions & {
         streaming?: boolean;
+        onToken?: (response: string) => void | Promise<void>;
       } = {},
     ): Promise<void | string | null> => {
-      const { streaming = false, signal } = promptOptions;
+      const { streaming = false, signal, onToken } = promptOptions;
       if (!input?.trim()) {
         setError(new PromptAPIError('Input cannot be empty', 'EMPTY_PROMPT'));
         return;
@@ -135,7 +131,6 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
 
       setLoading(true);
       setError(null);
-      setStreamingResponse(null);
 
       const controller = new AbortController();
       const sessionAbortSignal: AbortSignal[] = signal ? [signal] : [];
@@ -147,12 +142,14 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
         ...promptAbortSignal,
         ...sessionAbortSignal,
       ]);
+
       try {
         if (!session)
           throw new PromptAPIError(
             'Session not available',
             'SESSION_UNAVAILABLE',
           );
+
         if (streaming) {
           const stream = session.promptStreaming(input, {
             signal: combinedSignal,
@@ -166,13 +163,14 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
               console.log({ done, value });
               return returnVal;
             }
-            setStreamingResponse(value);
+            if (onToken && value) {
+              await onToken(value);
+            }
           }
         } else {
           const result = await session.prompt(input, {
             signal: combinedSignal,
           });
-          setStreamingResponse(result);
           return result;
         }
       } catch (err) {
@@ -201,7 +199,6 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
   }, [abortController]);
 
   return {
-    streamingResponse,
     loading,
     error,
     abortController,

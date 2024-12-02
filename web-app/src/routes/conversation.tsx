@@ -5,6 +5,7 @@ import { Outlet } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { RootSchema } from '@/utils/paramValidators';
 import { ConversationProvider } from '@/hooks/useConversationManager';
+import { ChatHeader } from '@/components/chat/ChatHeader';
 
 export const Route = createFileRoute('/conversation')({
   component: RootLayout,
@@ -31,16 +32,17 @@ function RootLayout() {
     <ConversationProvider>
       <div className="flex h-screen overflow-hidden">
         <div
-          className={`bg-gray-900 text-white flex flex-col transition-all duration-300 ${(sidebarCollapsed) ? 'w-0' : 'w-64'}`}
+          className={`text-foreground flex flex-col transition-all duration-300 ${(sidebarCollapsed) ? 'w-0' : 'w-64'}`}
         >
           <Sidebar
-            sidebarCollapsed={(sidebarCollapsed)}
             setSidebarCollapsed={setSidebarCollapsed}
           />
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Outlet />
+          <div className="flex-1 flex flex-col animate-in fade-in duration-1000">
+            <Outlet />
+          </div>
           <div className="animate-in fade-in duration-1000">
             <AIStatusCard />
           </div>

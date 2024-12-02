@@ -28,14 +28,14 @@ function NewConversation() {
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
-      <Card className="w-[600px]">
+      <Card className="w-[600px] bg-card text-card-foreground">
         <CardHeader>
-          <CardTitle>Create a New Conversation</CardTitle>
-          <CardDescription>Configure your chat settings and start a new conversation</CardDescription>
+          <CardTitle className="text-foreground">Create a New Conversation</CardTitle>
+          <CardDescription className="text-muted-foreground">Configure your chat settings and start a new conversation</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">
+            <label className="text-sm font-medium text-foreground">
               Temperature: {temperature}
             </label>
             <Slider
@@ -44,11 +44,12 @@ function NewConversation() {
               min={0}
               step={0.1}
               onValueChange={(value) => setTemperature(value[0])}
+              className="bg-secondary"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
+            <label className="text-sm font-medium text-foreground">
               Top K: {topK}
             </label>
             <Slider
@@ -57,20 +58,21 @@ function NewConversation() {
               min={1}
               step={1}
               onValueChange={(value) => setTopK(value[0])}
+              className="bg-secondary"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">System Prompt:</label>
+            <label className="text-sm font-medium text-foreground">System Prompt:</label>
             <textarea
-              className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
               placeholder="Enter a system prompt to guide the AI's behavior..."
             />
           </div>
 
-          <Button onClick={handleCreateConversation} className="w-full flex gap-2 justify-center">
+          <Button onClick={handleCreateConversation} className="w-full flex gap-2 justify-center bg-primary text-primary-foreground hover:bg-primary/90">
             <PlusCircle className="h-5 w-5" />
             Create New Conversation
           </Button>

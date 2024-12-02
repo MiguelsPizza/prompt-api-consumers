@@ -1,36 +1,20 @@
-import { useCallback, useLayoutEffect, useState, useEffect, useMemo, createContext, useContext } from 'react';
+import { useCallback, useMemo } from 'react';
 import { db } from '@/powersync/AppSchema';
 import { useToast } from './use-toast';
-import { useQuery } from '@powersync/react';
 import { useSupabase, ConversationContext } from '@/utils/Contexts';
 import { useNavigate } from '@tanstack/react-router';
-import { Conversation } from '@/types/conversation';
 
 export type ConversationContextType = {
-  currentConversationId: string | null;
-  currentConversation: Conversation | null;
-  setCurrentConversationId: (id: string | null) => void;
-  conversations: Conversation[];
   handleDeleteConversation: (id: string, sideEffect?: () => any) => Promise<void>;
   handleNewConversation: (systemPrompt?: string | null, top_k?: number, temperature?: number) => Promise<string | undefined>;
+  navigateToConversation: (convId: string, sideEffect?: () => any) => void;
 };
 
 export function ConversationProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const supabase = useSupabase();
   const navigate = useNavigate();
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
-
-  const { data: conversations } = useQuery(
-    db.selectFrom('conversations')
-      .selectAll()
-      .orderBy('created_at', 'desc')
-  );
-
-  const currentConversation = currentConversationId !== null ?  conversations.find(convs => convs.id === currentConversationId) ?? null : null
-
-  // Memoize the navigation options object
   const navigationOptions = useMemo(() => ({
     search: {
       sidebar: 'open',
@@ -38,38 +22,23 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
     }
   } as const), []);
 
-  // Optimize navigateToConversation
-  const navigateToConversation = useCallback((convId: string | null) => {
-    if(convId){
-    navigate({
-      to: '/conversation/$id',
-      params: { id: convId },
-      ...navigationOptions
-    });
-  } else{
-    navigate({
-      to: '/conversation/newchat',
-      ...navigationOptions
-    });
-  }
-  }, [navigate, navigationOptions]);
-
-  // Remove the separate useEffect for navigation and combine with useLayoutEffect
-  useLayoutEffect(() => {
-    if (conversations?.length && !currentConversationId) {
-      const conv = conversations.at(-1)!;
-      setCurrentConversationId(conv.id);
-      navigateToConversation(conv.id);
-      return
-    } else if (!currentConversationId || (conversations?.length === 0)
-    ) {
-      setCurrentConversationId(null)
-      navigateToConversation(null);
-    } else{
-      navigateToConversation(currentConversationId)
+  const navigateToConversation = useCallback((convId: string | null, sideEffect?: () => any) => {
+    if (convId) {
+      navigate({
+        to: '/conversation/$id',
+        params: { id: convId },
+        ...navigationOptions
+      });
+    } else {
+      navigate({
+        to: '/conversation/newchat',
+        ...navigationOptions
+      });
     }
-  }, [conversations?.length, currentConversationId, navigateToConversation]);
-
+    if (sideEffect) {
+      sideEffect();
+    }
+  }, [navigate, navigationOptions]);
 
   const handleDeleteConversation = useCallback(async (id: string, sideEffect?: () => any) => {
     try {
@@ -88,11 +57,9 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
 
         if (newCurrentConversation.length > 0) {
           const newConvId = newCurrentConversation.at(-1)!.id;
-          setCurrentConversationId(newConvId);
           navigateToConversation(newConvId);
         } else {
-          setCurrentConversationId(null);
-          navigate({ to: '/conversation', search: { sidebar: 'open' } });
+          navigate({ to: '/conversation/newchat', search: { sidebar: 'open' } });
         }
 
         toast({
@@ -134,7 +101,6 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
         .executeTakeFirst();
 
       const newConvId = result?.id ?? '0';
-      setCurrentConversationId(newConvId);
       navigateToConversation(newConvId);
       return newConvId;
     } catch (error) {
@@ -143,18 +109,13 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
   }, [navigateToConversation]);
 
   const contextValue = useMemo(() => ({
-    currentConversationId,
-    setCurrentConversationId,
-    currentConversation,
-    conversations,
     handleDeleteConversation,
     handleNewConversation,
+    navigateToConversation
   }), [
-    currentConversationId,
-    currentConversation,
-    conversations,
     handleDeleteConversation,
-    handleNewConversation
+    handleNewConversation,
+    navigateToConversation
   ]);
 
   return (

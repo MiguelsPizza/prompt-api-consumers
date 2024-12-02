@@ -14,8 +14,8 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as ConversationImport } from './routes/conversation'
 import { Route as IndexImport } from './routes/index'
 import { Route as ConversationNewchatImport } from './routes/conversation.newchat'
+import { Route as ConversationAuthImport } from './routes/conversation.auth'
 import { Route as ConversationIdImport } from './routes/conversation.$id'
-import { Route as ConversationAuthSignupImport } from './routes/conversation.auth.signup'
 
 // Create/Update Routes
 
@@ -37,15 +37,15 @@ const ConversationNewchatRoute = ConversationNewchatImport.update({
   getParentRoute: () => ConversationRoute,
 } as any)
 
-const ConversationIdRoute = ConversationIdImport.update({
-  id: '/$id',
-  path: '/$id',
+const ConversationAuthRoute = ConversationAuthImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => ConversationRoute,
 } as any)
 
-const ConversationAuthSignupRoute = ConversationAuthSignupImport.update({
-  id: '/auth/signup',
-  path: '/auth/signup',
+const ConversationIdRoute = ConversationIdImport.update({
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => ConversationRoute,
 } as any)
 
@@ -74,18 +74,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConversationIdImport
       parentRoute: typeof ConversationImport
     }
+    '/conversation/auth': {
+      id: '/conversation/auth'
+      path: '/auth'
+      fullPath: '/conversation/auth'
+      preLoaderRoute: typeof ConversationAuthImport
+      parentRoute: typeof ConversationImport
+    }
     '/conversation/newchat': {
       id: '/conversation/newchat'
       path: '/newchat'
       fullPath: '/conversation/newchat'
       preLoaderRoute: typeof ConversationNewchatImport
-      parentRoute: typeof ConversationImport
-    }
-    '/conversation/auth/signup': {
-      id: '/conversation/auth/signup'
-      path: '/auth/signup'
-      fullPath: '/conversation/auth/signup'
-      preLoaderRoute: typeof ConversationAuthSignupImport
       parentRoute: typeof ConversationImport
     }
   }
@@ -95,14 +95,14 @@ declare module '@tanstack/react-router' {
 
 interface ConversationRouteChildren {
   ConversationIdRoute: typeof ConversationIdRoute
+  ConversationAuthRoute: typeof ConversationAuthRoute
   ConversationNewchatRoute: typeof ConversationNewchatRoute
-  ConversationAuthSignupRoute: typeof ConversationAuthSignupRoute
 }
 
 const ConversationRouteChildren: ConversationRouteChildren = {
   ConversationIdRoute: ConversationIdRoute,
+  ConversationAuthRoute: ConversationAuthRoute,
   ConversationNewchatRoute: ConversationNewchatRoute,
-  ConversationAuthSignupRoute: ConversationAuthSignupRoute,
 }
 
 const ConversationRouteWithChildren = ConversationRoute._addFileChildren(
@@ -113,16 +113,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/conversation': typeof ConversationRouteWithChildren
   '/conversation/$id': typeof ConversationIdRoute
+  '/conversation/auth': typeof ConversationAuthRoute
   '/conversation/newchat': typeof ConversationNewchatRoute
-  '/conversation/auth/signup': typeof ConversationAuthSignupRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/conversation': typeof ConversationRouteWithChildren
   '/conversation/$id': typeof ConversationIdRoute
+  '/conversation/auth': typeof ConversationAuthRoute
   '/conversation/newchat': typeof ConversationNewchatRoute
-  '/conversation/auth/signup': typeof ConversationAuthSignupRoute
 }
 
 export interface FileRoutesById {
@@ -130,8 +130,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/conversation': typeof ConversationRouteWithChildren
   '/conversation/$id': typeof ConversationIdRoute
+  '/conversation/auth': typeof ConversationAuthRoute
   '/conversation/newchat': typeof ConversationNewchatRoute
-  '/conversation/auth/signup': typeof ConversationAuthSignupRoute
 }
 
 export interface FileRouteTypes {
@@ -140,22 +140,22 @@ export interface FileRouteTypes {
     | '/'
     | '/conversation'
     | '/conversation/$id'
+    | '/conversation/auth'
     | '/conversation/newchat'
-    | '/conversation/auth/signup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/conversation'
     | '/conversation/$id'
+    | '/conversation/auth'
     | '/conversation/newchat'
-    | '/conversation/auth/signup'
   id:
     | '__root__'
     | '/'
     | '/conversation'
     | '/conversation/$id'
+    | '/conversation/auth'
     | '/conversation/newchat'
-    | '/conversation/auth/signup'
   fileRoutesById: FileRoutesById
 }
 
@@ -190,20 +190,20 @@ export const routeTree = rootRoute
       "filePath": "conversation.tsx",
       "children": [
         "/conversation/$id",
-        "/conversation/newchat",
-        "/conversation/auth/signup"
+        "/conversation/auth",
+        "/conversation/newchat"
       ]
     },
     "/conversation/$id": {
       "filePath": "conversation.$id.tsx",
       "parent": "/conversation"
     },
-    "/conversation/newchat": {
-      "filePath": "conversation.newchat.tsx",
+    "/conversation/auth": {
+      "filePath": "conversation.auth.tsx",
       "parent": "/conversation"
     },
-    "/conversation/auth/signup": {
-      "filePath": "conversation.auth.signup.tsx",
+    "/conversation/newchat": {
+      "filePath": "conversation.newchat.tsx",
       "parent": "/conversation"
     }
   }
