@@ -5,7 +5,6 @@ import { Outlet } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { RootSchema } from '@/utils/paramValidators';
 import { ConversationProvider } from '@/hooks/useConversationManager';
-import { ChatHeader } from '@/components/chat/ChatHeader';
 
 export const Route = createFileRoute('/conversation')({
   component: RootLayout,

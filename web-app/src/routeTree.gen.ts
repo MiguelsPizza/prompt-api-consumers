@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as ConversationImport } from './routes/conversation'
 import { Route as IndexImport } from './routes/index'
+import { Route as ConversationProfileImport } from './routes/conversation.profile'
 import { Route as ConversationNewchatImport } from './routes/conversation.newchat'
 import { Route as ConversationAuthImport } from './routes/conversation.auth'
 import { Route as ConversationIdImport } from './routes/conversation.$id'
@@ -29,6 +30,12 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const ConversationProfileRoute = ConversationProfileImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => ConversationRoute,
 } as any)
 
 const ConversationNewchatRoute = ConversationNewchatImport.update({
@@ -88,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConversationNewchatImport
       parentRoute: typeof ConversationImport
     }
+    '/conversation/profile': {
+      id: '/conversation/profile'
+      path: '/profile'
+      fullPath: '/conversation/profile'
+      preLoaderRoute: typeof ConversationProfileImport
+      parentRoute: typeof ConversationImport
+    }
   }
 }
 
@@ -97,12 +111,14 @@ interface ConversationRouteChildren {
   ConversationIdRoute: typeof ConversationIdRoute
   ConversationAuthRoute: typeof ConversationAuthRoute
   ConversationNewchatRoute: typeof ConversationNewchatRoute
+  ConversationProfileRoute: typeof ConversationProfileRoute
 }
 
 const ConversationRouteChildren: ConversationRouteChildren = {
   ConversationIdRoute: ConversationIdRoute,
   ConversationAuthRoute: ConversationAuthRoute,
   ConversationNewchatRoute: ConversationNewchatRoute,
+  ConversationProfileRoute: ConversationProfileRoute,
 }
 
 const ConversationRouteWithChildren = ConversationRoute._addFileChildren(
@@ -115,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/conversation/$id': typeof ConversationIdRoute
   '/conversation/auth': typeof ConversationAuthRoute
   '/conversation/newchat': typeof ConversationNewchatRoute
+  '/conversation/profile': typeof ConversationProfileRoute
 }
 
 export interface FileRoutesByTo {
@@ -123,6 +140,7 @@ export interface FileRoutesByTo {
   '/conversation/$id': typeof ConversationIdRoute
   '/conversation/auth': typeof ConversationAuthRoute
   '/conversation/newchat': typeof ConversationNewchatRoute
+  '/conversation/profile': typeof ConversationProfileRoute
 }
 
 export interface FileRoutesById {
@@ -132,6 +150,7 @@ export interface FileRoutesById {
   '/conversation/$id': typeof ConversationIdRoute
   '/conversation/auth': typeof ConversationAuthRoute
   '/conversation/newchat': typeof ConversationNewchatRoute
+  '/conversation/profile': typeof ConversationProfileRoute
 }
 
 export interface FileRouteTypes {
@@ -142,6 +161,7 @@ export interface FileRouteTypes {
     | '/conversation/$id'
     | '/conversation/auth'
     | '/conversation/newchat'
+    | '/conversation/profile'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -149,6 +169,7 @@ export interface FileRouteTypes {
     | '/conversation/$id'
     | '/conversation/auth'
     | '/conversation/newchat'
+    | '/conversation/profile'
   id:
     | '__root__'
     | '/'
@@ -156,6 +177,7 @@ export interface FileRouteTypes {
     | '/conversation/$id'
     | '/conversation/auth'
     | '/conversation/newchat'
+    | '/conversation/profile'
   fileRoutesById: FileRoutesById
 }
 
@@ -191,7 +213,8 @@ export const routeTree = rootRoute
       "children": [
         "/conversation/$id",
         "/conversation/auth",
-        "/conversation/newchat"
+        "/conversation/newchat",
+        "/conversation/profile"
       ]
     },
     "/conversation/$id": {
@@ -204,6 +227,10 @@ export const routeTree = rootRoute
     },
     "/conversation/newchat": {
       "filePath": "conversation.newchat.tsx",
+      "parent": "/conversation"
+    },
+    "/conversation/profile": {
+      "filePath": "conversation.profile.tsx",
       "parent": "/conversation"
     }
   }

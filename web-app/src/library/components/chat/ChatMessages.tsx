@@ -11,15 +11,9 @@ import { ToastAction } from '@/components/ui/toast';
 import { useQuery } from '@powersync/react';
 import { useSupabase } from '@/utils/Contexts';
 import { getSyncEnabled } from '@/powersync/SyncMode';
-import { useConversation } from '@/utils/Contexts';
 import { getRouteApi } from '@tanstack/react-router';
 import 'highlight.js/styles/github-dark.css';
-import { ThreadPrimitive, MessagePrimitive, ComposerPrimitive } from "@assistant-ui/react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Bot } from "lucide-react";
-import { MarkdownText } from '../ui/markdown-text';
 import { MyThread } from '../ui/thread';
-import { ScrollArea } from '../ui/scroll-area';
 
 type ThreadMessageLike = {
   role: string;

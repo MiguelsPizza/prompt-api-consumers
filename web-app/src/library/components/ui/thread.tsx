@@ -35,7 +35,6 @@ export const MyThread: FC = () => {
         autoScroll={true}
       >
         <MyThreadWelcome />
-
         <ThreadPrimitive.Messages
           components={{
             UserMessage: MyUserMessage,

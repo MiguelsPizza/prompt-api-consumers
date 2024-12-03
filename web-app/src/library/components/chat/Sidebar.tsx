@@ -6,8 +6,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { db } from '@/powersync/AppSchema';
 import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
 import { useQuery } from '@powersync/react';
-import { useConversation } from '@/utils/Contexts';
+import { useConversation, useSupabase } from '@/utils/Contexts';
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export const Sidebar = ({
   setSidebarCollapsed,
@@ -23,6 +24,7 @@ export const Sidebar = ({
   const router = useRouter()
   const currentPath = router.state.location.pathname
   console.log({currentPath})
+  const supabase = useSupabase()
   if (sidebar === 'collapsed') return null;
 
   return (
@@ -63,39 +65,57 @@ export const Sidebar = ({
           </Tooltip>
         </TooltipProvider>
 
-        <TooltipProvider>
-          <Tooltip delayDuration={200}>
-            <TooltipTrigger asChild>
-              <Link to='/conversation/auth' search={{ sidebar: 'open', 'authType': 'login', 'conversationOptions': 'collapsed' }}>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'login' ? 'gradient-violet' : ''}`}
-                >
-                  <LogIn className="h-5 w-5" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>Sign In</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {supabase.currentSession ? (
+          <TooltipProvider>
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger asChild>
+                <Link to='/conversation/profile'>
+                  <Avatar className="h-10 w-10 hover:ring-2 hover:ring-primary transition-all">
+                    <AvatarImage src={supabase.currentSession.user.user_metadata?.avatar_url} />
+                    <AvatarFallback>{supabase.currentSession.user.email?.[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Profile</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <>
+            <TooltipProvider>
+              <Tooltip delayDuration={200}>
+                <TooltipTrigger asChild>
+                  <Link to='/conversation/auth' search={{ sidebar: 'open', 'authType': 'login', 'conversationOptions': 'collapsed' }}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'login' ? 'gradient-violet' : ''}`}
+                    >
+                      <LogIn className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Sign In</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-        <TooltipProvider>
-          <Tooltip delayDuration={200}>
-            <TooltipTrigger asChild>
-              <Link to='/conversation/auth' search={{ sidebar: 'open', 'authType': 'signup', 'conversationOptions': 'collapsed' }}>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'signup' ? 'gradient-violet' : ''}`}
-                >
-                  <Upload className="h-5 w-5" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>Create Account</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip delayDuration={200}>
+                <TooltipTrigger asChild>
+                  <Link to='/conversation/auth' search={{ sidebar: 'open', 'authType': 'signup', 'conversationOptions': 'collapsed' }}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'signup' ? 'gradient-violet' : ''}`}
+                    >
+                      <Upload className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Create Account</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </>
+        )}
       </div>
 
       <ScrollArea className="flex-1">
@@ -156,6 +176,14 @@ export const Sidebar = ({
           ))}
         </div>
       </ScrollArea>
+
+      <div className="p-4 flex justify-center">
+        <img
+          src="/pwa-512x512.png"
+          alt="Logo"
+          className="w-30 h-30"
+        />
+      </div>
     </>
   );
 };
