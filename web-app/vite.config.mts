@@ -39,10 +39,15 @@ export default defineConfig({
     VitePWA({
       srcDir: './src',
       outDir: './dist',
+
       workbox: {
         sourcemap: true,
+        globPatterns: ['**/*.{js,css,html,ico,wasm,png,svg,json,vue,txt,woff2}'],
+        maximumFileSizeToCacheInBytes: 500000000,
       },
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      strategies: 'generateSW',
       includeAssets: ['powersync-logo.svg', 'supabase-logo.png', 'favicon.ico'],
       manifest: {
         theme_color: '#c44eff',
@@ -78,6 +83,7 @@ export default defineConfig({
       devOptions: {
         enabled: true,
         type: 'module',
+        navigateFallback: 'index.html'
       }
     })
   ],
