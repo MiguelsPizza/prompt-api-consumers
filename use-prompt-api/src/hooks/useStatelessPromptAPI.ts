@@ -48,6 +48,8 @@ interface StatelessPromptAPIResult {
   ) => Promise<void | string | null>;
   abort: () => void;
   session: AILanguageModel | null;
+  isResponding: boolean;
+  isThinking: boolean;
 }
 
 export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
@@ -62,6 +64,8 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
   const [error, setError] = useState<UseStatelessPromptAPIError | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [session, setSession] = useState<AILanguageModel | null>(null);
+  const [isResponding, setIsResponding] = useState<boolean>(false);
+  const [isThinking, setIsThinking] = useState<boolean>(false);
 
   useEffect(() => {
     if (session) {
@@ -131,6 +135,8 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
 
       setLoading(true);
       setError(null);
+      setIsResponding(true);
+      setIsThinking(true);
 
       const controller = new AbortController();
       const sessionAbortSignal: AbortSignal[] = signal ? [signal] : [];
@@ -157,17 +163,28 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
           const reader = stream.getReader();
           let returnVal: string | null = null;
           while (true) {
-            const { done, value } = await reader.read();
-            returnVal = value || returnVal;
-            if (done) {
-              console.log({ done, value });
-              return returnVal;
-            }
-            if (onToken && value) {
-              await onToken(value);
+            try {
+              const { done, value } = await reader.read();
+              if (value) {
+                setIsThinking(false);
+              }
+              returnVal = value || returnVal;
+              if (done) {
+                console.log({ done, value });
+                return returnVal;
+              }
+              if (onToken && value) {
+                await onToken(value);
+              }
+            } catch (err) {
+              if (err instanceof Error && err.name === 'AbortError') {
+                return returnVal;
+              }
+              throw err;
             }
           }
         } else {
+          setIsThinking(true);
           const result = await session.prompt(input, {
             signal: combinedSignal,
           });
@@ -175,7 +192,7 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
         }
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') {
-          throw err;
+          return null;
         }
         if (err instanceof PromptAPIError) {
           throw err;
@@ -187,6 +204,8 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
       } finally {
         setLoading(false);
         setAbortController(null);
+        setIsResponding(false);
+        setIsThinking(false);
       }
     },
     [signal, session],
@@ -205,5 +224,7 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
     sendPrompt,
     abort,
     session,
+    isResponding,
+    isThinking,
   };
 }

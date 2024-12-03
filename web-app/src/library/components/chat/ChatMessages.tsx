@@ -43,7 +43,7 @@ export const ChatMessages = () => {
     [messages],
   ) as (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[];
 
-  const { loading, sendPrompt, error, abort, session, abortController } =
+  const { loading, sendPrompt, error, abort, isResponding, isThinking, session, abortController } =
     useStatelessPromptAPI(currentConversationId as string, {
       systemPrompt: currentConversation?.system_prompt ?? undefined,
       temperature: currentConversation?.temperature ?? 0.7,
@@ -62,7 +62,6 @@ export const ChatMessages = () => {
   // }, [input, Boolean(session), abortController]);
 
   // Add state for tracking the streaming message ID
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
 
   const addMessageToConversation = async (message: Partial<ConversationMessageType>) => {
     if (!currentConversation?.id) return;
@@ -130,7 +129,7 @@ export const ChatMessages = () => {
         role: 'assistant',
         content: ''
       });
-      setStreamingMessageId(assistantMessageId ?? null);
+
 
       // Start streaming, updating the message content as chunks arrive
       const res = await sendPrompt(input, {
@@ -146,7 +145,7 @@ export const ChatMessages = () => {
       });
 
       if (!res) throw new Error('Model Failed to respond');
-      setStreamingMessageId(null);
+
     } catch (error) {
       console.error({ error });
       if (tempUserMessageId) {
@@ -159,7 +158,7 @@ export const ChatMessages = () => {
           .where('id', '=', assistantMessageId)
           .execute();
       }
-      setStreamingMessageId(null);
+
       toast({
         variant: 'destructive',
         title: 'Chat Error',
@@ -178,22 +177,35 @@ export const ChatMessages = () => {
     if (!currentConversation?.id) return;
 
     try {
-      // Get the last assistant message
+      // Get the last user and assistant messages
       const lastAssistantMessage = messages
         .filter(m => m.role === 'assistant')
         .pop();
 
-      if (!lastAssistantMessage) {
-        throw new Error('No assistant message to edit');
+      const lastUserMessage = messages
+        .filter(m => m.role === 'user')
+        .pop();
+
+      if (!lastAssistantMessage || !lastUserMessage) {
+        throw new Error('No messages to edit');
       }
 
-      // Update the assistant message with empty content initially
-      await db.updateTable('conversation_messages')
-        .set({ content: '' })
-        .where('id', '=', lastAssistantMessage.id)
-        .execute();
+      // Update both the user and assistant messages
+      await db.transaction().execute(async (trx) => {
+        // Update user message with new content
+        await trx.updateTable('conversation_messages')
+          .set({ content: input })
+          .where('id', '=', lastUserMessage.id)
+          .execute();
 
-      setStreamingMessageId(lastAssistantMessage.id);
+        // Clear assistant message content initially
+        await trx.updateTable('conversation_messages')
+          .set({ content: '' })
+          .where('id', '=', lastAssistantMessage.id)
+          .execute();
+      });
+
+
 
       // Stream the new response
       const res = await sendPrompt(input, {
@@ -207,9 +219,9 @@ export const ChatMessages = () => {
       });
 
       if (!res) throw new Error('Model failed to respond');
-      setStreamingMessageId(null);
+
     } catch (error) {
-      setStreamingMessageId(null);
+
       toast({
         variant: 'destructive',
         title: 'Edit Error',
@@ -220,14 +232,7 @@ export const ChatMessages = () => {
 
   const handleCancel = async () => {
     abort();
-    setStreamingMessageId(null);
 
-    // Clean up any incomplete messages
-    if (streamingMessageId) {
-      await db.deleteFrom('conversation_messages')
-        .where('id', '=', streamingMessageId)
-        .execute();
-    }
   };
 
   const handleReload = async (parentId: string | null) => {
@@ -244,7 +249,7 @@ export const ChatMessages = () => {
       }
 
       // Retry the last interaction
-      await handleSubmit(userMessage.content);
+      await handleSubmit(userMessage.content ?? '');
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -256,7 +261,7 @@ export const ChatMessages = () => {
 
   // Update the runtime creation with new handlers
   const runtime = useExternalStoreRuntime({
-    isRunning: loading,
+    isRunning: loading || isResponding || isThinking,
     messages: messages,
     onNew: async (message) => {
       if (message.content[0]?.type !== "text") {
@@ -272,8 +277,10 @@ export const ChatMessages = () => {
     },
     onCancel: handleCancel,
     onReload: handleReload,
-    convertMessage: (message: ConversationMessageType): ThreadMessageLike => ({
-      role: ((message.role as 'user' | 'assistant' | 'system') ?? 'user') as 'user' | 'assistant' | 'system',
+    convertMessage: (message) => ({
+      role: (message.role === 'user' || message.role === 'assistant' || message.role === 'system'
+        ? message.role
+        : 'user') as 'user' | 'assistant' | 'system',
       content: [{ type: "text", text: message.content ?? '' }]
     }),
   });
