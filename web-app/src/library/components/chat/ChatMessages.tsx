@@ -1,10 +1,6 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Send, ArrowDown, Square, AlertCircle } from 'lucide-react';
+import { useMemo } from 'react';
 import { ConversationMessageType, db } from '@/powersync/AppSchema';
-import { AssistantRuntimeProvider, Thread, useExternalStoreRuntime } from '@assistant-ui/react';
-import { ThinkingCard } from './ThinkingCard';
+import { AppendMessage, AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui/react';
 import { useStatelessPromptAPI } from 'use-prompt-api';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
@@ -14,11 +10,6 @@ import { getSyncEnabled } from '@/powersync/SyncMode';
 import { getRouteApi } from '@tanstack/react-router';
 import 'highlight.js/styles/github-dark.css';
 import { MyThread } from '../ui/thread';
-
-type ThreadMessageLike = {
-  role: string;
-  content: { type: "text"; text: string }[];
-};
 
 
 export const ChatMessages = () => {
@@ -37,8 +28,8 @@ export const ChatMessages = () => {
     [messages],
   ) as (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[];
 
-  const { loading, sendPrompt, error, abort, isResponding, isThinking, session, abortController } =
-    useStatelessPromptAPI(currentConversationId as string, {
+  const { loading, sendPrompt, abort, isResponding, isThinking } =
+    useStatelessPromptAPI(currentConversationId, {
       systemPrompt: currentConversation?.system_prompt ?? undefined,
       temperature: currentConversation?.temperature ?? 0.7,
       topK: currentConversation?.top_k ?? 10,
@@ -167,55 +158,78 @@ export const ChatMessages = () => {
     }
   };
 
-  const handleEdit = async (input: string) => {
+  const handleEdit = async (message: AppendMessage) => {
     if (!currentConversation?.id) return;
-
     try {
-      // Get the last user and assistant messages
-      const lastAssistantMessage = messages
-        .filter(m => m.role === 'assistant')
-        .pop();
+      const input = message.content[0].type === 'text' ? message.content[0].text : '';
 
-      const lastUserMessage = messages
-        .filter(m => m.role === 'user')
-        .pop();
-
-      if (!lastAssistantMessage || !lastUserMessage) {
-        throw new Error('No messages to edit');
+      // Find the message to edit by matching the content instead of parentId
+      const messageToEdit = messages.find(m => m.role === 'user' && m.content === input);
+      if (!messageToEdit) {
+        throw new Error('Message to edit not found');
       }
 
-      // Update both the user and assistant messages
+      const now = new Date().toISOString();
+
+      // Use a transaction for atomic operations
       await db.transaction().execute(async (trx) => {
-        // Update user message with new content
-        await trx.updateTable('conversation_messages')
-          .set({ content: input })
-          .where('id', '=', lastUserMessage.id)
+        // Delete all messages after the edited message
+        await trx.deleteFrom('conversation_messages')
+          .where('conversation_id', '=', currentConversation.id)
+          .where('position', '>=', messageToEdit.position)
           .execute();
 
-        // Clear assistant message content initially
-        await trx.updateTable('conversation_messages')
-          .set({ content: '' })
-          .where('id', '=', lastAssistantMessage.id)
+        // Add the edited user message
+        await trx.insertInto('conversation_messages')
+          .values({
+            id: crypto.randomUUID(),
+            conversation_id: currentConversation.id,
+            position: messageToEdit.position,
+            role: 'user',
+            content: input,
+            created_at: now,
+            updated_at: now,
+            temperature_at_creation: currentConversation?.temperature ?? 0.7,
+            top_k_at_creation: currentConversation?.top_k ?? 10,
+            user_id: messageToEdit.user_id
+          })
           .execute();
+
+        // Add empty assistant message that will be streamed into
+        const assistantMessageId = crypto.randomUUID();
+        await trx.insertInto('conversation_messages')
+          .values({
+            id: assistantMessageId,
+            conversation_id: currentConversation.id,
+            position: messageToEdit.position ? messageToEdit.position + 1 : 0,
+            role: 'assistant',
+            content: '',
+            created_at: now,
+            updated_at: now,
+            temperature_at_creation: currentConversation?.temperature ?? 0.7,
+            top_k_at_creation: currentConversation?.top_k ?? 10,
+            user_id: messageToEdit.user_id
+          })
+          .execute();
+
+        // Stream the new response
+        const res = await sendPrompt(input, {
+          streaming: true,
+          onToken: async (chunk) => {
+            await trx.updateTable('conversation_messages')
+              .set({
+                content: chunk,
+                updated_at: new Date().toISOString()
+              })
+              .where('id', '=', assistantMessageId)
+              .execute();
+          }
+        });
+
+        if (!res) throw new Error('Model failed to respond');
       });
-
-
-
-      // Stream the new response
-      const res = await sendPrompt(input, {
-        streaming: true,
-        onToken: async (chunk) => {
-          await db.updateTable('conversation_messages')
-            .set({ content: chunk })
-            .where('id', '=', lastAssistantMessage.id)
-            .execute();
-        }
-      });
-
-      if (!res) throw new Error('Model failed to respond');
 
     } catch (error) {
-
       toast({
         variant: 'destructive',
         title: 'Edit Error',
@@ -234,13 +248,16 @@ export const ChatMessages = () => {
 
     try {
       // Get the last user message before the current assistant message
-      const userMessage = messages
-        .filter(m => m.role === 'user')
-        .pop();
+      const userMessage = messages.find((m) => m.id === parentId)
 
       if (!userMessage) {
         throw new Error('No user message to reload from');
       }
+      //delete all messages after the user message
+      await db.deleteFrom('conversation_messages')
+        .where('conversation_id', '=', currentConversation.id)
+        .where('position', '>=', userMessage.position)
+        .execute();
 
       // Retry the last interaction
       await handleSubmit(userMessage.content ?? '');
@@ -267,7 +284,7 @@ export const ChatMessages = () => {
       if (message.content[0]?.type !== "text") {
         throw new Error("Only text messages are supported");
       }
-      await handleEdit(message.content[0].text);
+      await handleEdit(message);
     },
     onCancel: handleCancel,
     onReload: handleReload,
@@ -275,7 +292,9 @@ export const ChatMessages = () => {
       role: (message.role === 'user' || message.role === 'assistant' || message.role === 'system'
         ? message.role
         : 'user') as 'user' | 'assistant' | 'system',
-      content: [{ type: "text", text: message.content ?? '' }]
+      content: [{ type: "text", text: message.content ?? '' }],
+      id: message.id,
+      createdAt: message.created_at ? new Date(message.created_at) : undefined,
     }),
   });
 

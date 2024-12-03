@@ -9,7 +9,7 @@ import { SupabaseContext } from '@/utils/Contexts';
 
 export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
   const [connector] = React.useState(new SupabaseConnector());
-  const [powerSync] = React.useState(db);
+  const [powerSync] = React.useState(powerSyncDb);
 
   React.useEffect(() => {
     // Linting thinks this is a hook due to it's name
@@ -18,7 +18,7 @@ export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
     // For console testing purposes
     (window as any)._powersync = powerSync;
 
-    powerSyncDb.init();
+    powerSync.init();
     const l = connector.registerListener({
       initialized: () => {
         Logger.debug('SupabaseConnector initialized');
@@ -35,7 +35,7 @@ export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
         await switchToSyncedSchema(connector.currentSession?.user.id!);
         // }
         console.log('Connecting PowerSync to Supabase connector');
-        powerSyncDb.connect(connector);
+        powerSync.connect(connector);
       }
     });
 
@@ -46,7 +46,7 @@ export const SystemProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <Suspense fallback={<CircularProgress />}>
-      <PowerSyncContext.Provider value={powerSyncDb}>
+      <PowerSyncContext.Provider value={powerSync}>
         <SupabaseContext.Provider value={connector}>
           {children}
         </SupabaseContext.Provider>

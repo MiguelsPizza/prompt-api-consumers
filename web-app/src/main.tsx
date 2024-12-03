@@ -37,8 +37,6 @@ const router = createRouter({
 });
 
 
-
-
 function AppRouter() {
   const connector = useSupabase()
   const [isInitialized, setIsInitialized] = React.useState(false);

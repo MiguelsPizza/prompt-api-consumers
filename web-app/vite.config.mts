@@ -55,8 +55,8 @@ export default defineConfig({
         display: 'standalone',
         scope: '/',
         start_url: '/',
-        name: 'PowerSync React Demo',
-        short_name: 'PowerSync React',
+        name: 'LocalFirstChat',
+        short_name: 'LocalFirstChat',
         icons: [
           {
             src: '/pwa-192x192.png',

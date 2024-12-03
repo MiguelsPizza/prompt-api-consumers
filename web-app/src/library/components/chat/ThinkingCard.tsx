@@ -9,7 +9,4 @@ export const ThinkingCard = () => {
     return () => clearInterval(int);
   }, []);
 return null
-  // return (
-  //   <MessageCard role="assistant" content={`thinking${'.'.repeat(number)}`} />
-  // );
 };

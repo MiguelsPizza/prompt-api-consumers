@@ -9,13 +9,19 @@ import { useQuery } from '@powersync/react';
 import { useConversation, useSupabase } from '@/utils/Contexts';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useEffect, useState } from 'react';
+import { AlertCircle, CheckCircle2, Cloud, CloudOff } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { PowerSyncDatabase, UpdateType } from '@powersync/web';
+import { Card } from '@mui/material';
+import { CardContent } from '../ui/card';
 
 export const Sidebar = ({
   setSidebarCollapsed,
 }: SidebarProps) => {
   const { toast } = useToast()
   const { useSearch, useParams } = getRouteApi('/conversation')
-    // @ts-expect-error Not sure how to do this properly with Tanstack router
+  // @ts-expect-error Not sure how to do this properly with Tanstack router
   const { sidebar, authType } = useSearch()
   // @ts-expect-error Not sure how to do this properly with Tanstack router
   const { id: currentConversationId } = useParams()
@@ -23,12 +29,65 @@ export const Sidebar = ({
   const { handleNewConversation, handleDeleteConversation, navigateToConversation } = useConversation()
   const router = useRouter()
   const currentPath = router.state.location.pathname
-  console.log({currentPath})
+  console.log({ currentPath })
   const supabase = useSupabase()
+  const [syncStatus, setSyncStatus] = useState<'offline' | 'syncing' | 'synced'>('offline');
+  const powerSync = (window as any)._powersync as PowerSyncDatabase
+
+  useEffect(() => {
+    const updateStatus = () => {
+      if (!powerSync.connected) {
+        setSyncStatus('offline');
+        return;
+      }
+
+      // Check if there are pending uploads
+      powerSync.getNextCrudTransaction().then(transaction => {
+        setSyncStatus(transaction ? 'syncing' : 'synced');
+      });
+    };
+
+    // Initial status check
+    updateStatus();
+
+    // Set up listeners for connection changes and crud operations
+    const unsubscribe = powerSync.registerListener({
+      statusChanged: updateStatus,
+      uploadComplete: updateStatus
+    });
+
+    return () => unsubscribe?.();
+  }, [powerSync]);
+
   if (sidebar === 'collapsed') return null;
 
   return (
     <>
+      <Button
+        variant="ghost"
+        className=" m-4 mb-0 gradient-violet shadow-lg rounded-lg flex items-center gap-2 text-sm p-4"
+        disabled
+      >
+        {syncStatus === 'offline' && (
+          <>
+            <CloudOff className="h-5 w-5 text-violet-500" />
+            <span className="text-violet-300 font-medium">Offline</span>
+          </>
+        )}
+        {syncStatus === 'syncing' && (
+          <>
+            <Cloud className="h-5 w-5 animate-pulse text-violet-500" />
+            <span className="text-violet-300 font-medium">Syncing...</span>
+          </>
+        )}
+        {syncStatus === 'synced' && (
+          <>
+            <CheckCircle2 className="h-5 w-5 text-violet-500" />
+            <span className="text-violet-300 font-medium">All changes synced</span>
+          </>
+        )}
+      </Button>
+
       <div className="p-4 flex justify-between">
         <TooltipProvider>
           <Tooltip delayDuration={200}>
@@ -36,7 +95,7 @@ export const Sidebar = ({
               <Button
                 variant="outline"
                 size="icon"
-                className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${!currentPath.includes('auth')  ? 'gradient-violet' : ''}`}
+                className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${!currentPath.includes('auth') ? 'gradient-violet' : ''}`}
                 onClick={() => handleNewConversation()}
               >
                 <PlusCircle className="h-5 w-5" />

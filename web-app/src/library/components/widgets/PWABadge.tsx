@@ -1,10 +1,14 @@
 // import "./PWABadge.css";
 
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { ReloadIcon } from "@radix-ui/react-icons";
+import { useEffect } from 'react';
 
 function PWABadge() {
-  // check for updates every hour
-  const period = 60 * 60 * 1000;
+  const period = 60 * 60;
+  const { toast } = useToast();
 
   const {
     offlineReady: [offlineReady, setOfflineReady],
@@ -31,36 +35,49 @@ function PWABadge() {
     setNeedRefresh(false);
   }
 
-  return (
-    <div className="PWABadge" role="alert" aria-labelledby="toast-message">
-      {(offlineReady || needRefresh) && (
-        <div className="PWABadge-toast">
-          <div className="PWABadge-message">
-            {offlineReady ? (
-              <span id="toast-message">App ready to work offline</span>
-            ) : (
-              <span id="toast-message">
-                New content available, click on reload button to update.
-              </span>
-            )}
+  // Show toast when status changes
+  useEffect(() => {
+    if (offlineReady || needRefresh) {
+      toast({
+        title: needRefresh ? "Update Available" : "Offline Ready",
+        description: needRefresh
+          ? "A new version is available. Click to update."
+          : "App is ready to work offline",
+        duration: 5000,
+        action: needRefresh ? (
+          <div className="flex gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => updateServiceWorker(true)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <ReloadIcon className="mr-2 h-4 w-4" />
+              Update
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={close}
+            >
+              Later
+            </Button>
           </div>
-          <div className="PWABadge-buttons">
-            {needRefresh && (
-              <button
-                className="PWABadge-toast-button"
-                onClick={() => updateServiceWorker(true)}
-              >
-                Reload
-              </button>
-            )}
-            <button className="PWABadge-toast-button" onClick={() => close()}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+        ) : (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={close}
+          >
+            Dismiss
+          </Button>
+        ),
+      });
+    }
+  }, [offlineReady, needRefresh]);
+
+  // Component no longer needs to render anything visible
+  return null;
 }
 
 export default PWABadge;

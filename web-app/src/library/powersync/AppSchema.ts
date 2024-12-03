@@ -40,8 +40,8 @@ export const conversationTableDef = {
   options: {
     indexes: {
       user: ['user_id'],
-      updated: ['updated_at'],  // For sorting conversations by last update
-      user_updated: ['user_id', 'updated_at']  // For efficiently fetching user's conversations sorted by time
+      updated: ['updated_at'],
+      user_updated: ['user_id', 'updated_at']
     }
   }
 } as const satisfies TableDefinition;
