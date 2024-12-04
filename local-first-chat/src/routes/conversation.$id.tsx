@@ -33,7 +33,7 @@ export const Route = createFileRoute('/conversation/$id')({
       </div>
     </div>
   ),
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: any }) => (
     <div className="flex-1 flex items-center justify-center p-4">
       <Alert variant="destructive" className="max-w-md">
         <AlertCircle className="h-4 w-4" />

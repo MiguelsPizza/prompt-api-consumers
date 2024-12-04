@@ -1,4 +1,3 @@
 packages:
   - 'use-prompt-api'
-  - 'web-app'
-  - 'react-supabase-todolist-optional-sync'
+  - 'local-first-chat'

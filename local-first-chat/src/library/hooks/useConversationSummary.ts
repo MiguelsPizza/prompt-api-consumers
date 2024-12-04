@@ -36,26 +36,62 @@ export function useConversationSummary(
         throw new Error('Language model API is not available');
       }
 
-      const convSummary = await summarize(convString, {
-        streaming: false,
-        signal: abortController.signal,
-      });
+      let convSummary: string;
+      try {
+        convSummary = await summarize(convString, {
+          streaming: false,
+          signal: abortController.signal,
+        }) as string;
+      } catch (error) {
+        // Fallback to regular session if summarize fails
+        const fallbackSession = await window.ai.languageModel.create({
+          systemPrompt: "Summarize the following conversation in a brief paragraph. Focus on the main topics and key points.",
+        });
+        convSummary = await fallbackSession.prompt(convString);
+        fallbackSession?.destroy();
+      }
+
+      if (!convSummary) {
+        throw new Error('Failed to generate conversation summary');
+      }
 
       if (!convSummary) {
         throw new Error('Failed to generate conversation summary');
       }
 
       const headlineSession = await window.ai.languageModel.create({
-        systemPrompt: `You take in a LLM conversation summary and generate a Title for it in this format
-          $Title: (Title goes here)` // existing prompt
+        systemPrompt: `You are a conversation title generator. Your job is to create concise, descriptive titles.
+
+          Rules for generating titles:
+          - Focus on the main topic or key insight
+          - Use 3-7 words
+          - Be specific but brief
+          - No quotes or special characters
+          - Must be in title case
+
+          To generate a title, respond with:
+          GENERATE_TITLE: Your Title Here
+
+          Example input: "A discussion about React performance optimization and debugging techniques"
+          Example response: "GENERATE_TITLE: React Performance Optimization Strategies"`,
       });
 
-      const res = await headlineSession.prompt(convSummary);
-      headlineSession?.destroy()
+      const titleResponse = await headlineSession.prompt(convSummary);
+      let titleMatch = /^GENERATE_TITLE:\s*(.+)$/i.exec(titleResponse);
 
-      const title = res.slice(res.indexOf('$Title:'))
+      if (!titleMatch) {
+        // If the format isn't correct, try one more time with a reminder
+        const retryResponse = await headlineSession.prompt("Please generate a title in the correct format: GENERATE_TITLE: Your Title Here");
+        const retryMatch = /^GENERATE_TITLE:\s*(.+)$/i.exec(retryResponse);
+        if (!retryMatch) {
+          throw new Error('Failed to generate properly formatted title');
+        }
+        titleMatch = retryMatch;
+      }
 
-      // Update to use Kysely query
+      const title = titleMatch[1].trim();
+      headlineSession?.destroy();
+
       await db.updateTable('conversations')
         .set({ conversation_summary: title })
         .where('id', '=', convId)

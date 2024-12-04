@@ -2,10 +2,14 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    lib: { entry: resolve(__dirname, 'src/index.ts'), formats: ['es'] },
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'use-prompt-api', // Replace with your package name
+      formats: ['es', 'cjs'], // Add CommonJS support
+      fileName: (format) => `index.${format}.js`
+    },
     rollupOptions: {
       external: ['react', 'react/jsx-runtime'],
       output: {
@@ -16,5 +20,5 @@ export default defineConfig({
     },
   },
   resolve: { alias: { src: resolve('src/') } },
-  plugins: [dts()],
+  plugins: [dts({ rollupTypes: true })],
 });

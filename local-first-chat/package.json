@@ -1,5 +1,5 @@
 {
-  "name": "react-supabase-todolist-optional-sync",
+  "name": "local-first-chat",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -70,7 +70,7 @@
     "remark-math": "^6.0.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
-    "use-prompt-api": "workspace:*",
+    "@miguelspizza/use-prompt-api": "workspace:^1.0.0",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0",
     "workbox-build": "^7.0.0",

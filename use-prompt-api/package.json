@@ -1,14 +1,30 @@
 {
-  "name": "use-prompt-api",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@miguelspizza/use-prompt-api",
+  "private": false,
+  "version": "1.0.0",
   "type": "module",
-  "main": "./dist/use-prompt-api.js",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
   },
   "devDependencies": {
     "@types/dom-chromium-ai": "^0.0.2",
@@ -17,5 +33,17 @@
     "typescript": "^5.6.2",
     "vite": "^4.4.5",
     "vite-plugin-dts": "^3.5.2"
+  },
+  "keywords": [
+    "react",
+    "hooks",
+    "prompt",
+    "api"
+  ],
+  "author": "Alex Nahas",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MiguelsPizza/prompt-api-consumers/tree/master/use-prompt-api"
   }
 }
