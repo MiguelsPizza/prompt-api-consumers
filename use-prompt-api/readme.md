@@ -1,4 +1,6 @@
 # React Hooks for Browser AI Prompt API
+# @miguelspizza/use-prompt-api
+
 
 A collection of React hooks for interacting with the browser's built-in AI capabilities. This package provides typed interfaces and React hooks for accessing language models, managing AI sessions, and handling AI-powered summarization directly in your React applications.
 
