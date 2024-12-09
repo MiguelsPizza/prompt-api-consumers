@@ -1,7 +1,7 @@
 {
   "name": "@miguelspizza/use-prompt-api",
   "private": false,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -42,6 +42,7 @@
   ],
   "author": "Alex Nahas",
   "license": "MIT",
+  "homepage": "https://github.com/MiguelsPizza/prompt-api-consumers/tree/master/use-prompt-api",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MiguelsPizza/prompt-api-consumers",
