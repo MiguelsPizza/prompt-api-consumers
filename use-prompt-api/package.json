@@ -1,18 +1,16 @@
 {
   "name": "@miguelspizza/use-prompt-api",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
-  "main": "./dist/index.cjs.js",
-  "module": "./dist/index.es.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js",
+      "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },
@@ -22,12 +20,14 @@
     "preview": "vite preview",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "@types/dom-chromium-ai": "^0.0.2"
+  },
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },
   "devDependencies": {
-    "@types/dom-chromium-ai": "^0.0.2",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.2.7",
     "typescript": "^5.6.2",

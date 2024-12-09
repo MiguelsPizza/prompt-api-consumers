@@ -6,19 +6,33 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'use-prompt-api', // Replace with your package name
-      formats: ['es', 'cjs'], // Add CommonJS support
-      fileName: (format) => `index.${format}.js`
+      name: 'usePromptApi',
+      formats: ['es'],
+      fileName: 'index'
     },
     rollupOptions: {
-      external: ['react', 'react/jsx-runtime'],
+      external: ['react', 'react/jsx-runtime', 'dom-chromium-ai'],
       output: {
+        preserveModules: false,
+        preserveModulesRoot: 'src',
+        entryFileNames: '[name].js',
         globals: {
           react: 'React',
         },
       },
     },
+    minify: 'esbuild',
+    sourcemap: true,
+
   },
   resolve: { alias: { src: resolve('src/') } },
-  plugins: [dts({ rollupTypes: true })],
+  plugins: [
+    dts({
+      tsconfigPath: './tsconfig.json',
+      rollupTypes: true,
+      insertTypesEntry: true,
+      copyDtsFiles: true,
+      bundledPackages: ['dom-chromium-ai']
+    })
+  ],
 });

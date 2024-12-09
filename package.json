@@ -10,8 +10,9 @@
     "format": "prettier --write .",
     "prepare": "husky install",
     "grok": "pnpm  use prompt-api",
-    "dev": "pnpm --filter web-app run dev & pnpm --filter use-prompt-api run build --watch",
-    "deploy:web": "pnpm --filter use-prompt-api run build && pnpm -filter web-app run build && wrangler pages deploy ./web-app/dist"
+    "dev": "pnpm --filter use-prompt-api run build --watch & pnpm --filter local-first-chat run dev",
+    "deploy:web": "pnpm --filter use-prompt-api run build && pnpm -filter local-first-chat run build && wrangler pages deploy ./local-first-chat/dist",
+    "deploy:local": "pnpm --filter use-prompt-api run build && pnpm -filter local-first-chat run build && pnpm --filter local-first-chat run preview"
   },
   "keywords": [],
   "author": "",

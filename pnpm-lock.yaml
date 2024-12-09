@@ -306,6 +306,9 @@ importers:
 
   use-prompt-api:
     dependencies:
+      '@types/dom-chromium-ai':
+        specifier: ^0.0.2
+        version: 0.0.2
       react:
         specifier: '>=16.8.0'
         version: 18.3.1
@@ -313,9 +316,6 @@ importers:
         specifier: '>=16.8.0'
         version: 18.3.1(react@18.3.1)
     devDependencies:
-      '@types/dom-chromium-ai':
-        specifier: ^0.0.2
-        version: 0.0.2
       '@types/react':
         specifier: ^18.3.11
         version: 18.3.12
@@ -4467,7 +4467,6 @@ packages:
 
   /@types/dom-chromium-ai@0.0.2:
     resolution: {integrity: sha512-5TyjYquxp5sJeNncqoQMzUvBbxZkd2s+KrzKaCwM7cSoHcG2+kpMuK8Ve04bGGWey6nL7+HQqeh9/sWDmcN6eQ==}
-    dev: true
 
   /@types/dompurify@3.2.0:
     resolution: {integrity: sha512-Fgg31wv9QbLDA0SpTOXO3MaxySc4DKGLi8sna4/Utjo4r3ZRPdCt4UQee8BWr+Q5z21yifghREPJGYaEOEIACg==}

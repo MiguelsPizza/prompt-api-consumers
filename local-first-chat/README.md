@@ -11,7 +11,3 @@ The recommended flow through this app is:
 1. Use the app in local-only mode and chat with the AI. Your chat history persists even when offline.
 2. Register/sign in when you want to sync your data to the cloud.
 3. Your previous chat history will seamlessly sync to Supabase.
-
-# Run the app in local-only mode
-
-In the repo directory, use [pnpm](https://pnpm.io/installation) to install dependencies:

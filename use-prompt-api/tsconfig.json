@@ -6,6 +6,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
     "skipLibCheck": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -19,7 +20,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["@types/dom-chromium-ai", "@types/react", "@types/react-dom"]  // Added react-dom types
+    "paths": {
+      "dom-chromium-ai": ["node_modules/dom-chromium-ai"]
+    },
+    "types": ["dom-chromium-ai", "react", "react-dom"]
   },
   "include": ["src"]
 }
