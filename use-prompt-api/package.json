@@ -44,6 +44,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MiguelsPizza/prompt-api-consumers/tree/master/use-prompt-api"
+    "url": "git+https://github.com/MiguelsPizza/prompt-api-consumers",
+    "directory": "/use-prompt-api"
   }
 }
