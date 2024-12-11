@@ -205,7 +205,7 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
     (
       languageTag: Intl.UnicodeBCP47LocaleIdentifier,
     ): AICapabilityAvailability => {
-      return capabilities?.supportsLanguage(languageTag) ?? 'no';
+      return capabilities?.languageAvailable(languageTag) ?? 'no';
     },
     [capabilities],
   );

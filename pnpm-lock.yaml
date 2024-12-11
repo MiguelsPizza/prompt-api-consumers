@@ -244,8 +244,8 @@ importers:
         specifier: ^1.84.4
         version: 1.85.3(vite@5.4.11)(webpack@5.97.0)
       '@types/dom-chromium-ai':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.4
+        version: 0.0.4
       '@types/dompurify':
         specifier: ^3.0.5
         version: 3.2.0
@@ -307,8 +307,8 @@ importers:
   use-prompt-api:
     dependencies:
       '@types/dom-chromium-ai':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.4
+        version: 0.0.4
       react:
         specifier: '>=16.8.0'
         version: 18.3.1
@@ -4465,8 +4465,8 @@ packages:
       '@types/ms': 0.7.34
     dev: false
 
-  /@types/dom-chromium-ai@0.0.2:
-    resolution: {integrity: sha512-5TyjYquxp5sJeNncqoQMzUvBbxZkd2s+KrzKaCwM7cSoHcG2+kpMuK8Ve04bGGWey6nL7+HQqeh9/sWDmcN6eQ==}
+  /@types/dom-chromium-ai@0.0.4:
+    resolution: {integrity: sha512-zEJAmJcrszLhklp+UsEwn81Y65zUoGqZex80hMIvRiOKHhiC35wjtPpih7BBq9wkhCAra66TAgAmmwb7jXO3UA==}
 
   /@types/dompurify@3.2.0:
     resolution: {integrity: sha512-Fgg31wv9QbLDA0SpTOXO3MaxySc4DKGLi8sna4/Utjo4r3ZRPdCt4UQee8BWr+Q5z21yifghREPJGYaEOEIACg==}

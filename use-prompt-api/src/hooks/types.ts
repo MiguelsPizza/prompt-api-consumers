@@ -1,9 +1,7 @@
+
 export type ModelConversation =
-  | (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[]
-  | [
-      AILanguageModelSystemPrompt,
-      ...(AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[],
-    ];
+| [AILanguageModelSystemPrompt, ...AILanguageModelPrompt[]]
+| AILanguageModelPrompt[];
 
 export interface BasePromptAPIResult {
   available: AICapabilityAvailability;

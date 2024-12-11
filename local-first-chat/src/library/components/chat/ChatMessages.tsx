@@ -26,14 +26,15 @@ export const ChatMessages = () => {
   const initialPrompts = useMemo(
     () => (messages.at(-1)?.role === 'user' ? messages.slice(-1) : messages),
     [messages],
-  ) as (AILanguageModelAssistantPrompt | AILanguageModelUserPrompt)[];
+  )
 
   const { loading, sendPrompt, abort, isResponding, isThinking } =
     useStatelessPromptAPI(currentConversationId, {
       systemPrompt: currentConversation?.system_prompt ?? undefined,
       temperature: currentConversation?.temperature ?? 0.7,
       topK: currentConversation?.top_k ?? 10,
-      initialPrompts: initialPrompts,
+      //needed for type for some reason
+      initialPrompts: initialPrompts.map(a => ({ role: a.role as 'user', content: a.content! })),
     });
 
   // TODO: The counting seems to be Debounced in the session internals, Find a way to debounce sending the request

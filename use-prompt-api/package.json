@@ -21,7 +21,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@types/dom-chromium-ai": "^0.0.2"
+    "@types/dom-chromium-ai": "^0.0.4"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

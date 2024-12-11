@@ -81,7 +81,7 @@
   "devDependencies": {
     "@swc/core": "~1.6.0",
     "@tanstack/router-plugin": "^1.84.4",
-    "@types/dom-chromium-ai": "^0.0.2",
+    "@types/dom-chromium-ai": "^0.0.4",
     "@types/dompurify": "^3.0.5",
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.11.25",
