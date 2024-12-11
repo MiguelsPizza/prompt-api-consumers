@@ -4,16 +4,13 @@ import { AppendMessage, AssistantRuntimeProvider, useExternalStoreRuntime } from
 import { useStatelessPromptAPI } from 'use-prompt-api';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
-import { useQuery } from '@powersync/react';
-import { useSupabase } from '@/utils/Contexts';
-import { getSyncEnabled } from '@/powersync/SyncMode';
+import { useLiveIncrementalQuery as useQuery } from '@electric-sql/pglite-react'
 import { getRouteApi } from '@tanstack/react-router';
 import 'highlight.js/styles/github-dark.css';
 import { MyThread } from '../ui/thread';
 
 
 export const ChatMessages = () => {
-  const supabase = useSupabase()
   const { toast } = useToast();
 
   const { useParams } = getRouteApi('/conversation/$id')
@@ -54,7 +51,7 @@ export const ChatMessages = () => {
 
     try {
       const now = new Date();
-      const user = await supabase?.client.auth.getUser()
+      // const user = await supabase?.client.auth.getUser()
       const { count } = await db.selectFrom('conversation_messages')
         .select(({ fn }) => [fn.count<number>('id').as('count')])
         .where('conversation_id', '=', currentConversation.id)
@@ -66,13 +63,14 @@ export const ChatMessages = () => {
           id: crypto.randomUUID(),
           conversation_id: currentConversation.id,
           position,
-          role: message.role,
-          content: message.content,
+          role: message.role!,
+          content: message.content!,
           created_at: now.toISOString(),
           updated_at: now.toISOString(),
           temperature_at_creation: currentConversation?.temperature ?? 0.7,
           top_k_at_creation: currentConversation?.top_k ?? 10,
-          user_id: getSyncEnabled() && user?.data?.user ? user.data.user?.id : "Local_ID"
+          // TODO: this needs to be implemented with the new db
+          user_id: "Local_ID"
 
         })
         .returning('id')
@@ -120,7 +118,7 @@ export const ChatMessages = () => {
       // Start streaming, updating the message content as chunks arrive
       const res = await sendPrompt(input, {
         streaming: true,
-        onToken: async (chunk) => {
+        onToken: async (chunk: string) => {
           if (assistantMessageId) {
             await db.updateTable('conversation_messages')
               .set({ content: chunk })
@@ -216,7 +214,7 @@ export const ChatMessages = () => {
         // Stream the new response
         const res = await sendPrompt(input, {
           streaming: true,
-          onToken: async (chunk) => {
+          onToken: async (chunk: string) => {
             await trx.updateTable('conversation_messages')
               .set({
                 content: chunk,

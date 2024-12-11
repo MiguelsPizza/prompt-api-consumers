@@ -11,7 +11,6 @@ import SystemProvider from '@/components/providers/SystemProvider';
 import { AICapabilitiesProvider } from 'use-prompt-api';
 import PWABadge from '@/components/widgets/PWABadge';
 import { Toaster } from '@/components/ui/toaster';
-import { useSupabase } from '@/utils/Contexts';
 
 import type { Session, User } from '@supabase/supabase-js';
 
@@ -38,30 +37,13 @@ const router = createRouter({
 
 
 function AppRouter() {
-  const connector = useSupabase()
   const [isInitialized, setIsInitialized] = React.useState(false);
-
-  React.useEffect(() => {
-    const listener = connector.registerListener({
-      initialized: () => {
-        setIsInitialized(true);
-      },
-      sessionStarted: () => {
-        router.invalidate();
-      }
-    });
-
-    return () => listener?.();
-  }, [connector]);
 
   return (
     <RouterProvider
       router={router}
       context={{
-        session: connector.currentSession,
-        user: connector.currentSession?.user ?? null,
         isInitialized,
-        isAuthenticated: !!connector.currentSession,
       }}
     />
   );

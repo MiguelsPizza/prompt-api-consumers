@@ -5,16 +5,11 @@ import { SidebarProps } from '@/types/chat';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { db } from '@/powersync/AppSchema';
 import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
-import { useQuery } from '@powersync/react';
-import { useConversation, useSupabase } from '@/utils/Contexts';
+import { useLiveIncrementalQuery as useQuery } from '@electric-sql/pglite-react'
+import { useConversation } from '@/utils/Contexts';
 import { useToast } from '@/hooks/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Cloud, CloudOff } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { PowerSyncDatabase, UpdateType } from '@powersync/web';
-import { Card } from '@mui/material';
-import { CardContent } from '../ui/card';
 
 export const Sidebar = ({
   setSidebarCollapsed,
@@ -29,35 +24,7 @@ export const Sidebar = ({
   const { handleNewConversation, handleDeleteConversation, navigateToConversation } = useConversation()
   const router = useRouter()
   const currentPath = router.state.location.pathname
-  console.log({ currentPath })
-  const supabase = useSupabase()
   const [syncStatus, setSyncStatus] = useState<'offline' | 'syncing' | 'synced'>('offline');
-  const powerSync = (window as any)._powersync as PowerSyncDatabase
-
-  useEffect(() => {
-    const updateStatus = () => {
-      if (!powerSync.connected) {
-        setSyncStatus('offline');
-        return;
-      }
-
-      // Check if there are pending uploads
-      powerSync.getNextCrudTransaction().then(transaction => {
-        setSyncStatus(transaction ? 'syncing' : 'synced');
-      });
-    };
-
-    // Initial status check
-    updateStatus();
-
-    // Set up listeners for connection changes and crud operations
-    const unsubscribe = powerSync.registerListener({
-      statusChanged: updateStatus,
-      uploadComplete: updateStatus
-    });
-
-    return () => unsubscribe?.();
-  }, [powerSync]);
 
   if (sidebar === 'collapsed') return null;
 
@@ -124,20 +91,20 @@ export const Sidebar = ({
           </Tooltip>
         </TooltipProvider>
 
-        {supabase.currentSession ? (
-          <TooltipProvider>
-            <Tooltip delayDuration={200}>
-              <TooltipTrigger asChild>
-                <Link to='/conversation/profile'>
-                  <Avatar className="h-10 w-10 hover:ring-2 hover:ring-primary transition-all">
-                    <AvatarImage src={supabase.currentSession.user.user_metadata?.avatar_url} />
-                    <AvatarFallback>{supabase.currentSession.user.email?.[0].toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>Profile</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        {false ? (null
+          // <TooltipProvider>
+          //   <Tooltip delayDuration={200}>
+          //     <TooltipTrigger asChild>
+          //       <Link to='/conversation/profile'>
+          //         <Avatar className="h-10 w-10 hover:ring-2 hover:ring-primary transition-all">
+          //           <AvatarImage src={supabase.currentSession.user.user_metadata?.avatar_url} />
+          //           <AvatarFallback>{supabase.currentSession.user.email?.[0].toUpperCase()}</AvatarFallback>
+          //         </Avatar>
+          //       </Link>
+          //     </TooltipTrigger>
+          //     <TooltipContent>Profile</TooltipContent>
+          //   </Tooltip>
+          // </TooltipProvider>
         ) : (
           <>
             <TooltipProvider>

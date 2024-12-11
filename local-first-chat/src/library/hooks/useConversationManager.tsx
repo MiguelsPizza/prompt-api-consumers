@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { db } from '@/powersync/AppSchema';
 import { useToast } from './use-toast';
-import { useSupabase, ConversationContext } from '@/utils/Contexts';
+import { ConversationContext } from '@/utils/Contexts';
 import { useNavigate } from '@tanstack/react-router';
 
 export type ConversationContextType = {
@@ -12,7 +12,7 @@ export type ConversationContextType = {
 
 export function ConversationProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
-  const supabase = useSupabase();
+  // const supabase = useSupabase();
   const navigate = useNavigate();
 
   const navigationOptions = useMemo(() => ({
@@ -84,18 +84,18 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
   const handleNewConversation = useCallback(async (systemPrompt: string | null = null, top_k = 10, temperature = 0.7) => {
     try {
       const now = new Date();
-      const user = await supabase?.client.auth.getUser();
+      // const user = await supabase?.client.auth.getUser();
       const result = await db.insertInto('conversations')
         .values({
           id: crypto.randomUUID(),
           name: 'New conversation',
-          conversation_summary: null,
-          system_prompt: systemPrompt,
+          conversation_summary: '',
+          system_prompt: systemPrompt!,
           created_at: now.toLocaleDateString(),
           updated_at: now.toLocaleDateString(),
           top_k,
           temperature,
-          user_id: !user?.error ? user?.data.user.id : 'Local_ID'
+          user_id:  'Local_ID'
         })
         .returning('id')
         .executeTakeFirst();

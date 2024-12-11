@@ -1,105 +1,59 @@
-import {
-  column,
-  Schema,
-  Table,
-  PowerSyncDatabase,
-  ColumnsType,
-  TableV2Options
-} from '@powersync/web';
-import { wrapPowerSyncWithKysely } from "@powersync/kysely-driver";
-import { setSyncEnabled } from './SyncMode';
+import { Kysely } from 'kysely';
+import { PGliteWorker } from '@electric-sql/pglite/worker';
+import { PgliteDialect } from '@soapbox/kysely-pglite';
+import { live } from "@electric-sql/pglite/live"
+import PGWorker from './db/worker.ts?worker'
 
-export const DB_NAME = 'chat_database.db';
 
-// Define table names as const to prevent typos
-export const TableNames = {
-  CONVERSATIONS: 'conversations',
-  CONVERSATION_MESSAGES: 'conversation_messages',
-} as const;
-
-type TableDefinition = {
-  name: string,
-  columns: ColumnsType
-  options: TableV2Options
+// Define table interfaces
+interface Conversations {
+  id: string;
+  name: string;
+  conversation_summary: string;
+  system_prompt: string;
+  created_at: string;
+  updated_at: string;
+  top_k: number;
+  temperature: number;
+  user_id: string;
 }
 
-// Define table schemas with 'as const' and type satisfaction
-export const conversationTableDef = {
-  name: 'conversations',
-  columns: {
-    id: column.text,
-    name: column.text,
-    conversation_summary: column.text,
-    system_prompt: column.text,
-    created_at: column.text,
-    updated_at: column.text,
-    top_k: column.real,
-    temperature: column.real,
-    user_id: column.text
-  },
-  options: {
-    indexes: {
-      user: ['user_id'],
-      updated: ['updated_at'],
-      user_updated: ['user_id', 'updated_at']
-    }
-  }
-} as const satisfies TableDefinition;
+interface ConversationMessages {
+  id: string;
+  conversation_id: string;
+  position: number;
+  role: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  temperature_at_creation: number;
+  top_k_at_creation: number;
+  user_id: string;
+}
 
-export const conversationMessagesTableDef = {
-  name: 'conversation_messages',
-  columns: {
-    id: column.text,
-    conversation_id: column.text,
-    position: column.integer,
-    role: column.text,
-    content: column.text,
-    created_at: column.text,
-    updated_at: column.text,
-    temperature_at_creation: column.real,
-    top_k_at_creation: column.real,
-    user_id: column.text
-  },
-  options: {
-    indexes: {
-      conversation: ['conversation_id'],
-      position: ['position'],
-      conv_position: ['conversation_id', 'position'],  // For efficiently fetching ordered messages
-      created: ['created_at'],  // For time-based queries
-      user_created: ['user_id', 'created_at']  // For user's message history
-    }
-  }
-} as const satisfies TableDefinition;
+// Define Database interface
+interface Database {
+  conversations: Conversations;
+  conversation_messages: ConversationMessages;
+}
 
-// Initialize database with schema
-export let AppSchema = new Schema({
-  conversations: new Table(
-    conversationTableDef.columns, conversationTableDef.options
-  ),
-  conversation_messages: new Table(
-    conversationMessagesTableDef.columns, conversationMessagesTableDef.options,
-  ),
+// Initialize PGlite worker and Kysely
+export const pglite = await new PGliteWorker(
+  new PGWorker({ name: 'pglite-worker' }), { extensions: { live } }
+);
+
+export const db = new Kysely<Database>({
+  dialect: new PgliteDialect({ database: pglite }),
 });
-export let powerSyncDb = new PowerSyncDatabase({
-  schema: AppSchema,
-  database: {
-    dbFilename: DB_NAME
-  }
-});
-console.log({ db: powerSyncDb.schema })
-// Create type-safe Kysely instance
-export type Database = (typeof AppSchema)['types'];
-export let db = wrapPowerSyncWithKysely<Database>(powerSyncDb);
+// Export types
+export type ConversationType = Database['conversations'];
+export type ConversationMessageType = Database['conversation_messages'];
 
-// Schema switching function
+// Schema switching functions
 export async function switchToSyncedSchema(userId: string) {
   try {
     console.log('Starting sync process for user:', userId);
 
-    // Update sync setting
-    setSyncEnabled(true);
-
-    // Update existing records with user_id
     await db.transaction().execute(async (trx) => {
       await trx
         .updateTable('conversations')
@@ -120,11 +74,6 @@ export async function switchToSyncedSchema(userId: string) {
   }
 }
 
-// Switch to local schema
 export async function switchToLocalSchema() {
-  setSyncEnabled(false);
+  // No-op for PGlite as it's always local
 }
-
-// Export types inferred from schema
-export type ConversationType = Database['conversations'];
-export type ConversationMessageType = Database['conversation_messages'];

@@ -8,8 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from '@tanstack/react-router';
 import { getRouteApi } from '@tanstack/react-router';
 import { useConversation } from '@/utils/Contexts';
-import { useQuery } from '@powersync/react';
-
 
 export const ChatHeader = () => {
   const { toast } = useToast();

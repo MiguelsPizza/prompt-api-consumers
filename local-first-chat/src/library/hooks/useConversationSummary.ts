@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ConversationMessageType, db } from '@/powersync/AppSchema'
 import { useSummarizer } from 'use-prompt-api';
-import { useQuery } from '@powersync/react';
+import { useLiveIncrementalQuery as useQuery } from '@electric-sql/pglite-react'
 
 export function useConversationSummary(
   currentConversationId: string | null,

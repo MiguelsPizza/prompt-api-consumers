@@ -12,9 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useSupabase } from '@/utils/Contexts'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { setSyncEnabled } from '@/powersync/SyncMode'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import {
@@ -60,7 +58,6 @@ function AuthForm() {
   const { authType } = Route.useSearch()
   const [isLoading, setIsLoading] = useState(false)
   const isLogin = authType === 'login'
-  const supabase = useSupabase()
   const navigate = useNavigate()
 
   // Initialize forms
@@ -84,12 +81,11 @@ function AuthForm() {
   async function onSignUp(values: SignUpFormValues) {
     try {
       setIsLoading(true)
-      await supabase.signup(values.email, values.password, {
-        data: {
-          name: values.name,
-        },
-      })
-      setSyncEnabled(true)
+      // await supabase.signup(values.email, values.password, {
+      //   data: {
+      //     name: values.name,
+      //   },
+      // })
       navigate({
         to: '/conversation/newchat',
         search: {
@@ -109,8 +105,8 @@ function AuthForm() {
   async function onLogin(values: LoginFormValues) {
     try {
       setIsLoading(true)
-      await supabase.login(values.email, values.password)
-      setSyncEnabled(true)
+      // await supabase.login(values.email, values.password)
+      // setSyncEnabled(true)
       navigate({
         to: '/conversation/newchat',
         search: {
