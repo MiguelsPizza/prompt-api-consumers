@@ -1,30 +1,41 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { PlusCircle, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { useConversation } from '@/utils/Contexts';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const Route = createFileRoute('/conversation/newchat')({
   component: NewConversation,
   beforeLoad: () => ({
     meta: {
       title: 'New Conversation',
-      description: 'Start a new AI conversation with custom settings'
-    }
+      description: 'Start a new AI conversation with custom settings',
+    },
   }),
-})
+});
 
 function NewConversation() {
   const { handleNewConversation } = useConversation();
   const [temperature, setTemperature] = useState(0.7);
-  const [topK, setTopK] = useState(10);
-  const [systemPrompt, setSystemPrompt] = useState('');
+  const [top_k, settop_k] = useState(10);
+  const [system_prompt, setsystem_prompt] = useState('');
 
   const handleCreateConversation = async () => {
-    const id = await handleNewConversation(systemPrompt, topK, temperature);
+    const id = await handleNewConversation(system_prompt, top_k, temperature);
   };
 
   return (
@@ -49,7 +60,12 @@ function NewConversation() {
                       <HelpCircle className="h-4 w-4 text-violet-400" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
-                      <p>Controls randomness in responses. Higher values (closer to 1) make the output more creative but less focused, while lower values make it more deterministic and focused.</p>
+                      <p>
+                        Controls randomness in responses. Higher values (closer
+                        to 1) make the output more creative but less focused,
+                        while lower values make it more deterministic and
+                        focused.
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -76,19 +92,24 @@ function NewConversation() {
                       <HelpCircle className="h-4 w-4 text-violet-400" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
-                      <p>Limits the number of tokens the model considers for each prediction. Lower values make responses more focused but potentially less nuanced, while higher values allow for more diverse vocabulary.</p>
+                      <p>
+                        Limits the number of tokens the model considers for each
+                        prediction. Lower values make responses more focused but
+                        potentially less nuanced, while higher values allow for
+                        more diverse vocabulary.
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </span>
-              <span className="text-violet-400">{topK}</span>
+              <span className="text-violet-400">{top_k}</span>
             </label>
             <Slider
-              value={[topK]}
+              value={[top_k]}
               max={40}
               min={1}
               step={1}
-              onValueChange={(value) => setTopK(value[0])}
+              onValueChange={(value) => settop_k(value[0])}
               className="bg-secondary/50"
             />
           </div>
@@ -102,15 +123,19 @@ function NewConversation() {
                     <HelpCircle className="h-4 w-4 text-violet-400" />
                   </TooltipTrigger>
                   <TooltipContent className="max-w-[300px]">
-                    <p>Initial instructions that define the AI's behavior and role. This sets the context and guidelines for how the AI should respond throughout the conversation.</p>
+                    <p>
+                      Initial instructions that define the AI's behavior and
+                      role. This sets the context and guidelines for how the AI
+                      should respond throughout the conversation.
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </label>
             <textarea
               className="w-full min-h-[80px] rounded-md border border-violet-600/20 bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
-              value={systemPrompt}
-              onChange={(e) => setSystemPrompt(e.target.value)}
+              value={system_prompt}
+              onChange={(e) => setsystem_prompt(e.target.value)}
               placeholder="Enter a system prompt to guide the AI's behavior..."
             />
           </div>

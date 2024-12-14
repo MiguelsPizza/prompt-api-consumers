@@ -2,12 +2,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChatMessages } from '@/components/chat/ChatMessages';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatInterfaceSchema } from '@/utils/paramValidators';
-import { db } from '@/powersync/AppSchema';
+import { db } from '@/dataLayer/db';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useConversationSummary } from '@/hooks/useConversationSummary';
-import { AssistantRuntimeProvider } from "@assistant-ui/react";
-
+import { conversations } from '@/dataLayer/db/schema';
+import { eq } from 'drizzle-orm';
 
 export const Route = createFileRoute('/conversation/$id')({
   component: ConversationView,
@@ -15,11 +15,15 @@ export const Route = createFileRoute('/conversation/$id')({
   beforeLoad: ({ params }) => ({
     meta: {
       title: `Chat #${params.id}`,
-      description: 'Chat conversation'
-    }
+      description: 'Chat conversation',
+    },
   }),
   loader: async ({ params }) => {
-    const conversation = await db.selectFrom('conversations').selectAll().where('conversations.id', '=', params.id).executeTakeFirst();
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, params.id));
+
     if (!conversation) {
       throw new Error('Conversation not found');
     }
@@ -39,18 +43,19 @@ export const Route = createFileRoute('/conversation/$id')({
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>
-          {error instanceof Error ? error.message : 'Failed to load conversation'}
+          {error instanceof Error
+            ? error.message
+            : 'Failed to load conversation'}
         </AlertDescription>
       </Alert>
     </div>
-  )
+  ),
 });
 
 function ConversationView() {
-  const { id } = Route.useParams()
+  const { id } = Route.useParams();
 
   useConversationSummary(id);
-
 
   return (
     <>

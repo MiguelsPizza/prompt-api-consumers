@@ -10,13 +10,13 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as ConversationImport } from './routes/conversation'
-import { Route as IndexImport } from './routes/index'
-import { Route as ConversationProfileImport } from './routes/conversation.profile'
-import { Route as ConversationNewchatImport } from './routes/conversation.newchat'
-import { Route as ConversationAuthImport } from './routes/conversation.auth'
-import { Route as ConversationIdImport } from './routes/conversation.$id'
+import { Route as rootRoute } from './routes/__root';
+import { Route as ConversationImport } from './routes/conversation';
+import { Route as IndexImport } from './routes/index';
+import { Route as ConversationProfileImport } from './routes/conversation.profile';
+import { Route as ConversationNewchatImport } from './routes/conversation.newchat';
+import { Route as ConversationAuthImport } from './routes/conversation.auth';
+import { Route as ConversationIdImport } from './routes/conversation.$id';
 
 // Create/Update Routes
 
@@ -24,94 +24,94 @@ const ConversationRoute = ConversationImport.update({
   id: '/conversation',
   path: '/conversation',
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
 const ConversationProfileRoute = ConversationProfileImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => ConversationRoute,
-} as any)
+} as any);
 
 const ConversationNewchatRoute = ConversationNewchatImport.update({
   id: '/newchat',
   path: '/newchat',
   getParentRoute: () => ConversationRoute,
-} as any)
+} as any);
 
 const ConversationAuthRoute = ConversationAuthImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => ConversationRoute,
-} as any)
+} as any);
 
 const ConversationIdRoute = ConversationIdImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ConversationRoute,
-} as any)
+} as any);
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
+      id: '/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof IndexImport;
+      parentRoute: typeof rootRoute;
+    };
     '/conversation': {
-      id: '/conversation'
-      path: '/conversation'
-      fullPath: '/conversation'
-      preLoaderRoute: typeof ConversationImport
-      parentRoute: typeof rootRoute
-    }
+      id: '/conversation';
+      path: '/conversation';
+      fullPath: '/conversation';
+      preLoaderRoute: typeof ConversationImport;
+      parentRoute: typeof rootRoute;
+    };
     '/conversation/$id': {
-      id: '/conversation/$id'
-      path: '/$id'
-      fullPath: '/conversation/$id'
-      preLoaderRoute: typeof ConversationIdImport
-      parentRoute: typeof ConversationImport
-    }
+      id: '/conversation/$id';
+      path: '/$id';
+      fullPath: '/conversation/$id';
+      preLoaderRoute: typeof ConversationIdImport;
+      parentRoute: typeof ConversationImport;
+    };
     '/conversation/auth': {
-      id: '/conversation/auth'
-      path: '/auth'
-      fullPath: '/conversation/auth'
-      preLoaderRoute: typeof ConversationAuthImport
-      parentRoute: typeof ConversationImport
-    }
+      id: '/conversation/auth';
+      path: '/auth';
+      fullPath: '/conversation/auth';
+      preLoaderRoute: typeof ConversationAuthImport;
+      parentRoute: typeof ConversationImport;
+    };
     '/conversation/newchat': {
-      id: '/conversation/newchat'
-      path: '/newchat'
-      fullPath: '/conversation/newchat'
-      preLoaderRoute: typeof ConversationNewchatImport
-      parentRoute: typeof ConversationImport
-    }
+      id: '/conversation/newchat';
+      path: '/newchat';
+      fullPath: '/conversation/newchat';
+      preLoaderRoute: typeof ConversationNewchatImport;
+      parentRoute: typeof ConversationImport;
+    };
     '/conversation/profile': {
-      id: '/conversation/profile'
-      path: '/profile'
-      fullPath: '/conversation/profile'
-      preLoaderRoute: typeof ConversationProfileImport
-      parentRoute: typeof ConversationImport
-    }
+      id: '/conversation/profile';
+      path: '/profile';
+      fullPath: '/conversation/profile';
+      preLoaderRoute: typeof ConversationProfileImport;
+      parentRoute: typeof ConversationImport;
+    };
   }
 }
 
 // Create and export the route tree
 
 interface ConversationRouteChildren {
-  ConversationIdRoute: typeof ConversationIdRoute
-  ConversationAuthRoute: typeof ConversationAuthRoute
-  ConversationNewchatRoute: typeof ConversationNewchatRoute
-  ConversationProfileRoute: typeof ConversationProfileRoute
+  ConversationIdRoute: typeof ConversationIdRoute;
+  ConversationAuthRoute: typeof ConversationAuthRoute;
+  ConversationNewchatRoute: typeof ConversationNewchatRoute;
+  ConversationProfileRoute: typeof ConversationProfileRoute;
 }
 
 const ConversationRouteChildren: ConversationRouteChildren = {
@@ -119,57 +119,57 @@ const ConversationRouteChildren: ConversationRouteChildren = {
   ConversationAuthRoute: ConversationAuthRoute,
   ConversationNewchatRoute: ConversationNewchatRoute,
   ConversationProfileRoute: ConversationProfileRoute,
-}
+};
 
 const ConversationRouteWithChildren = ConversationRoute._addFileChildren(
   ConversationRouteChildren,
-)
+);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/conversation': typeof ConversationRouteWithChildren
-  '/conversation/$id': typeof ConversationIdRoute
-  '/conversation/auth': typeof ConversationAuthRoute
-  '/conversation/newchat': typeof ConversationNewchatRoute
-  '/conversation/profile': typeof ConversationProfileRoute
+  '/': typeof IndexRoute;
+  '/conversation': typeof ConversationRouteWithChildren;
+  '/conversation/$id': typeof ConversationIdRoute;
+  '/conversation/auth': typeof ConversationAuthRoute;
+  '/conversation/newchat': typeof ConversationNewchatRoute;
+  '/conversation/profile': typeof ConversationProfileRoute;
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/conversation': typeof ConversationRouteWithChildren
-  '/conversation/$id': typeof ConversationIdRoute
-  '/conversation/auth': typeof ConversationAuthRoute
-  '/conversation/newchat': typeof ConversationNewchatRoute
-  '/conversation/profile': typeof ConversationProfileRoute
+  '/': typeof IndexRoute;
+  '/conversation': typeof ConversationRouteWithChildren;
+  '/conversation/$id': typeof ConversationIdRoute;
+  '/conversation/auth': typeof ConversationAuthRoute;
+  '/conversation/newchat': typeof ConversationNewchatRoute;
+  '/conversation/profile': typeof ConversationProfileRoute;
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/conversation': typeof ConversationRouteWithChildren
-  '/conversation/$id': typeof ConversationIdRoute
-  '/conversation/auth': typeof ConversationAuthRoute
-  '/conversation/newchat': typeof ConversationNewchatRoute
-  '/conversation/profile': typeof ConversationProfileRoute
+  __root__: typeof rootRoute;
+  '/': typeof IndexRoute;
+  '/conversation': typeof ConversationRouteWithChildren;
+  '/conversation/$id': typeof ConversationIdRoute;
+  '/conversation/auth': typeof ConversationAuthRoute;
+  '/conversation/newchat': typeof ConversationNewchatRoute;
+  '/conversation/profile': typeof ConversationProfileRoute;
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | '/'
     | '/conversation'
     | '/conversation/$id'
     | '/conversation/auth'
     | '/conversation/newchat'
-    | '/conversation/profile'
-  fileRoutesByTo: FileRoutesByTo
+    | '/conversation/profile';
+  fileRoutesByTo: FileRoutesByTo;
   to:
     | '/'
     | '/conversation'
     | '/conversation/$id'
     | '/conversation/auth'
     | '/conversation/newchat'
-    | '/conversation/profile'
+    | '/conversation/profile';
   id:
     | '__root__'
     | '/'
@@ -177,23 +177,23 @@ export interface FileRouteTypes {
     | '/conversation/$id'
     | '/conversation/auth'
     | '/conversation/newchat'
-    | '/conversation/profile'
-  fileRoutesById: FileRoutesById
+    | '/conversation/profile';
+  fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ConversationRoute: typeof ConversationRouteWithChildren
+  IndexRoute: typeof IndexRoute;
+  ConversationRoute: typeof ConversationRouteWithChildren;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConversationRoute: ConversationRouteWithChildren,
-}
+};
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
 /* ROUTE_MANIFEST_START
 {

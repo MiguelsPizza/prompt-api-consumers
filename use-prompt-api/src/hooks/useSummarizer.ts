@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface ISummarizerError {
-  readonly code: 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'SUMMARIZE_FAILED' | 'EMPTY_INPUT';
+  readonly code:
+    | 'SESSION_UNAVAILABLE'
+    | 'SESSION_CREATION_FAILED'
+    | 'SUMMARIZE_FAILED'
+    | 'EMPTY_INPUT';
   name: string;
   message: string;
 }
 
-class SummarizerError<T extends 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'SUMMARIZE_FAILED' | 'EMPTY_INPUT'>
+class SummarizerError<
+    T extends
+      | 'SESSION_UNAVAILABLE'
+      | 'SESSION_CREATION_FAILED'
+      | 'SUMMARIZE_FAILED'
+      | 'EMPTY_INPUT',
+  >
   extends Error
   implements ISummarizerError
 {
@@ -20,7 +30,10 @@ class SummarizerError<T extends 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED
 }
 
 export type UseSummarizerError = SummarizerError<
-  'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'SUMMARIZE_FAILED' | 'EMPTY_INPUT'
+  | 'SESSION_UNAVAILABLE'
+  | 'SESSION_CREATION_FAILED'
+  | 'SUMMARIZE_FAILED'
+  | 'EMPTY_INPUT'
 >;
 
 interface UseSummarizerResult {
@@ -45,11 +58,13 @@ export function useSummarizer({
   signal,
   sharedContext,
 }: AISummarizerCreateOptions = {}): UseSummarizerResult {
-
-  const [streamingResponse, setStreamingResponse] = useState<string | null>(null);
+  const [streamingResponse, setStreamingResponse] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<UseSummarizerError | null>(null);
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
 
   const session = useRef<AISummarizer | null>(null);
 
@@ -59,9 +74,11 @@ export function useSummarizer({
       session.current = null;
     }
 
-    if(!window.ai?.summarizer){
-      setError(new SummarizerError('Summarizer not Ready', "SESSION_UNAVAILABLE"))
-      return
+    if (!window.ai?.summarizer) {
+      setError(
+        new SummarizerError('Summarizer not Ready', 'SESSION_UNAVAILABLE'),
+      );
+      return;
     }
 
     window.ai.summarizer
@@ -114,11 +131,16 @@ export function useSummarizer({
 
       const controller = new AbortController();
       setAbortController(controller);
-      const combinedSignal = signal ? AbortSignal.any([controller.signal, signal]) : controller.signal;
+      const combinedSignal = signal
+        ? AbortSignal.any([controller.signal, signal])
+        : controller.signal;
 
       try {
         if (!session.current) {
-          throw new SummarizerError('Session not available', 'SESSION_UNAVAILABLE');
+          throw new SummarizerError(
+            'Session not available',
+            'SESSION_UNAVAILABLE',
+          );
         }
 
         if (streaming) {

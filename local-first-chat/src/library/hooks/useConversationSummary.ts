@@ -1,35 +1,52 @@
 import { useEffect, useState } from 'react';
-import { ConversationMessageType, db } from '@/powersync/AppSchema'
+import { db } from '@/dataLayer/db';
+import {
+  conversations,
+  conversation_messages,
+  ConversationMessage,
+} from '@/dataLayer/db/schema';
 import { useSummarizer } from 'use-prompt-api';
-import { useLiveIncrementalQuery as useQuery } from '@electric-sql/pglite-react'
+import { useDrizzleLiveIncremental } from '@makisuo/pglite-drizzle/react';
+import { eq } from 'drizzle-orm';
 
-export function useConversationSummary(
-  currentConversationId: string | null,
-) {
+export function useConversationSummary(currentConversationId: string | null) {
   const [error, setError] = useState<string | null>(null);
 
   const { summarize, error: summarizerError } = useSummarizer({
     type: 'tl;dr',
     format: 'plain-text',
     length: 'short',
-    sharedContext: "These are the initial messages in a conversation with an LLM",
+    sharedContext:
+      'These are the initial messages in a conversation with an LLM',
   });
 
-  const { data: [currentConversation] = [] } = useQuery(db.selectFrom('conversations')
-    .selectAll()
-    .where('id', '=', currentConversationId)
+  const { data: currentConversation } = useDrizzleLiveIncremental(
+    'id',
+    db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, currentConversationId ?? '')),
   );
 
-  const { data: conv = [] } = useQuery(db.selectFrom('conversation_messages')
-    .selectAll()
-    .where('conversation_id', '=', currentConversationId)
-    .orderBy('position')
+  const { data: conv = [] } = useDrizzleLiveIncremental(
+    'id',
+    db
+      .select()
+      .from(conversation_messages)
+      .where(
+        eq(conversation_messages.conversation_id, currentConversationId ?? ''),
+      )
+      .orderBy(conversation_messages.position),
   );
 
-  async function updateConversationSummary(convId: string, messages: ConversationMessageType[], abortController: AbortController) {
+  async function updateconversation_summary(
+    convId: string,
+    messages: ConversationMessage[],
+    abortController: AbortController,
+  ) {
     const convString = messages.reduce(
       (acc, { content, role }) => acc + `${role}: ${content}\n`,
-      ''
+      '',
     );
     try {
       if (!window.ai?.languageModel) {
@@ -38,14 +55,15 @@ export function useConversationSummary(
 
       let convSummary: string;
       try {
-        convSummary = await summarize(convString, {
+        convSummary = (await summarize(convString, {
           streaming: false,
           signal: abortController.signal,
-        }) as string;
+        })) as string;
       } catch (error) {
         // Fallback to regular session if summarize fails
         const fallbackSession = await window.ai.languageModel.create({
-          systemPrompt: "Summarize the following conversation in a brief paragraph. Focus on the main topics and key points.",
+          systemPrompt:
+            'Summarize the following conversation in a brief paragraph. Focus on the main topics and key points.',
         });
         convSummary = await fallbackSession.prompt(convString);
         fallbackSession?.destroy();
@@ -81,7 +99,9 @@ export function useConversationSummary(
 
       if (!titleMatch) {
         // If the format isn't correct, try one more time with a reminder
-        const retryResponse = await headlineSession.prompt("Please generate a title in the correct format: GENERATE_TITLE: Your Title Here");
+        const retryResponse = await headlineSession.prompt(
+          'Please generate a title in the correct format: GENERATE_TITLE: Your Title Here',
+        );
         const retryMatch = /^GENERATE_TITLE:\s*(.+)$/i.exec(retryResponse);
         if (!retryMatch) {
           throw new Error('Failed to generate properly formatted title');
@@ -92,14 +112,14 @@ export function useConversationSummary(
       const title = titleMatch[1].trim();
       headlineSession?.destroy();
 
-      await db.updateTable('conversations')
+      await db
+        .update(conversations)
         .set({ conversation_summary: title })
-        .where('id', '=', convId)
-        .execute();
-
+        .where(eq(conversations.id, convId));
     } catch (error) {
       if (!abortController.signal.aborted) {
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        const errorMessage =
+          error instanceof Error ? error.message : 'An unknown error occurred';
         console.error('Failed to generate or update summary:', error);
         setError(errorMessage);
       }
@@ -107,17 +127,22 @@ export function useConversationSummary(
   }
 
   useEffect(() => {
-    if (currentConversationId === null || !currentConversation || !conv) return;
-    if (conv.length <= 1 || currentConversation.conversation_summary !== null) return
+    if (currentConversationId === null || !currentConversation?.[0] || !conv)
+      return;
+    if (
+      conv.length <= 1 ||
+      currentConversation[0].conversation_summary !== null
+    )
+      return;
     const abortController = new AbortController();
     setError(null);
-    updateConversationSummary(currentConversationId, conv, abortController);
+    updateconversation_summary(currentConversationId, conv, abortController);
     return () => {
       abortController.abort();
     };
   }, [currentConversationId, conv?.length]);
 
   return {
-    error: error || summarizerError || null
+    error: error || summarizerError || null,
   };
 }

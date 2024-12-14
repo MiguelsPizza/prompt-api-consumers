@@ -1,9 +1,9 @@
 // import "./PWABadge.css";
 
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { ReloadIcon } from "@radix-ui/react-icons";
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { ReloadIcon } from '@radix-ui/react-icons';
 import { useEffect } from 'react';
 
 function PWABadge() {
@@ -39,10 +39,10 @@ function PWABadge() {
   useEffect(() => {
     if (offlineReady || needRefresh) {
       toast({
-        title: needRefresh ? "Update Available" : "Offline Ready",
+        title: needRefresh ? 'Update Available' : 'Offline Ready',
         description: needRefresh
-          ? "A new version is available. Click to update."
-          : "App is ready to work offline",
+          ? 'A new version is available. Click to update.'
+          : 'App is ready to work offline',
         duration: 5000,
         action: needRefresh ? (
           <div className="flex gap-2">
@@ -55,20 +55,12 @@ function PWABadge() {
               <ReloadIcon className="mr-2 h-4 w-4" />
               Update
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={close}
-            >
+            <Button variant="secondary" size="sm" onClick={close}>
               Later
             </Button>
           </div>
         ) : (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={close}
-          >
+          <Button variant="secondary" size="sm" onClick={close}>
             Dismiss
           </Button>
         ),

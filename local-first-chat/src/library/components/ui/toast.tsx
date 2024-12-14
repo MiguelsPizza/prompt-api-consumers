@@ -43,7 +43,7 @@ const Toast = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
     VariantProps<typeof toastVariants>
 >(({ className, variant, ...props }, ref) => {
-  props.duration = props.duration || 2000
+  props.duration = props.duration || 2000;
   return (
     <ToastPrimitives.Root
       ref={ref}

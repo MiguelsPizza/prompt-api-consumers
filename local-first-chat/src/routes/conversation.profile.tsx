@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -10,25 +10,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Loader2, LogOut, Pencil, Save } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
+} from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Loader2, LogOut, Pencil, Save } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-})
+});
 
-type ProfileFormValues = z.infer<typeof profileSchema>
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export const Route = createFileRoute('/conversation/profile')({
   component: ProfileForm,
@@ -38,20 +38,20 @@ export const Route = createFileRoute('/conversation/profile')({
       description: 'Manage your account settings',
     },
   }),
-})
+});
 
 function ProfileForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
   // const user = supabase.currentSession?.user
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name:  '',
+      name: '',
     },
-  })
+  });
 
   // if (!user) {
   //   navigate({ to: '/conversation/auth', search: { authType: 'login' } })
@@ -60,7 +60,7 @@ function ProfileForm() {
 
   async function handleLogout() {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       // await supabase.logout()
       // setSyncEnabled(false)
       navigate({
@@ -69,31 +69,31 @@ function ProfileForm() {
           authType: 'login',
           sidebar: 'open',
         },
-      })
+      });
     } catch (error: any) {
-      console.error('Logout error:', error)
+      console.error('Logout error:', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   async function onSubmit(values: ProfileFormValues) {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       // await supabase.client.auth.updateUser({
       //   data: { name: values.name }
       // })
-      setIsEditing(false)
+      setIsEditing(false);
     } catch (error: any) {
-      console.error('Update error:', error)
+      console.error('Update error:', error);
       form.setError('root', {
         message: error?.message || 'Failed to update profile',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
-  return null
+  return null;
 
   // return (
   //   <div className="min-h-screen flex items-center justify-center bg-background">

@@ -8,5 +8,5 @@ export const ThinkingCard = () => {
     const int = setInterval(() => setNumber((curr) => (curr + 1) % 4), 300);
     return () => clearInterval(int);
   }, []);
-return null
+  return null;
 };

@@ -3,6 +3,7 @@
 This is a monorepo containing the [Local First Chat](https://localfirstchat.com) website and [@miguelspizza/use-prompt-api](https://www.npmjs.com/package/@miguelspizza/use-prompt-api) hooks.
 
 ## Quick Start
+
 ```bash
 pnpm dev # Builds and watches hooks, starts web app
 pnpm deploy:local # a functional self host of the app to a local port

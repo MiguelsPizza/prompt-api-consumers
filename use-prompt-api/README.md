@@ -1,6 +1,6 @@
 # React Hooks for Browser AI Prompt API
-# @miguelspizza/use-prompt-api
 
+# @miguelspizza/use-prompt-api
 
 A collection of React hooks for interacting with the browser's built-in AI capabilities. This package provides typed interfaces and React hooks for accessing language models, managing AI sessions, and handling AI-powered summarization directly in your React applications.
 
@@ -28,17 +28,17 @@ Hook and provider for checking and managing AI model capabilities in the browser
 
 ```typescript
 const {
-  available,          // AI availability status: 'readily' | 'after-download' | 'no'
-  capabilities,       // Raw capabilities object from the browser
-  error,             // Any capability-related errors
-  downloadProgress,   // Download progress for models: { loaded: number, total: number }
-  isDownloading,     // Whether a model is currently downloading
-  supportsLanguage,  // Function to check language support
+  available, // AI availability status: 'readily' | 'after-download' | 'no'
+  capabilities, // Raw capabilities object from the browser
+  error, // Any capability-related errors
+  downloadProgress, // Download progress for models: { loaded: number, total: number }
+  isDownloading, // Whether a model is currently downloading
+  supportsLanguage, // Function to check language support
   defaultTemperature, // Default temperature value for the model
-  defaultTopK,       // Default topK value for the model
-  maxTopK,          // Maximum allowed topK value
-  startDownload,     // Function to trigger model download
-  cancelDownload     // Function to cancel ongoing download
+  defaultTopK, // Default topK value for the model
+  maxTopK, // Maximum allowed topK value
+  startDownload, // Function to trigger model download
+  cancelDownload, // Function to cancel ongoing download
 } = useAICapabilities();
 ```
 
@@ -77,7 +77,7 @@ function AIModelManager() {
     error,
     startDownload,
     cancelDownload,
-    supportsLanguage
+    supportsLanguage,
   } = useAICapabilities();
 
   useEffect(() => {
@@ -99,23 +99,25 @@ function AIModelManager() {
 
       {/* Availability Status */}
       <div>
-        Status: {available === 'readily' ? 'Ready to use' :
-                available === 'after-download' ? 'Needs download' :
-                'Not available'}
+        Status:{' '}
+        {available === 'readily'
+          ? 'Ready to use'
+          : available === 'after-download'
+          ? 'Needs download'
+          : 'Not available'}
       </div>
 
       {/* Download Progress */}
       {isDownloading && downloadProgress && (
         <div>
-          Downloading: {Math.round((downloadProgress.loaded / downloadProgress.total) * 100)}%
-          <button onClick={cancelDownload}>Cancel</button>
+          Downloading:{' '}
+          {Math.round((downloadProgress.loaded / downloadProgress.total) * 100)}
+          %<button onClick={cancelDownload}>Cancel</button>
         </div>
       )}
 
       {/* Error Display */}
-      {error && (
-        <div>Error: {error.message}</div>
-      )}
+      {error && <div>Error: {error.message}</div>}
     </div>
   );
 }
@@ -134,6 +136,7 @@ function AIModelManager() {
 #### Availability States
 
 The `available` property can be one of three values:
+
 - `"readily"`: The model is ready to use immediately
 - `"after-download"`: The model needs to be downloaded first
 - `"no"`: The device or browser doesn't support AI capabilities
@@ -156,7 +159,8 @@ const chineseSupport = supportsLanguage('zh');
 The hook provides complete control over model downloads:
 
 ```typescript
-const { startDownload, cancelDownload, isDownloading, downloadProgress } = useAICapabilities();
+const { startDownload, cancelDownload, isDownloading, downloadProgress } =
+  useAICapabilities();
 
 // Start download with progress monitoring
 async function handleDownload() {
@@ -180,13 +184,13 @@ Hook for managing stateless AI chat sessions with browser-provided language mode
 
 ```typescript
 const {
-  loading,        // Loading state for session operations
-  error,          // Any prompt-related errors
-  sendPrompt,     // Function to send prompts
-  abort,          // Abort ongoing operations
-  session,        // Current AI session
-  isResponding,   // Whether the model is currently responding
-  isThinking      // Whether the model is processing but hasn't started responding
+  loading, // Loading state for session operations
+  error, // Any prompt-related errors
+  sendPrompt, // Function to send prompts
+  abort, // Abort ongoing operations
+  session, // Current AI session
+  isResponding, // Whether the model is currently responding
+  isThinking, // Whether the model is processing but hasn't started responding
 } = useStatelessPromptAPI(sessionId, options);
 ```
 
@@ -194,7 +198,10 @@ const {
 
 ```typescript
 interface AILanguageModelCreateOptionsWithSystemPrompt {
-  initialPrompts?: Array<{ role: 'system' | 'user' | 'assistant', content: string }>;
+  initialPrompts?: Array<{
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  }>;
   monitor?: (monitor: AICreateMonitor) => void;
   signal?: AbortSignal;
   systemPrompt?: string;
@@ -217,10 +224,14 @@ The hook provides typed error handling for common scenarios:
 
 ```typescript
 type UseStatelessPromptAPIError = {
-  code: 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'PROMPT_FAILED' | 'EMPTY_PROMPT';
+  code:
+    | 'SESSION_UNAVAILABLE'
+    | 'SESSION_CREATION_FAILED'
+    | 'PROMPT_FAILED'
+    | 'EMPTY_PROMPT';
   name: string;
   message: string;
-}
+};
 ```
 
 #### Streaming Support
@@ -239,16 +250,14 @@ interface SendPromptOptions {
 
 ```typescript
 function ChatComponent() {
-  const {
-    sendPrompt,
-    isResponding,
-    isThinking,
-    error
-  } = useStatelessPromptAPI('chat-session', {
-    systemPrompt: 'You are a helpful assistant.',
-    temperature: 0.7,
-    topK: 40
-  });
+  const { sendPrompt, isResponding, isThinking, error } = useStatelessPromptAPI(
+    'chat-session',
+    {
+      systemPrompt: 'You are a helpful assistant.',
+      temperature: 0.7,
+      topK: 40,
+    },
+  );
 
   const handleSend = async (message: string) => {
     try {
@@ -257,7 +266,7 @@ function ChatComponent() {
         onToken: (token) => {
           // Handle streaming tokens
           console.log('Received token:', token);
-        }
+        },
       });
       // Handle complete response
     } catch (err) {
@@ -290,11 +299,11 @@ Hook for AI-powered text summarization.
 
 ```typescript
 const {
-  streamingResponse,  // Current streaming response
-  loading,           // Loading state
-  error,             // Any summarization errors
-  summarize,         // Function to trigger summarization
-  abort              // Abort summarization
+  streamingResponse, // Current streaming response
+  loading, // Loading state
+  error, // Any summarization errors
+  summarize, // Function to trigger summarization
+  abort, // Abort summarization
 } = useSummarizer(options);
 ```
 

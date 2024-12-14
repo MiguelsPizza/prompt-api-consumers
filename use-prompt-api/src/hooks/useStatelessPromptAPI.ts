@@ -2,23 +2,24 @@ import { useCallback, useEffect, useState } from 'react';
 
 export interface IPromptAPIError {
   readonly code:
-  | 'SESSION_UNAVAILABLE'
-  | 'SESSION_CREATION_FAILED'
-  | 'PROMPT_FAILED'
-  | 'EMPTY_PROMPT';
+    | 'SESSION_UNAVAILABLE'
+    | 'SESSION_CREATION_FAILED'
+    | 'PROMPT_FAILED'
+    | 'EMPTY_PROMPT';
   name: string;
   message: string;
 }
 
 class PromptAPIError<
-  T extends
-  | 'SESSION_UNAVAILABLE'
-  | 'SESSION_CREATION_FAILED'
-  | 'PROMPT_FAILED'
-  | 'EMPTY_PROMPT',
->
+    T extends
+      | 'SESSION_UNAVAILABLE'
+      | 'SESSION_CREATION_FAILED'
+      | 'PROMPT_FAILED'
+      | 'EMPTY_PROMPT',
+  >
   extends Error
-  implements IPromptAPIError {
+  implements IPromptAPIError
+{
   constructor(
     message: string,
     public readonly code: T,
@@ -52,38 +53,43 @@ interface StatelessPromptAPIResult {
   isThinking: boolean;
 }
 
-export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
-  initialPrompts = [],
-  monitor,
-  signal,
-  systemPrompt,
-  temperature,
-  topK,
-}: AILanguageModelCreateOptionsWithSystemPrompt): StatelessPromptAPIResult {
+export function useStatelessPromptAPI(
+  sessionId: string | number | symbol,
+  {
+    initialPrompts = [],
+    monitor,
+    signal,
+    systemPrompt,
+    temperature,
+    topK,
+  }: AILanguageModelCreateOptionsWithSystemPrompt,
+): StatelessPromptAPIResult {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<UseStatelessPromptAPIError | null>(null);
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
   const [session, setSession] = useState<AILanguageModel | null>(null);
   const [isResponding, setIsResponding] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
 
   useEffect(() => {
     if (session) {
-      console.warn('deleting session')
+      console.warn('deleting session');
       session.destroy();
-      setSession(null)
+      setSession(null);
     }
 
     if (
       !window.ai ||
       !window.ai.languageModel ||
       !window.ai.languageModel.create
-    ) return console.warn('no .ai on the window')
+    )
+      return console.warn('no .ai on the window');
 
     const initialPromptsWithSystem = systemPrompt
       ? [{ role: 'system', content: systemPrompt }, ...initialPrompts]
       : initialPrompts;
-    console.log('creating new session')
+    console.log('creating new session');
     window.ai.languageModel
       .create({
         monitor,
@@ -93,11 +99,11 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
         signal,
       } as AILanguageModelCreateOptionsWithSystemPrompt)
       .then((newSession) => {
-        console.log('creating session')
-        setSession(newSession)
+        console.log('creating session');
+        setSession(newSession);
       })
       .catch((err) => {
-        console.error(error)
+        console.error(error);
         setError(
           new PromptAPIError(
             err instanceof Error ? err.message : 'Failed to create session',
@@ -107,17 +113,15 @@ export function useStatelessPromptAPI(sessionId: string | number | Symbol, {
       });
     return () => {
       if (session) {
-        console.warn('cleaning up session')
+        console.warn('cleaning up session');
 
         session.destroy();
-        setSession(null)
+        setSession(null);
       }
     };
   }, [systemPrompt, monitor, temperature, topK, signal, sessionId]);
 
-  useEffect(() => {
-
-  }, [session]);
+  useEffect(() => {}, [session]);
 
   const sendPrompt = useCallback(
     async (

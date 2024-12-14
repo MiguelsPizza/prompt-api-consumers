@@ -8,7 +8,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'usePromptApi',
       formats: ['es'],
-      fileName: 'index'
+      fileName: 'index',
     },
     rollupOptions: {
       external: ['react', 'react/jsx-runtime', 'dom-chromium-ai'],
@@ -23,7 +23,6 @@ export default defineConfig({
     },
     minify: 'esbuild',
     sourcemap: true,
-
   },
   resolve: { alias: { src: resolve('src/') } },
   plugins: [
@@ -32,7 +31,7 @@ export default defineConfig({
       rollupTypes: true,
       insertTypesEntry: true,
       copyDtsFiles: true,
-      bundledPackages: ['dom-chromium-ai']
-    })
+      bundledPackages: ['dom-chromium-ai'],
+    }),
   ],
 });

@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { forwardRef } from "react";
+import { forwardRef } from 'react';
 
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Button, ButtonProps } from "@/components/ui/button";
-import { cn } from "@/utils/utils";
+} from '@/components/ui/tooltip';
+import { Button, ButtonProps } from '@/components/ui/button';
+import { cn } from '@/utils/utils';
 
 export type TooltipIconButtonProps = ButtonProps & {
   tooltip: string;
-  side?: "top" | "bottom" | "left" | "right";
+  side?: 'top' | 'bottom' | 'left' | 'right';
 };
 
 export const TooltipIconButton = forwardRef<
   HTMLButtonElement,
   TooltipIconButtonProps
->(({ children, tooltip, side = "bottom", className, ...rest }, ref) => {
+>(({ children, tooltip, side = 'bottom', className, ...rest }, ref) => {
   return (
     <TooltipProvider>
       <Tooltip>
@@ -28,7 +28,7 @@ export const TooltipIconButton = forwardRef<
             variant="ghost"
             size="icon"
             {...rest}
-            className={cn("size-6 p-1", className)}
+            className={cn('size-6 p-1', className)}
             ref={ref}
           >
             {children}
@@ -41,4 +41,4 @@ export const TooltipIconButton = forwardRef<
   );
 });
 
-TooltipIconButton.displayName = "TooltipIconButton";
+TooltipIconButton.displayName = 'TooltipIconButton';

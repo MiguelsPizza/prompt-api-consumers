@@ -1,33 +1,53 @@
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, } from "@/components/ui/sheet"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Slider } from '@/components/ui/slider';
 import { Settings, ArrowRight, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
-import { db } from '@/powersync/AppSchema';
-import React, { useState } from 'react';
+import { db } from '@/dataLayer/db';
+import { conversations, conversation_messages } from '@/dataLayer/db/schema';
+import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from '@tanstack/react-router';
 import { getRouteApi } from '@tanstack/react-router';
 import { useConversation } from '@/utils/Contexts';
+import { useDrizzleLiveIncremental } from '@makisuo/pglite-drizzle/react';
+import { eq } from 'drizzle-orm';
 
 export const ChatHeader = () => {
   const { toast } = useToast();
-  const {
-    handleDeleteConversation,
-  } = useConversation()
-  const { useSearch, useParams } = getRouteApi('/conversation/$id')
-  const [systemPrompt, setSystemPrompt] = useState('')
-  const { sidebar, conversationOptions } = useSearch()
-  const { id: currentConversationId } = useParams()
-  const { data: [currentConversation] } = useQuery(
-    db.selectFrom('conversations')
-      .where('id', '=', currentConversationId)
-      .selectAll()
+  const { handleDeleteConversation } = useConversation();
+  const { useSearch, useParams } = getRouteApi('/conversation/$id');
+  const [system_prompt, setsystem_prompt] = useState('');
+  const { sidebar, conversationOptions } = useSearch();
+  const { id: currentConversationId } = useParams();
 
-  )
-  const navigate = useNavigate({ from: '/conversation/$id' })
+  useEffect(() => {
+    db.select({ system_prompt: conversations.system_prompt })
+      .from(conversations)
+      .where(eq(conversations.id, currentConversationId))
+      .limit(1)
+      .then((a) => setsystem_prompt(a[0].system_prompt!));
+  }, []);
+
+  const { data } = useDrizzleLiveIncremental(
+    'id',
+    db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, currentConversationId)),
+  );
+  console.log({ data });
+  const currentConversation = data[0];
+
+  const navigate = useNavigate({ from: '/conversation/$id' });
 
   const sidebarCollapsed = sidebar === 'collapsed';
-  const conversationOptionsCollapsed = conversationOptions === 'collapsed'
+  const conversationOptionsCollapsed = conversationOptions === 'collapsed';
 
   const handleToggleSidebar = () => {
     navigate({
@@ -42,53 +62,53 @@ export const ChatHeader = () => {
     if (!currentConversationId) return;
 
     try {
-      await db.updateTable('conversations')
+      await db
+        .update(conversations)
         .set({ temperature: value[0] })
-        .where('id', '=', currentConversationId.toString())
-        .execute();
+        .where(eq(conversations.id, currentConversationId.toString()));
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update temperature.",
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update temperature.',
       });
     }
   };
 
-  const handleTopKChange = async (value: number[]) => {
+  const handletop_kChange = async (value: number[]) => {
     if (!currentConversationId) return;
 
     try {
-      await db.updateTable('conversations')
+      await db
+        .update(conversations)
         .set({ top_k: value[0] })
-        .where('id', '=', currentConversationId.toString())
-        .execute();
+        .where(eq(conversations.id, currentConversationId.toString()));
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update top K value.",
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update top K value.',
       });
     }
   };
 
-  const handleSystemPromptChange = async () => {
+  const handlesystem_promptChange = async () => {
     if (!currentConversationId) return;
 
     try {
-      await db.updateTable('conversations')
-        .set({ system_prompt: systemPrompt })
-        .where('id', '=', currentConversationId)
-        .execute();
+      await db
+        .update(conversations)
+        .set({ system_prompt: system_prompt })
+        .where(eq(conversations.id, currentConversationId));
       toast({
-        title: "System Prompt Updated",
-        description: "The system prompt has been successfully updated.",
+        title: 'System Prompt Updated',
+        description: 'The system prompt has been successfully updated.',
       });
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update system prompt.",
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update system prompt.',
       });
     }
   };
@@ -108,10 +128,23 @@ export const ChatHeader = () => {
             <ArrowLeft className="h-4 w-4" />
           )}
         </Button>
-        <h1 className="text-xl font-bold text-foreground">{currentConversation?.conversation_summary || "Chat"}</h1>
+        <h1 className="text-xl font-bold text-foreground">
+          {currentConversation?.conversation_summary || 'Chat'}
+        </h1>
       </div>
 
-      <Sheet open={!conversationOptionsCollapsed} onOpenChange={() => navigate({ search: curr => ({ ...curr, conversationOptions: curr.conversationOptions === 'collapsed' ? 'open' : 'collapsed' }) })}>
+      <Sheet
+        open={!conversationOptionsCollapsed}
+        onOpenChange={() =>
+          navigate({
+            search: (curr) => ({
+              ...curr,
+              conversationOptions:
+                curr.conversationOptions === 'collapsed' ? 'open' : 'collapsed',
+            }),
+          })
+        }
+      >
         <SheetTrigger asChild>
           <Button variant="outline" size="icon">
             <Settings className="h-4 w-4" />
@@ -141,24 +174,26 @@ export const ChatHeader = () => {
                 Top K: {currentConversation?.top_k}
               </label>
               <Slider
-                defaultValue={[currentConversation?.top_k ?? 10]}
+                defaultValue={[currentConversation?.top_k!]}
                 max={40}
                 min={1}
                 step={1}
-                onValueChange={handleTopKChange}
+                onValueChange={handletop_kChange}
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">System Prompt:</label>
+              <label className="text-sm font-medium text-foreground">
+                System Prompt:
+              </label>
               <textarea
                 className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
+                value={system_prompt}
+                onChange={(e) => setsystem_prompt(e.target.value)}
               />
               <Button
                 className="w-full mt-2"
-                onClick={handleSystemPromptChange}
+                onClick={handlesystem_promptChange}
               >
                 Update System Prompt
               </Button>

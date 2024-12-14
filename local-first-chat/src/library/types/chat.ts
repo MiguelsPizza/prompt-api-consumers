@@ -1,4 +1,3 @@
-
 export interface SidebarProps {
-  setSidebarCollapsed: (collapsed: boolean) => void
+  setSidebarCollapsed: (collapsed: boolean) => void;
 }

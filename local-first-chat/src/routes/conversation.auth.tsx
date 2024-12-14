@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -10,20 +10,20 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
-import { AuthSchema } from '@/utils/paramValidators'
+} from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
+import { AuthSchema } from '@/utils/paramValidators';
 
 export const Route = createFileRoute('/conversation/auth')({
   component: AuthForm,
@@ -37,28 +37,28 @@ export const Route = createFileRoute('/conversation/auth')({
           : 'Create a new account to get started',
     },
   }),
-})
+});
 
 // Define form schema with Zod
 const signUpSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
-})
+});
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-})
+});
 
-type SignUpFormValues = z.infer<typeof signUpSchema>
-type LoginFormValues = z.infer<typeof loginSchema>
+type SignUpFormValues = z.infer<typeof signUpSchema>;
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 function AuthForm() {
-  const { authType } = Route.useSearch()
-  const [isLoading, setIsLoading] = useState(false)
-  const isLogin = authType === 'login'
-  const navigate = useNavigate()
+  const { authType } = Route.useSearch();
+  const [isLoading, setIsLoading] = useState(false);
+  const isLogin = authType === 'login';
+  const navigate = useNavigate();
 
   // Initialize forms
   const signUpForm = useForm<SignUpFormValues>({
@@ -68,7 +68,7 @@ function AuthForm() {
       password: '',
       name: '',
     },
-  })
+  });
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -76,11 +76,11 @@ function AuthForm() {
       email: '',
       password: '',
     },
-  })
+  });
 
   async function onSignUp(values: SignUpFormValues) {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       // await supabase.signup(values.email, values.password, {
       //   data: {
       //     name: values.name,
@@ -91,20 +91,20 @@ function AuthForm() {
         search: {
           sidebar: 'open',
         },
-      })
+      });
     } catch (error: any) {
-      console.error('Sign up error:', error)
+      console.error('Sign up error:', error);
       signUpForm.setError('root', {
         message: error?.message || 'Failed to sign up',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   async function onLogin(values: LoginFormValues) {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       // await supabase.login(values.email, values.password)
       // setSyncEnabled(true)
       navigate({
@@ -112,15 +112,15 @@ function AuthForm() {
         search: {
           sidebar: 'open',
         },
-      })
+      });
     } catch (error: any) {
-      console.error('Login error:', error)
+      console.error('Login error:', error);
       // You might want to show this error to the user
       loginForm.setError('root', {
         message: error?.message || 'Failed to login',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -306,5 +306,5 @@ function AuthForm() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

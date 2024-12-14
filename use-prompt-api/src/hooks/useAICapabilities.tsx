@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback, createContext, PropsWithChildren, useContext } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  PropsWithChildren,
+  useContext,
+} from 'react';
 
 // Add interfaces before the class implementations
 interface IAICapabilityError {
@@ -15,7 +22,8 @@ interface IAIDownloadError {
 
 class AICapabilityError<T extends 'API_UNAVAILABLE' | 'CAPABILITY_CHECK_FAILED'>
   extends Error
-  implements IAICapabilityError {
+  implements IAICapabilityError
+{
   constructor(
     message: string,
     public readonly code: T,
@@ -27,7 +35,8 @@ class AICapabilityError<T extends 'API_UNAVAILABLE' | 'CAPABILITY_CHECK_FAILED'>
 
 class AIDownloadError<T extends 'DOWNLOAD_CANCELLED' | 'DOWNLOAD_FAILED'>
   extends Error
-  implements IAIDownloadError {
+  implements IAIDownloadError
+{
   constructor(
     message: string,
     public readonly code: T,
@@ -66,7 +75,6 @@ interface AICapabilitiesResult {
 }
 
 const AICapabilitiesContext = createContext<AICapabilitiesResult | null>(null);
-
 
 export function AICapabilitiesProvider({ children }: PropsWithChildren) {
   const [available, setAvailable] = useState<AICapabilityAvailability>('no');
@@ -224,7 +232,7 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
     cancelDownload,
   };
   return (
-    <AICapabilitiesContext.Provider value={value} >
+    <AICapabilitiesContext.Provider value={value}>
       {children}
     </AICapabilitiesContext.Provider>
   );
@@ -233,7 +241,9 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
 export function useAICapabilities() {
   const context = useContext(AICapabilitiesContext);
   if (!context) {
-    throw new Error('useAICapabilities must be used within AICapabilitiesProvider');
+    throw new Error(
+      'useAICapabilities must be used within AICapabilitiesProvider',
+    );
   }
   return context;
 }

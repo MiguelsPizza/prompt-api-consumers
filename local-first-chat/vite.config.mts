@@ -5,8 +5,7 @@ import { fileURLToPath, URL } from 'url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
-
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,20 +13,25 @@ export default defineConfig({
   build: {
     outDir: './dist',
     rollupOptions: {
-      input: './index.html'
+      input: './index.html',
     },
     emptyOutDir: true,
-    sourcemap: true
+    sourcemap: true,
   },
   resolve: {
-    alias: [{ find: '@', replacement: fileURLToPath(new URL('./src/library', import.meta.url)) }]
+    alias: [
+      {
+        find: '@',
+        replacement: fileURLToPath(new URL('./src/library', import.meta.url)),
+      },
+    ],
   },
   publicDir: './public',
   envDir: './', // Use this dir for env vars, not 'src'.
   optimizeDeps: {
     // Don't optimize these packages as they contain web workers and WASM files.
     // https://github.com/vitejs/vite/issues/11672#issuecomment-1415820673
-    exclude: ["@electric-sql/pglite"],
+    exclude: ['@electric-sql/pglite', 'kysely-pglite'],
     // include: [],
     // include: ['@powersync/web > js-logger'], // <-- Include `js-logger` when it isn't installed and imported.
   },
@@ -42,7 +46,9 @@ export default defineConfig({
 
       workbox: {
         sourcemap: true,
-        globPatterns: ['**/*.{js,css,html,ico,wasm,png,svg,json,vue,txt,woff2}'],
+        globPatterns: [
+          '**/*.{js,css,html,ico,wasm,png,svg,json,vue,txt,woff2}',
+        ],
         maximumFileSizeToCacheInBytes: 500000000,
       },
       registerType: 'autoUpdate',
@@ -61,37 +67,37 @@ export default defineConfig({
           {
             src: '/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: '/pwa-256x256.png',
             sizes: '256x256',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: '/pwa-384x384.png',
             sizes: '384x384',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: '/pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
+            type: 'image/png',
+          },
+        ],
       },
       devOptions: {
         enabled: true,
         type: 'module',
-        navigateFallback: 'index.html'
-      }
-    })
+        navigateFallback: 'index.html',
+      },
+    }),
   ],
   worker: {
     format: 'es',
-    plugins: () => [wasm(), topLevelAwait()]
+    plugins: () => [wasm(), topLevelAwait()],
   },
   css: {
-    devSourcemap: true
-  }
+    devSourcemap: true,
+  },
 });

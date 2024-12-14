@@ -78,7 +78,6 @@
   }
 }
 
-
 @layer components {
   .gradient-violet {
     @apply bg-gradient-to-br from-violet-600/10 to-violet-600/30;

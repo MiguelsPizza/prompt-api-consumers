@@ -1,15 +1,14 @@
-
 import {
   ActionBarPrimitive,
   BranchPickerPrimitive,
   ComposerPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
-} from "@assistant-ui/react";
-import type { FC } from "react";
+} from '@assistant-ui/react';
+import type { FC } from 'react';
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   ArrowDownIcon,
   AudioLinesIcon,
@@ -21,10 +20,10 @@ import {
   RefreshCwIcon,
   SendHorizontalIcon,
   StopCircleIcon,
-} from "lucide-react";
-import { MarkdownText } from "./markdown-text";
-import { TooltipIconButton } from "./tooltip-icon-button";
-import { cn } from "@/utils/utils";
+} from 'lucide-react';
+import { MarkdownText } from './markdown-text';
+import { TooltipIconButton } from './tooltip-icon-button';
+import { cn } from '@/utils/utils';
 
 export const MyThread: FC = () => {
   return (
@@ -156,16 +155,18 @@ const MyUserActionBar: FC = () => {
 const MyEditComposer: FC = () => {
   return (
     <ComposerPrimitive.Root className="bg-muted my-4 flex w-[80%] max-w-4xl mx-auto flex-col gap-2 rounded-xl border border-border/50">
-      <ComposerPrimitive.Input
-        className="text-foreground flex min-h-[40px] w-full resize-none border-none bg-transparent px-4 py-3 outline-none focus:ring-0"
-      />
+      <ComposerPrimitive.Input className="text-foreground flex min-h-[40px] w-full resize-none border-none bg-transparent px-4 py-3 outline-none focus:ring-0" />
 
       <div className="flex w-full items-center justify-end gap-2 px-4 pb-3">
         <ComposerPrimitive.Cancel asChild>
-          <Button variant="ghost" size="sm">Cancel</Button>
+          <Button variant="ghost" size="sm">
+            Cancel
+          </Button>
         </ComposerPrimitive.Cancel>
         <ComposerPrimitive.Send asChild>
-          <Button size="sm" className="bg-violet-600 hover:bg-violet-700">Send</Button>
+          <Button size="sm" className="bg-violet-600 hover:bg-violet-700">
+            Send
+          </Button>
         </ComposerPrimitive.Send>
       </div>
     </ComposerPrimitive.Root>
@@ -225,7 +226,7 @@ const MyBranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
     <BranchPickerPrimitive.Root
       hideWhenSingleBranch
       className={cn(
-        "text-muted-foreground inline-flex w-full items-center text-xs",
+        'text-muted-foreground inline-flex w-full items-center text-xs',
         className,
       )}
       {...rest}

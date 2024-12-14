@@ -23,14 +23,16 @@
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
-    "@typescript-eslint/parser": "^6.4.0",
-    "eslint": "^8.47.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "eslint": "latest",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "globals": "^15.13.0",
     "husky": "^8.0.3",
     "lint-staged": "^14.0.0",
-    "prettier": "^3.0.1"
+    "prettier": "^3.4.2",
+    "typescript-eslint": "^8.18.0"
   },
   "lint-staged": {
     "**/*.{js,ts,tsx}": [
