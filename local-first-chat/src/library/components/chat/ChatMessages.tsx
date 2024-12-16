@@ -1,18 +1,14 @@
 import { useMemo } from 'react';
 import { db } from '@/dataLayer/db';
-import { conversations, conversation_messages } from '@/dataLayer/db/schema';
-import {
-  AppendMessage,
-  AssistantRuntimeProvider,
-  useExternalStoreRuntime,
-} from '@assistant-ui/react';
+import { conversation_messages } from '@/dataLayer/db/schema';
+import { AppendMessage, AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui/react';
 import { useStatelessPromptAPI } from 'use-prompt-api';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { getRouteApi } from '@tanstack/react-router';
 import 'highlight.js/styles/github-dark.css';
 import { MyThread } from '../ui/thread';
-import { useDrizzleLiveIncremental } from '@makisuo/pglite-drizzle/react';
+import { useDrizzleLiveIncremental } from '@/dataLayer/db';
 import { and, count, eq, gte } from 'drizzle-orm';
 
 export const ChatMessages = () => {
@@ -20,57 +16,41 @@ export const ChatMessages = () => {
 
   const { useParams } = getRouteApi('/conversation/$id');
   const { id: currentConversationId } = useParams();
+  const { useLoaderData } = getRouteApi('/conversation/$id');
+  const currentConversation = useLoaderData();
 
-  const { data: messages = [] } = useDrizzleLiveIncremental(
-    'id',
+  let { data: messages } = useDrizzleLiveIncremental('id', (db) =>
     db
       .select()
       .from(conversation_messages)
-      .where(eq(conversation_messages.conversation_id, currentConversationId)),
+      .where(eq(conversation_messages.conversation_id, currentConversationId))
+      .orderBy(conversation_messages.position)
   );
-
-  const {
-    data: [currentConversation],
-  } = useDrizzleLiveIncremental(
-    'id',
-    db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.id, currentConversationId)),
-  );
-
+  messages ??= currentConversation.conversation_messages;
   //don't pass in the user prompt if it makes it into the arr before the request is sent
   //this is not a great solution
-  const initialPrompts = useMemo(
-    () => (messages.at(-1)?.role === 'user' ? messages.slice(-1) : messages),
-    [messages],
-  );
+  const initialPrompts = useMemo(() => (messages.at(-1)?.role === 'user' ? messages.slice(-1) : messages), [messages]);
 
-  const { loading, sendPrompt, abort, isResponding, isThinking } =
-    useStatelessPromptAPI(currentConversationId, {
-      systemPrompt: currentConversation?.system_prompt ?? undefined,
-      temperature: currentConversation?.temperature ?? 0.7,
-      topK: currentConversation?.top_k ?? 10,
-      //needed for type for some reason
-      initialPrompts: initialPrompts.map((a) => ({
-        role: a.role as 'user',
-        content: a.content!,
-      })),
-    });
+  const { loading, sendPrompt, abort, isResponding, isThinking } = useStatelessPromptAPI(currentConversationId, {
+    systemPrompt: currentConversation.system_prompt ?? undefined,
+    temperature: currentConversation.temperature ?? 0.7,
+    topK: currentConversation.top_k ?? 10,
+    //needed for type for some reason
+    initialPrompts: initialPrompts.map((a) => ({
+      role: a.role as 'user',
+      content: a.content,
+    })),
+  });
 
-  const addMessageToConversation = async (
-    message: Partial<typeof conversation_messages.$inferSelect>,
-  ) => {
-    if (!currentConversation?.id) return;
+  const addMessageToConversation = async (message: Partial<typeof conversation_messages.$inferSelect>) => {
+    if (!currentConversation.id) return;
 
     try {
       const now = new Date();
       const result = await db
         .select({ count: count() })
         .from(conversation_messages)
-        .where(
-          eq(conversation_messages.conversation_id, currentConversation.id),
-        );
+        .where(eq(conversation_messages.conversation_id, currentConversation.id));
 
       const position = Number(result[0].count);
 
@@ -82,18 +62,12 @@ export const ChatMessages = () => {
           position,
           role: message.role!,
           content: message.content!,
-          created_at: now.toISOString(),
-          updated_at: now.toISOString(),
-          temperature_at_creation: currentConversation?.temperature ?? 0.7,
-          top_k_at_creation: currentConversation?.top_k ?? 10,
+          created_at: new Date().toISOString(),
+          temperature_at_creation: currentConversation.temperature ?? 0.7,
+          top_k_at_creation: currentConversation.top_k ?? 10,
           user_id: 'Local_ID',
         })
         .returning({ id: conversation_messages.id });
-
-      await db
-        .update(conversations)
-        .set({ updated_at: now.toISOString() })
-        .where(eq(conversations.id, currentConversation.id));
 
       return res[0].id;
     } catch (error) {
@@ -101,16 +75,13 @@ export const ChatMessages = () => {
       toast({
         variant: 'destructive',
         title: 'Chat Error',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Failed to add message to chat',
+        description: error instanceof Error ? error.message : 'Failed to add message to chat',
       });
     }
   };
 
   const handleSubmit = async (input: string) => {
-    if (!currentConversation?.id) {
+    if (!currentConversation.id) {
       toast({
         variant: 'destructive',
         title: 'Chat Error',
@@ -149,21 +120,16 @@ export const ChatMessages = () => {
     } catch (error) {
       console.error({ error });
       if (tempUserMessageId) {
-        await db
-          .delete(conversation_messages)
-          .where(eq(conversation_messages.id, tempUserMessageId));
+        await db.delete(conversation_messages).where(eq(conversation_messages.id, tempUserMessageId));
       }
       if (assistantMessageId) {
-        await db
-          .delete(conversation_messages)
-          .where(eq(conversation_messages.id, assistantMessageId));
+        await db.delete(conversation_messages).where(eq(conversation_messages.id, assistantMessageId));
       }
 
       toast({
         variant: 'destructive',
         title: 'Chat Error',
-        description:
-          error instanceof Error ? error.message : 'Failed to send message',
+        description: error instanceof Error ? error.message : 'Failed to send message',
         action: (
           <ToastAction altText="Try again" onClick={() => handleSubmit(input)}>
             Try again
@@ -174,15 +140,12 @@ export const ChatMessages = () => {
   };
 
   const handleEdit = async (message: AppendMessage) => {
-    if (!currentConversation?.id) return;
+    if (!currentConversation.id) return;
     try {
-      const input =
-        message.content[0].type === 'text' ? message.content[0].text : '';
+      const input = message.content[0].type === 'text' ? message.content[0].text : '';
 
       // Find the message to edit by matching the content instead of parentId
-      const messageToEdit = messages.find(
-        (m) => m.role === 'user' && m.content === input,
-      );
+      const messageToEdit = messages.find((m) => m.role === 'user' && m.content === input);
       if (!messageToEdit) {
         throw new Error('Message to edit not found');
       }
@@ -196,8 +159,8 @@ export const ChatMessages = () => {
           .where(
             and(
               eq(conversation_messages.conversation_id, currentConversation.id),
-              gte(conversation_messages.position, messageToEdit.position ?? 0),
-            ),
+              gte(conversation_messages.position, messageToEdit.position ?? 0)
+            )
           );
 
         // Add the edited user message
@@ -208,9 +171,8 @@ export const ChatMessages = () => {
           role: 'user',
           content: input,
           created_at: now,
-          updated_at: now,
-          temperature_at_creation: currentConversation?.temperature ?? 0.7,
-          top_k_at_creation: currentConversation?.top_k ?? 10,
+          temperature_at_creation: currentConversation.temperature ?? 0.7,
+          top_k_at_creation: currentConversation.top_k ?? 10,
           user_id: messageToEdit.user_id,
         });
 
@@ -223,9 +185,8 @@ export const ChatMessages = () => {
           role: 'assistant',
           content: '',
           created_at: now,
-          updated_at: now,
-          temperature_at_creation: currentConversation?.temperature ?? 0.7,
-          top_k_at_creation: currentConversation?.top_k ?? 10,
+          temperature_at_creation: currentConversation.temperature ?? 0.7,
+          top_k_at_creation: currentConversation.top_k ?? 10,
           user_id: messageToEdit.user_id,
         });
 
@@ -249,8 +210,7 @@ export const ChatMessages = () => {
       toast({
         variant: 'destructive',
         title: 'Edit Error',
-        description:
-          error instanceof Error ? error.message : 'Failed to edit message',
+        description: error instanceof Error ? error.message : 'Failed to edit message',
       });
     }
   };
@@ -260,7 +220,7 @@ export const ChatMessages = () => {
   };
 
   const handleReload = async (parentId: string | null) => {
-    if (!currentConversation?.id) return;
+    if (!currentConversation.id) return;
 
     try {
       // Get the last user message before the current assistant message
@@ -275,8 +235,8 @@ export const ChatMessages = () => {
         .where(
           and(
             eq(conversation_messages.conversation_id, currentConversation.id),
-            gte(conversation_messages.position, userMessage.position ?? 0),
-          ),
+            gte(conversation_messages.position, userMessage.position ?? 0)
+          )
         );
 
       // Retry the last interaction
@@ -285,8 +245,7 @@ export const ChatMessages = () => {
       toast({
         variant: 'destructive',
         title: 'Reload Error',
-        description:
-          error instanceof Error ? error.message : 'Failed to reload message',
+        description: error instanceof Error ? error.message : 'Failed to reload message',
       });
     }
   };
@@ -310,11 +269,8 @@ export const ChatMessages = () => {
     onCancel: handleCancel,
     onReload: handleReload,
     convertMessage: (message) => ({
-      role: (message.role === 'user' ||
-      message.role === 'assistant' ||
-      message.role === 'system'
-        ? message.role
-        : 'user') as 'user' | 'assistant' | 'system',
+      role:
+        message.role === 'user' || message.role === 'assistant' || message.role === 'system' ? message.role : 'user',
       content: [{ type: 'text', text: message.content ?? '' }],
       id: message.id,
       created_at: message.created_at ? new Date(message.created_at) : undefined,

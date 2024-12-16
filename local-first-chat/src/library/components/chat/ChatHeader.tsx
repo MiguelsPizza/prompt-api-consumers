@@ -1,11 +1,5 @@
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Slider } from '@/components/ui/slider';
 import { Settings, ArrowRight, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
 import { db } from '@/dataLayer/db';
@@ -15,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from '@tanstack/react-router';
 import { getRouteApi } from '@tanstack/react-router';
 import { useConversation } from '@/utils/Contexts';
-import { useDrizzleLiveIncremental } from '@makisuo/pglite-drizzle/react';
+import { useDrizzleLiveIncremental } from '@/dataLayer/db';
 import { eq } from 'drizzle-orm';
 
 export const ChatHeader = () => {
@@ -31,18 +25,16 @@ export const ChatHeader = () => {
       .from(conversations)
       .where(eq(conversations.id, currentConversationId))
       .limit(1)
-      .then((a) => setsystem_prompt(a[0].system_prompt!));
+      .then((a) => {
+        setsystem_prompt(a[0].system_prompt);
+      });
   }, []);
 
-  const { data } = useDrizzleLiveIncremental(
-    'id',
-    db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.id, currentConversationId)),
+  const { data: currentConversation } = useDrizzleLiveIncremental('id', (db) =>
+    db.query.conversations.findFirst({
+      where: ({ id }, { eq }) => eq(id, currentConversationId),
+    })
   );
-  console.log({ data });
-  const currentConversation = data[0];
 
   const navigate = useNavigate({ from: '/conversation/$id' });
 
@@ -116,21 +108,10 @@ export const ChatHeader = () => {
   return (
     <header className="bg-background border-b p-4 flex justify-between items-center">
       <div className="flex items-center">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleToggleSidebar}
-          className="mr-2"
-        >
-          {sidebarCollapsed ? (
-            <ArrowRight className="h-4 w-4" />
-          ) : (
-            <ArrowLeft className="h-4 w-4" />
-          )}
+        <Button variant="outline" size="icon" onClick={handleToggleSidebar} className="mr-2">
+          {sidebarCollapsed ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
         </Button>
-        <h1 className="text-xl font-bold text-foreground">
-          {currentConversation?.conversation_summary || 'Chat'}
-        </h1>
+        <h1 className="text-xl font-bold text-foreground">{currentConversation?.conversation_summary || 'Chat'}</h1>
       </div>
 
       <Sheet
@@ -139,8 +120,7 @@ export const ChatHeader = () => {
           navigate({
             search: (curr) => ({
               ...curr,
-              conversationOptions:
-                curr.conversationOptions === 'collapsed' ? 'open' : 'collapsed',
+              conversationOptions: curr.conversationOptions === 'collapsed' ? 'open' : 'collapsed',
             }),
           })
         }
@@ -170,9 +150,7 @@ export const ChatHeader = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Top K: {currentConversation?.top_k}
-              </label>
+              <label className="text-sm font-medium text-foreground">Top K: {currentConversation?.top_k}</label>
               <Slider
                 defaultValue={[currentConversation?.top_k!]}
                 max={40}
@@ -183,18 +161,15 @@ export const ChatHeader = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                System Prompt:
-              </label>
+              <label className="text-sm font-medium text-foreground">System Prompt:</label>
               <textarea
                 className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={system_prompt}
-                onChange={(e) => setsystem_prompt(e.target.value)}
+                onChange={(e) => {
+                  setsystem_prompt(e.target.value);
+                }}
               />
-              <Button
-                className="w-full mt-2"
-                onClick={handlesystem_promptChange}
-              >
+              <Button className="w-full mt-2" onClick={handlesystem_promptChange}>
                 Update System Prompt
               </Button>
             </div>

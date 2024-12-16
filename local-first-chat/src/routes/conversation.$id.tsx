@@ -6,8 +6,6 @@ import { db } from '@/dataLayer/db';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useConversationSummary } from '@/hooks/useConversationSummary';
-import { conversations } from '@/dataLayer/db/schema';
-import { eq } from 'drizzle-orm';
 
 export const Route = createFileRoute('/conversation/$id')({
   component: ConversationView,
@@ -18,11 +16,17 @@ export const Route = createFileRoute('/conversation/$id')({
       description: 'Chat conversation',
     },
   }),
+  preload: true,
+  // staleTime: 10000,
+  // preloadGcTime: 10000,
   loader: async ({ params }) => {
-    const [conversation] = await db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.id, params.id));
+    console.log('prefectching');
+    const conversation = await db.query.conversations.findFirst({
+      where: (conversations, { eq }) => eq(conversations.id, params.id),
+      with: {
+        conversation_messages: true,
+      },
+    });
 
     if (!conversation) {
       throw new Error('Conversation not found');
@@ -42,11 +46,7 @@ export const Route = createFileRoute('/conversation/$id')({
       <Alert variant="destructive" className="max-w-md">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          {error instanceof Error
-            ? error.message
-            : 'Failed to load conversation'}
-        </AlertDescription>
+        <AlertDescription>{error instanceof Error ? error.message : 'Failed to load conversation'}</AlertDescription>
       </Alert>
     </div>
   ),

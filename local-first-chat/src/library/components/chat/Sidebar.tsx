@@ -2,19 +2,11 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BookUser, LogIn, PlusCircle, Trash2, Upload } from 'lucide-react';
 import { SidebarProps } from '@/types/chat';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { db } from '@/dataLayer/db';
-import {
-  conversations as conversationsSchema,
-  conversation_messages,
-} from '@/dataLayer/db/schema';
+import { conversations as conversationsSchema, conversation_messages } from '@/dataLayer/db/schema';
 import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
-import { useDrizzleLiveIncremental } from '@makisuo/pglite-drizzle/react';
+import { useDrizzleLiveIncremental } from '@/dataLayer/db';
 import { useConversation } from '@/utils/Contexts';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
@@ -28,23 +20,15 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
   const { sidebar, authType } = useSearch();
   // @ts-expect-error Not sure how to do this properly with Tanstack router
   const { id: currentConversationId } = useParams();
-  const { data: conversations } = useDrizzleLiveIncremental(
-    'id',
-    db
-      .select()
-      .from(conversationsSchema)
-      .orderBy(desc(conversationsSchema.created_at)),
+  const { data: conversations } = useDrizzleLiveIncremental('id', (db) =>
+    db.query.conversations.findMany({
+      orderBy: (conversations, { desc }) => [desc(conversations.created_at)],
+    })
   );
-  const {
-    handleNewConversation,
-    handleDeleteConversation,
-    navigateToConversation,
-  } = useConversation();
+  const { handleNewConversation, handleDeleteConversation, navigateToConversation } = useConversation();
   const router = useRouter();
   const currentPath = router.state.location.pathname;
-  const [syncStatus, setSyncStatus] = useState<
-    'offline' | 'syncing' | 'synced'
-  >('offline');
+  const [syncStatus, setSyncStatus] = useState<'offline' | 'syncing' | 'synced'>('offline');
 
   if (sidebar === 'collapsed') return null;
 
@@ -70,9 +54,7 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
         {syncStatus === 'synced' && (
           <>
             <CheckCircle2 className="h-5 w-5 text-violet-500" />
-            <span className="text-violet-300 font-medium">
-              All changes synced
-            </span>
+            <span className="text-violet-300 font-medium">All changes synced</span>
           </>
         )}
       </Button>
@@ -106,8 +88,7 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                 onClick={() =>
                   toast({
                     title: 'Coming Soon!',
-                    description:
-                      'you will be able to share and collaborate on chats with others',
+                    description: 'you will be able to share and collaborate on chats with others',
                   })
                 }
               >
@@ -190,52 +171,39 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-3">
-          {conversations?.map((conversation) => (
+          {conversations.map((conversation) => (
             <TooltipProvider key={`tooltip-${conversation.id}`}>
               <div
                 className={`
                 relative group rounded-lg overflow-hidden
-                ${
-                  conversation.id === currentConversationId
-                    ? 'gradient-violet'
-                    : 'bg-card'
-                }
+                ${conversation.id === currentConversationId ? 'gradient-violet' : 'bg-card'}
                 hover:gradient-violet transition-all duration-200 ease-in-out
                 transform hover:scale-[1.02] hover:shadow-lg
                 `}
               >
                 <Tooltip delayDuration={200}>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className={`
+                    <Link to="/conversation/$id" params={{ id: conversation.id }} preload="render">
+                      <Button
+                        variant="ghost"
+                        className={`
                       w-full justify-start pr-12 py-6
                       text-foreground hover:text-primary
                       transition-colors duration-300
                       truncate
-                      ${
-                        conversation.id === currentConversationId
-                          ? 'text-primary'
-                          : ''
-                      }
+                      ${conversation.id === currentConversationId ? 'text-primary' : ''}
                       `}
-                      onClick={() => navigateToConversation(conversation.id)}
-                    >
-                      {(() => {
-                        const displayText =
-                          conversation?.conversation_summary ||
-                          conversation?.name ||
-                          '';
-                        return displayText.length > 20
-                          ? `${displayText.slice(0, 20)}...`
-                          : displayText;
-                      })()}
-                    </Button>
+                        // onClick={() => navigateToConversation(conversation.id)}
+                      >
+                        {(() => {
+                          const displayText = conversation.conversation_summary || conversation.name || '';
+                          return displayText.length > 20 ? `${displayText.slice(0, 20)}...` : displayText;
+                        })()}
+                      </Button>
+                    </Link>
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    <p>
-                      {conversation.conversation_summary ?? conversation.name}
-                    </p>
+                    <p>{conversation.conversation_summary ?? conversation.name}</p>
                   </TooltipContent>
                 </Tooltip>
                 <Button
@@ -253,7 +221,11 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                     const count = result[0].count;
                     handleDeleteConversation(
                       conversation.id,
-                      count === 1 ? () => setSidebarCollapsed(true) : undefined,
+                      count === 1
+                        ? () => {
+                            setSidebarCollapsed(true);
+                          }
+                        : undefined
                     );
                   }}
                 >

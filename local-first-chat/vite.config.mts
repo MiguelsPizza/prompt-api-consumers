@@ -31,7 +31,7 @@ export default defineConfig({
   optimizeDeps: {
     // Don't optimize these packages as they contain web workers and WASM files.
     // https://github.com/vitejs/vite/issues/11672#issuecomment-1415820673
-    exclude: ['@electric-sql/pglite', 'kysely-pglite'],
+    exclude: ['@electric-sql/pglite'],
     // include: [],
     // include: ['@powersync/web > js-logger'], // <-- Include `js-logger` when it isn't installed and imported.
   },
@@ -39,16 +39,18 @@ export default defineConfig({
     wasm(),
     topLevelAwait(),
     TanStackRouterVite(),
-    react(),
+    react({
+      babel: {
+        plugins: ['babel-plugin-react-compiler'],
+      },
+    }),
     VitePWA({
       srcDir: './src',
       outDir: './dist',
 
       workbox: {
         sourcemap: true,
-        globPatterns: [
-          '**/*.{js,css,html,ico,wasm,png,svg,json,vue,txt,woff2}',
-        ],
+        globPatterns: ['**/*.{js,css,html,ico,wasm,png,svg,json,vue,txt,woff2}'],
         maximumFileSizeToCacheInBytes: 500000000,
       },
       registerType: 'autoUpdate',

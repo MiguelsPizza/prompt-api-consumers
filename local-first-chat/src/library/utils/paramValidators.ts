@@ -6,10 +6,7 @@ const RootSearchSchema = z.object({
 });
 
 const ChatInterfaceSearchSchema = RootSearchSchema.extend({
-  conversationOptions: fallback(
-    z.enum(['open', 'collapsed']),
-    'collapsed',
-  ).default('collapsed'),
+  conversationOptions: fallback(z.enum(['open', 'collapsed']), 'collapsed').default('collapsed'),
 });
 
 const AuthSearchSchema = ChatInterfaceSearchSchema.extend({

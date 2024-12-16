@@ -50,7 +50,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
     <PWABadge />
     <Toaster />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
 
 declare module '@tanstack/react-router' {

@@ -3,25 +3,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { AuthSchema } from '@/utils/paramValidators';
 
@@ -32,9 +19,7 @@ export const Route = createFileRoute('/conversation/auth')({
     meta: {
       title: search.authType === 'login' ? 'Login' : 'Sign Up',
       description:
-        search.authType === 'login'
-          ? 'Sign in to access your account'
-          : 'Create a new account to get started',
+        search.authType === 'login' ? 'Sign in to access your account' : 'Create a new account to get started',
     },
   }),
 });
@@ -128,13 +113,9 @@ function AuthForm() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="max-w-md w-full mx-auto border-border">
         <CardHeader>
-          <CardTitle className="text-foreground">
-            {isLogin ? 'Welcome back' : 'Create your account'}
-          </CardTitle>
+          <CardTitle className="text-foreground">{isLogin ? 'Welcome back' : 'Create your account'}</CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isLogin
-              ? 'Sign in to access your account'
-              : 'Sign up to get started with our application'}
+            {isLogin ? 'Sign in to access your account' : 'Sign up to get started with our application'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -160,11 +141,7 @@ function AuthForm() {
 
           {isLogin ? (
             <Form {...loginForm}>
-              <form
-                id="loginIn"
-                onSubmit={loginForm.handleSubmit(onLogin)}
-                className="space-y-4"
-              >
+              <form id="loginIn" onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
                 <FormField
                   key="login-email"
                   control={loginForm.control}
@@ -173,11 +150,7 @@ function AuthForm() {
                     <FormItem>
                       <FormLabel className="text-foreground">Email</FormLabel>
                       <FormControl>
-                        <Input
-                          className="bg-background border-input"
-                          placeholder="you@example.com"
-                          {...field}
-                        />
+                        <Input className="bg-background border-input" placeholder="you@example.com" {...field} />
                       </FormControl>
                       <FormMessage className="text-destructive" />
                     </FormItem>
@@ -189,9 +162,7 @@ function AuthForm() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-foreground">
-                        Password
-                      </FormLabel>
+                      <FormLabel className="text-foreground">Password</FormLabel>
                       <FormControl>
                         <Input
                           className="bg-background border-input"
@@ -205,29 +176,21 @@ function AuthForm() {
                   )}
                 />
                 {loginForm.formState.errors.root && (
-                  <div className="text-destructive text-sm">
-                    {loginForm.formState.errors.root.message}
-                  </div>
+                  <div className="text-destructive text-sm">{loginForm.formState.errors.root.message}</div>
                 )}
                 <Button
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                   type="submit"
                   disabled={isLoading}
                 >
-                  {isLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Log in
                 </Button>
               </form>
             </Form>
           ) : (
             <Form {...signUpForm}>
-              <form
-                id="signup"
-                onSubmit={signUpForm.handleSubmit(onSignUp)}
-                className="space-y-4"
-              >
+              <form id="signup" onSubmit={signUpForm.handleSubmit(onSignUp)} className="space-y-4">
                 <FormField
                   key="signup-name"
                   control={signUpForm.control}
@@ -236,11 +199,7 @@ function AuthForm() {
                     <FormItem>
                       <FormLabel className="text-foreground">Name</FormLabel>
                       <FormControl>
-                        <Input
-                          className="bg-background border-input"
-                          placeholder="John Doe"
-                          {...field}
-                        />
+                        <Input className="bg-background border-input" placeholder="John Doe" {...field} />
                       </FormControl>
                       <FormMessage className="text-destructive" />
                     </FormItem>
@@ -254,11 +213,7 @@ function AuthForm() {
                     <FormItem>
                       <FormLabel className="text-foreground">Email</FormLabel>
                       <FormControl>
-                        <Input
-                          className="bg-background border-input"
-                          placeholder="you@example.com"
-                          {...field}
-                        />
+                        <Input className="bg-background border-input" placeholder="you@example.com" {...field} />
                       </FormControl>
                       <FormMessage className="text-destructive" />
                     </FormItem>
@@ -270,9 +225,7 @@ function AuthForm() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-foreground">
-                        Password
-                      </FormLabel>
+                      <FormLabel className="text-foreground">Password</FormLabel>
                       <FormControl>
                         <Input
                           className="bg-background border-input"
@@ -286,18 +239,14 @@ function AuthForm() {
                   )}
                 />
                 {signUpForm.formState.errors.root && (
-                  <div className="text-destructive text-sm">
-                    {signUpForm.formState.errors.root.message}
-                  </div>
+                  <div className="text-destructive text-sm">{signUpForm.formState.errors.root.message}</div>
                 )}
                 <Button
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                   type="submit"
                   disabled={isLoading}
                 >
-                  {isLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Sign up
                 </Button>
               </form>

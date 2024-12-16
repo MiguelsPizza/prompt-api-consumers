@@ -1,9 +1,5 @@
 import * as React from 'react';
-import {
-  Outlet,
-  createRootRouteWithContext,
-  useMatches,
-} from '@tanstack/react-router';
+import { Outlet, createRootRouteWithContext, useMatches } from '@tanstack/react-router';
 import { RouterContext } from '../main';
 import { Button } from '@/components/ui/button';
 import { HomeIcon } from 'lucide-react';
@@ -34,7 +30,7 @@ function RootComponent() {
       ...acc,
       ...(match.context.meta || {}),
     }),
-    {},
+    {}
   );
 
   if (currentMeta.title) {

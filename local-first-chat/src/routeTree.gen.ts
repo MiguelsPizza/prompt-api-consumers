@@ -121,9 +121,7 @@ const ConversationRouteChildren: ConversationRouteChildren = {
   ConversationProfileRoute: ConversationProfileRoute,
 };
 
-const ConversationRouteWithChildren = ConversationRoute._addFileChildren(
-  ConversationRouteChildren,
-);
+const ConversationRouteWithChildren = ConversationRoute._addFileChildren(ConversationRouteChildren);
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
@@ -191,9 +189,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConversationRoute: ConversationRouteWithChildren,
 };
 
-export const routeTree = rootRoute
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+export const routeTree = rootRoute._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>();
 
 /* ROUTE_MANIFEST_START
 {

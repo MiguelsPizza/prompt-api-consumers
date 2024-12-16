@@ -1,28 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface ISummarizerError {
-  readonly code:
-    | 'SESSION_UNAVAILABLE'
-    | 'SESSION_CREATION_FAILED'
-    | 'SUMMARIZE_FAILED'
-    | 'EMPTY_INPUT';
+  readonly code: 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'SUMMARIZE_FAILED' | 'EMPTY_INPUT';
   name: string;
   message: string;
 }
 
-class SummarizerError<
-    T extends
-      | 'SESSION_UNAVAILABLE'
-      | 'SESSION_CREATION_FAILED'
-      | 'SUMMARIZE_FAILED'
-      | 'EMPTY_INPUT',
-  >
+class SummarizerError<T extends 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'SUMMARIZE_FAILED' | 'EMPTY_INPUT'>
   extends Error
   implements ISummarizerError
 {
   constructor(
     message: string,
-    public readonly code: T,
+    public readonly code: T
   ) {
     super(message);
     this.name = 'SummarizerError';
@@ -30,10 +20,7 @@ class SummarizerError<
 }
 
 export type UseSummarizerError = SummarizerError<
-  | 'SESSION_UNAVAILABLE'
-  | 'SESSION_CREATION_FAILED'
-  | 'SUMMARIZE_FAILED'
-  | 'EMPTY_INPUT'
+  'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'SUMMARIZE_FAILED' | 'EMPTY_INPUT'
 >;
 
 interface UseSummarizerResult {
@@ -45,7 +32,7 @@ interface UseSummarizerResult {
     input: string,
     options?: AISummarizerSummarizeOptions & {
       streaming?: boolean;
-    },
+    }
   ) => Promise<void | string | null>;
   abort: () => void;
 }
@@ -58,13 +45,10 @@ export function useSummarizer({
   signal,
   sharedContext,
 }: AISummarizerCreateOptions = {}): UseSummarizerResult {
-  const [streamingResponse, setStreamingResponse] = useState<string | null>(
-    null,
-  );
+  const [streamingResponse, setStreamingResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<UseSummarizerError | null>(null);
-  const [abortController, setAbortController] =
-    useState<AbortController | null>(null);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const session = useRef<AISummarizer | null>(null);
 
@@ -74,10 +58,8 @@ export function useSummarizer({
       session.current = null;
     }
 
-    if (!window.ai?.summarizer) {
-      setError(
-        new SummarizerError('Summarizer not Ready', 'SESSION_UNAVAILABLE'),
-      );
+    if (!window.ai.summarizer) {
+      setError(new SummarizerError('Summarizer not Ready', 'SESSION_UNAVAILABLE'));
       return;
     }
 
@@ -97,8 +79,8 @@ export function useSummarizer({
         setError(
           new SummarizerError(
             err instanceof Error ? err.message : 'Failed to create session',
-            'SESSION_CREATION_FAILED',
-          ),
+            'SESSION_CREATION_FAILED'
+          )
         );
       });
   }, [type, format, length, monitor, signal, sharedContext]);
@@ -117,10 +99,10 @@ export function useSummarizer({
       input: string,
       options: AISummarizerSummarizeOptions & {
         streaming?: boolean;
-      } = {},
+      } = {}
     ): Promise<void | string | null> => {
       const { streaming = false, signal, context } = options;
-      if (!input?.trim()) {
+      if (!input.trim()) {
         setError(new SummarizerError('Input cannot be empty', 'EMPTY_INPUT'));
         return;
       }
@@ -131,16 +113,11 @@ export function useSummarizer({
 
       const controller = new AbortController();
       setAbortController(controller);
-      const combinedSignal = signal
-        ? AbortSignal.any([controller.signal, signal])
-        : controller.signal;
+      const combinedSignal = signal ? AbortSignal.any([controller.signal, signal]) : controller.signal;
 
       try {
         if (!session.current) {
-          throw new SummarizerError(
-            'Session not available',
-            'SESSION_UNAVAILABLE',
-          );
+          throw new SummarizerError('Session not available', 'SESSION_UNAVAILABLE');
         }
 
         if (streaming) {
@@ -170,16 +147,13 @@ export function useSummarizer({
         if (err instanceof Error && err.name === 'AbortError') {
           throw err;
         }
-        throw new SummarizerError(
-          err instanceof Error ? err.message : 'Failed to summarize text',
-          'SUMMARIZE_FAILED',
-        );
+        throw new SummarizerError(err instanceof Error ? err.message : 'Failed to summarize text', 'SUMMARIZE_FAILED');
       } finally {
         setLoading(false);
         setAbortController(null);
       }
     },
-    [signal],
+    [signal]
   );
 
   const abort = useCallback(() => {

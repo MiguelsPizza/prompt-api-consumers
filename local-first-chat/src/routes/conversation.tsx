@@ -27,16 +27,14 @@ function RootLayout() {
         }),
       });
     },
-    [navigate],
+    [navigate]
   );
 
   return (
     <ConversationProvider>
       <div className="flex h-screen overflow-hidden">
         <div
-          className={`text-foreground flex flex-col transition-all duration-300 ${
-            sidebarCollapsed ? 'w-0' : 'w-64'
-          }`}
+          className={`text-foreground flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-0' : 'w-64'}`}
         >
           <Sidebar setSidebarCollapsed={setSidebarCollapsed} />
         </div>

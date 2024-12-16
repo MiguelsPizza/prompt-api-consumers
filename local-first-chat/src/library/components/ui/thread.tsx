@@ -218,17 +218,11 @@ const MyAssistantActionBar: FC = () => {
   );
 };
 
-const MyBranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
-  className,
-  ...rest
-}) => {
+const MyBranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({ className, ...rest }) => {
   return (
     <BranchPickerPrimitive.Root
       hideWhenSingleBranch
-      className={cn(
-        'text-muted-foreground inline-flex w-full items-center text-xs',
-        className,
-      )}
+      className={cn('text-muted-foreground inline-flex w-full items-center text-xs', className)}
       {...rest}
     >
       <BranchPickerPrimitive.Previous asChild>

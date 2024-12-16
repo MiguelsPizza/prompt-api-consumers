@@ -2,21 +2,10 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { PlusCircle, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { useConversation } from '@/utils/Contexts';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const Route = createFileRoute('/conversation/newchat')({
   component: NewConversation,
@@ -61,10 +50,8 @@ function NewConversation() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
                       <p>
-                        Controls randomness in responses. Higher values (closer
-                        to 1) make the output more creative but less focused,
-                        while lower values make it more deterministic and
-                        focused.
+                        Controls randomness in responses. Higher values (closer to 1) make the output more creative but
+                        less focused, while lower values make it more deterministic and focused.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -77,7 +64,9 @@ function NewConversation() {
               max={1}
               min={0}
               step={0.1}
-              onValueChange={(value) => setTemperature(value[0])}
+              onValueChange={(value) => {
+                setTemperature(value[0]);
+              }}
               className="bg-secondary/50"
             />
           </div>
@@ -93,10 +82,9 @@ function NewConversation() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
                       <p>
-                        Limits the number of tokens the model considers for each
-                        prediction. Lower values make responses more focused but
-                        potentially less nuanced, while higher values allow for
-                        more diverse vocabulary.
+                        Limits the number of tokens the model considers for each prediction. Lower values make responses
+                        more focused but potentially less nuanced, while higher values allow for more diverse
+                        vocabulary.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -109,7 +97,9 @@ function NewConversation() {
               max={40}
               min={1}
               step={1}
-              onValueChange={(value) => settop_k(value[0])}
+              onValueChange={(value) => {
+                settop_k(value[0]);
+              }}
               className="bg-secondary/50"
             />
           </div>
@@ -124,9 +114,8 @@ function NewConversation() {
                   </TooltipTrigger>
                   <TooltipContent className="max-w-[300px]">
                     <p>
-                      Initial instructions that define the AI's behavior and
-                      role. This sets the context and guidelines for how the AI
-                      should respond throughout the conversation.
+                      Initial instructions that define the AI's behavior and role. This sets the context and guidelines
+                      for how the AI should respond throughout the conversation.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -135,7 +124,9 @@ function NewConversation() {
             <textarea
               className="w-full min-h-[80px] rounded-md border border-violet-600/20 bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
               value={system_prompt}
-              onChange={(e) => setsystem_prompt(e.target.value)}
+              onChange={(e) => {
+                setsystem_prompt(e.target.value);
+              }}
               placeholder="Enter a system prompt to guide the AI's behavior..."
             />
           </div>

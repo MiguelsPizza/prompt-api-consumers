@@ -1,6 +1,6 @@
 {
-  "id": "fa573708-ed83-420c-b6de-995ccf873b5a",
-  "prevId": "4ba01060-3e16-489d-9a77-f3d5f08195b0",
+  "id": "e2fda3d5-ac8a-4193-addb-8cbfc9a97fb1",
+  "prevId": "f75724db-41cf-4059-b930-3a9135d6efa2",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -10,63 +10,65 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
-        "conversationId": {
-          "name": "conversationId",
-          "type": "text",
+        "conversation_id": {
+          "name": "conversation_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "position": {
           "name": "position",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "role": {
           "name": "role",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "content": {
           "name": "content",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "temperatureAtCreation": {
-          "name": "temperatureAtCreation",
+        "temperature_at_creation": {
+          "name": "temperature_at_creation",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "topKAtCreation": {
-          "name": "topKAtCreation",
+        "top_k_at_creation": {
+          "name": "top_k_at_creation",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "userId": {
-          "name": "userId",
-          "type": "text",
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'2024-12-15T20:25:11.110Z'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'2024-12-15T20:25:11.110Z'"
         }
       },
       "indexes": {
@@ -74,7 +76,7 @@
           "name": "idx_messages_conversation",
           "columns": [
             {
-              "expression": "conversationId",
+              "expression": "conversation_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -104,7 +106,7 @@
           "name": "idx_messages_conv_position",
           "columns": [
             {
-              "expression": "conversationId",
+              "expression": "conversation_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -125,7 +127,7 @@
           "name": "idx_messages_created",
           "columns": [
             {
-              "expression": "createdAt",
+              "expression": "created_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -140,13 +142,13 @@
           "name": "idx_messages_user_created",
           "columns": [
             {
-              "expression": "userId",
+              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "createdAt",
+              "expression": "created_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -158,7 +160,27 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "conversation_messages_conversation_id_conversations_id_fk": {
+          "name": "conversation_messages_conversation_id_conversations_id_fk",
+          "tableFrom": "conversation_messages",
+          "tableTo": "conversations",
+          "columnsFrom": ["conversation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "conversation_messages_user_id_users_id_fk": {
+          "name": "conversation_messages_user_id_users_id_fk",
+          "tableFrom": "conversation_messages",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -171,7 +193,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
@@ -179,35 +201,23 @@
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
-        },
-        "conversationSummary": {
-          "name": "conversationSummary",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "systemPrompt": {
-          "name": "systemPrompt",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "''"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "text",
-          "primaryKey": false,
           "notNull": true
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "conversation_summary": {
+          "name": "conversation_summary",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "topK": {
-          "name": "topK",
+        "system_prompt": {
+          "name": "system_prompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "top_k": {
+          "name": "top_k",
           "type": "real",
           "primaryKey": false,
           "notNull": true
@@ -218,11 +228,25 @@
           "primaryKey": false,
           "notNull": true
         },
-        "userId": {
-          "name": "userId",
-          "type": "text",
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'2024-12-15T20:25:11.109Z'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'2024-12-15T20:25:11.110Z'"
         }
       },
       "indexes": {
@@ -230,7 +254,7 @@
           "name": "idx_conversations_user",
           "columns": [
             {
-              "expression": "userId",
+              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -245,7 +269,7 @@
           "name": "idx_conversations_updated",
           "columns": [
             {
-              "expression": "updatedAt",
+              "expression": "updated_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -260,13 +284,13 @@
           "name": "idx_conversations_user_updated",
           "columns": [
             {
-              "expression": "userId",
+              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
             },
             {
-              "expression": "updatedAt",
+              "expression": "updated_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -278,7 +302,18 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "conversations_user_id_users_id_fk": {
+          "name": "conversations_user_id_users_id_fk",
+          "tableFrom": "conversations",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
