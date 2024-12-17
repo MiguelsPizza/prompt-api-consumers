@@ -2,6 +2,9 @@
 
 This is a monorepo containing the [Local First Chat](https://localfirstchat.com) website and [@miguelspizza/use-prompt-api](https://www.npmjs.com/package/@miguelspizza/use-prompt-api) hooks.
 
+It also contains a Chrome-ai Vercel AI SDK provider for the prompt api
+a
+
 ## Quick Start
 
 ```bash

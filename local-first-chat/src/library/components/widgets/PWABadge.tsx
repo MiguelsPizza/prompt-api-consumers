@@ -40,7 +40,9 @@ function PWABadge() {
     if (offlineReady || needRefresh) {
       toast({
         title: needRefresh ? 'Update Available' : 'Offline Ready',
-        description: needRefresh ? 'A new version is available. Click to update.' : 'App is ready to work offline',
+        description: needRefresh
+          ? 'A new version is available. Click to update.'
+          : 'App is ready to work offline',
         duration: 5000,
         action: needRefresh ? (
           <div className="flex gap-2">
@@ -75,7 +77,11 @@ export default PWABadge;
 /**
  * This function will register a periodic sync check every hour, you can modify the interval as needed.
  */
-function registerPeriodicSync(period: number, swUrl: string, r: ServiceWorkerRegistration) {
+function registerPeriodicSync(
+  period: number,
+  swUrl: string,
+  r: ServiceWorkerRegistration,
+) {
   if (period <= 0) return;
 
   setInterval(async () => {

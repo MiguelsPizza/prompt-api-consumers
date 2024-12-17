@@ -6,7 +6,10 @@ import * as schema from './schema';
 import { PGlite } from '@electric-sql/pglite';
 import { createDrizzle } from '@makisuo/pglite-drizzle/react';
 
-export const pglite = await new PGliteWorker(new PGWorker({ name: 'pglite-worker' }), { extensions: { live } });
+export const pglite = await new PGliteWorker(
+  new PGWorker({ name: 'pglite-worker' }),
+  { extensions: { live } },
+);
 
 export const db = drizzle(pglite as unknown as PGlite, { schema });
 

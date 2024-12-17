@@ -159,7 +159,8 @@ const chineseSupport = supportsLanguage('zh');
 The hook provides complete control over model downloads:
 
 ```typescript
-const { startDownload, cancelDownload, isDownloading, downloadProgress } = useAICapabilities();
+const { startDownload, cancelDownload, isDownloading, downloadProgress } =
+  useAICapabilities();
 
 // Start download with progress monitoring
 async function handleDownload() {
@@ -223,7 +224,11 @@ The hook provides typed error handling for common scenarios:
 
 ```typescript
 type UseStatelessPromptAPIError = {
-  code: 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'PROMPT_FAILED' | 'EMPTY_PROMPT';
+  code:
+    | 'SESSION_UNAVAILABLE'
+    | 'SESSION_CREATION_FAILED'
+    | 'PROMPT_FAILED'
+    | 'EMPTY_PROMPT';
   name: string;
   message: string;
 };

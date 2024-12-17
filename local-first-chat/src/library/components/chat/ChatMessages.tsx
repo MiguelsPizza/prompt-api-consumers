@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 import { db } from '@/dataLayer/db';
 import { conversation_messages } from '@/dataLayer/db/schema';
-import { AppendMessage, AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui/react';
+import {
+  AppendMessage,
+  AssistantRuntimeProvider,
+  useExternalStoreRuntime,
+} from '@assistant-ui/react';
 import { useStatelessPromptAPI } from 'use-prompt-api';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
@@ -24,25 +28,31 @@ export const ChatMessages = () => {
       .select()
       .from(conversation_messages)
       .where(eq(conversation_messages.conversation_id, currentConversationId))
-      .orderBy(conversation_messages.position)
+      .orderBy(conversation_messages.position),
   );
   messages ??= currentConversation.conversation_messages;
   //don't pass in the user prompt if it makes it into the arr before the request is sent
   //this is not a great solution
-  const initialPrompts = useMemo(() => (messages.at(-1)?.role === 'user' ? messages.slice(-1) : messages), [messages]);
+  const initialPrompts = useMemo(
+    () => (messages.at(-1)?.role === 'user' ? messages.slice(-1) : messages),
+    [messages],
+  );
 
-  const { loading, sendPrompt, abort, isResponding, isThinking } = useStatelessPromptAPI(currentConversationId, {
-    systemPrompt: currentConversation.system_prompt ?? undefined,
-    temperature: currentConversation.temperature ?? 0.7,
-    topK: currentConversation.top_k ?? 10,
-    //needed for type for some reason
-    initialPrompts: initialPrompts.map((a) => ({
-      role: a.role as 'user',
-      content: a.content,
-    })),
-  });
+  const { loading, sendPrompt, abort, isResponding, isThinking } =
+    useStatelessPromptAPI(currentConversationId, {
+      systemPrompt: currentConversation.system_prompt ?? undefined,
+      temperature: currentConversation.temperature ?? 0.7,
+      topK: currentConversation.top_k ?? 10,
+      //needed for type for some reason
+      initialPrompts: initialPrompts.map((a) => ({
+        role: a.role as 'user',
+        content: a.content,
+      })),
+    });
 
-  const addMessageToConversation = async (message: Partial<typeof conversation_messages.$inferSelect>) => {
+  const addMessageToConversation = async (
+    message: Partial<typeof conversation_messages.$inferSelect>,
+  ) => {
     if (!currentConversation.id) return;
 
     try {
@@ -50,7 +60,9 @@ export const ChatMessages = () => {
       const result = await db
         .select({ count: count() })
         .from(conversation_messages)
-        .where(eq(conversation_messages.conversation_id, currentConversation.id));
+        .where(
+          eq(conversation_messages.conversation_id, currentConversation.id),
+        );
 
       const position = Number(result[0].count);
 
@@ -75,7 +87,10 @@ export const ChatMessages = () => {
       toast({
         variant: 'destructive',
         title: 'Chat Error',
-        description: error instanceof Error ? error.message : 'Failed to add message to chat',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to add message to chat',
       });
     }
   };
@@ -120,16 +135,21 @@ export const ChatMessages = () => {
     } catch (error) {
       console.error({ error });
       if (tempUserMessageId) {
-        await db.delete(conversation_messages).where(eq(conversation_messages.id, tempUserMessageId));
+        await db
+          .delete(conversation_messages)
+          .where(eq(conversation_messages.id, tempUserMessageId));
       }
       if (assistantMessageId) {
-        await db.delete(conversation_messages).where(eq(conversation_messages.id, assistantMessageId));
+        await db
+          .delete(conversation_messages)
+          .where(eq(conversation_messages.id, assistantMessageId));
       }
 
       toast({
         variant: 'destructive',
         title: 'Chat Error',
-        description: error instanceof Error ? error.message : 'Failed to send message',
+        description:
+          error instanceof Error ? error.message : 'Failed to send message',
         action: (
           <ToastAction altText="Try again" onClick={() => handleSubmit(input)}>
             Try again
@@ -142,10 +162,13 @@ export const ChatMessages = () => {
   const handleEdit = async (message: AppendMessage) => {
     if (!currentConversation.id) return;
     try {
-      const input = message.content[0].type === 'text' ? message.content[0].text : '';
+      const input =
+        message.content[0].type === 'text' ? message.content[0].text : '';
 
       // Find the message to edit by matching the content instead of parentId
-      const messageToEdit = messages.find((m) => m.role === 'user' && m.content === input);
+      const messageToEdit = messages.find(
+        (m) => m.role === 'user' && m.content === input,
+      );
       if (!messageToEdit) {
         throw new Error('Message to edit not found');
       }
@@ -159,8 +182,8 @@ export const ChatMessages = () => {
           .where(
             and(
               eq(conversation_messages.conversation_id, currentConversation.id),
-              gte(conversation_messages.position, messageToEdit.position ?? 0)
-            )
+              gte(conversation_messages.position, messageToEdit.position ?? 0),
+            ),
           );
 
         // Add the edited user message
@@ -210,7 +233,8 @@ export const ChatMessages = () => {
       toast({
         variant: 'destructive',
         title: 'Edit Error',
-        description: error instanceof Error ? error.message : 'Failed to edit message',
+        description:
+          error instanceof Error ? error.message : 'Failed to edit message',
       });
     }
   };
@@ -235,8 +259,8 @@ export const ChatMessages = () => {
         .where(
           and(
             eq(conversation_messages.conversation_id, currentConversation.id),
-            gte(conversation_messages.position, userMessage.position ?? 0)
-          )
+            gte(conversation_messages.position, userMessage.position ?? 0),
+          ),
         );
 
       // Retry the last interaction
@@ -245,7 +269,8 @@ export const ChatMessages = () => {
       toast({
         variant: 'destructive',
         title: 'Reload Error',
-        description: error instanceof Error ? error.message : 'Failed to reload message',
+        description:
+          error instanceof Error ? error.message : 'Failed to reload message',
       });
     }
   };
@@ -270,7 +295,11 @@ export const ChatMessages = () => {
     onReload: handleReload,
     convertMessage: (message) => ({
       role:
-        message.role === 'user' || message.role === 'assistant' || message.role === 'system' ? message.role : 'user',
+        message.role === 'user' ||
+        message.role === 'assistant' ||
+        message.role === 'system'
+          ? message.role
+          : 'user',
       content: [{ type: 'text', text: message.content ?? '' }],
       id: message.id,
       created_at: message.created_at ? new Date(message.created_at) : undefined,

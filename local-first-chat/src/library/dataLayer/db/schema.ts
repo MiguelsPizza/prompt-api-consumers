@@ -1,5 +1,13 @@
 import { authUsers } from 'drizzle-orm/supabase';
-import { text, real, integer, pgTable, index, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  text,
+  real,
+  integer,
+  pgTable,
+  index,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const conversations = pgTable(
@@ -14,9 +22,11 @@ export const conversations = pgTable(
     user_id: uuid('user_id')
       .notNull()
       .references(() => authUsers.id, { onDelete: 'cascade' }),
-    created_at: timestamp('created_at', { mode: 'string' }).default(new Date().toISOString()).notNull(),
+    created_at: timestamp('created_at', { mode: 'string' })
+      .defaultNow()
+      .notNull(),
     updated_at: timestamp('updated_at', { mode: 'string' })
-      .default(new Date().toISOString())
+      .defaultNow()
       .notNull()
       .$onUpdate(() => new Date().toISOString()),
   },
@@ -24,7 +34,7 @@ export const conversations = pgTable(
     index('idx_conversations_user').on(table.user_id),
     index('idx_conversations_updated').on(table.updated_at),
     index('idx_conversations_user_updated').on(table.user_id, table.updated_at),
-  ]
+  ],
 );
 
 export const conversation_messages = pgTable(
@@ -42,39 +52,50 @@ export const conversation_messages = pgTable(
     user_id: uuid('user_id')
       .notNull()
       .references(() => authUsers.id, { onDelete: 'cascade' }),
-    created_at: timestamp('created_at', { mode: 'string' }).default(new Date().toISOString()).notNull(),
+    created_at: timestamp('created_at', { mode: 'string' })
+      .defaultNow()
+      .notNull(),
     updated_at: timestamp('updated_at', { mode: 'string' })
-      .default(new Date().toISOString())
+      .defaultNow()
       .notNull()
       .$onUpdate(() => new Date().toISOString()),
   },
   (table) => [
     index('idx_messages_conversation').on(table.conversation_id),
     index('idx_messages_position').on(table.position),
-    index('idx_messages_conv_position').on(table.conversation_id, table.position),
+    index('idx_messages_conv_position').on(
+      table.conversation_id,
+      table.position,
+    ),
     index('idx_messages_created').on(table.created_at),
     index('idx_messages_user_created').on(table.user_id, table.created_at),
-  ]
+  ],
 );
 
-export const conversationsRelations = relations(conversations, ({ many, one }) => ({
-  conversation_messages: many(conversation_messages),
-  user: one(authUsers, {
-    fields: [conversations.user_id],
-    references: [authUsers.id],
+export const conversationsRelations = relations(
+  conversations,
+  ({ many, one }) => ({
+    conversation_messages: many(conversation_messages),
+    user: one(authUsers, {
+      fields: [conversations.user_id],
+      references: [authUsers.id],
+    }),
   }),
-}));
+);
 
-export const conversationMessagesRelations = relations(conversation_messages, ({ one }) => ({
-  conversation: one(conversations, {
-    fields: [conversation_messages.conversation_id],
-    references: [conversations.id],
+export const conversationMessagesRelations = relations(
+  conversation_messages,
+  ({ one }) => ({
+    conversation: one(conversations, {
+      fields: [conversation_messages.conversation_id],
+      references: [conversations.id],
+    }),
+    user: one(authUsers, {
+      fields: [conversation_messages.user_id],
+      references: [authUsers.id],
+    }),
   }),
-  user: one(authUsers, {
-    fields: [conversation_messages.user_id],
-    references: [authUsers.id],
-  }),
-}));
+);
 
 export type AuthUser = typeof authUsers.$inferSelect;
 

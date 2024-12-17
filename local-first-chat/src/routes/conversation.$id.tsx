@@ -46,7 +46,11 @@ export const Route = createFileRoute('/conversation/$id')({
       <Alert variant="destructive" className="max-w-md">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{error instanceof Error ? error.message : 'Failed to load conversation'}</AlertDescription>
+        <AlertDescription>
+          {error instanceof Error
+            ? error.message
+            : 'Failed to load conversation'}
+        </AlertDescription>
       </Alert>
     </div>
   ),

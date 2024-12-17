@@ -2,9 +2,17 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BookUser, LogIn, PlusCircle, Trash2, Upload } from 'lucide-react';
 import { SidebarProps } from '@/types/chat';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { db } from '@/dataLayer/db';
-import { conversations as conversationsSchema, conversation_messages } from '@/dataLayer/db/schema';
+import {
+  conversations as conversationsSchema,
+  conversation_messages,
+} from '@/dataLayer/db/schema';
 import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
 import { useDrizzleLiveIncremental } from '@/dataLayer/db';
 import { useConversation } from '@/utils/Contexts';
@@ -23,12 +31,18 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
   const { data: conversations } = useDrizzleLiveIncremental('id', (db) =>
     db.query.conversations.findMany({
       orderBy: (conversations, { desc }) => [desc(conversations.created_at)],
-    })
+    }),
   );
-  const { handleNewConversation, handleDeleteConversation, navigateToConversation } = useConversation();
+  const {
+    handleNewConversation,
+    handleDeleteConversation,
+    navigateToConversation,
+  } = useConversation();
   const router = useRouter();
   const currentPath = router.state.location.pathname;
-  const [syncStatus, setSyncStatus] = useState<'offline' | 'syncing' | 'synced'>('offline');
+  const [syncStatus, setSyncStatus] = useState<
+    'offline' | 'syncing' | 'synced'
+  >('offline');
 
   if (sidebar === 'collapsed') return null;
 
@@ -54,7 +68,9 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
         {syncStatus === 'synced' && (
           <>
             <CheckCircle2 className="h-5 w-5 text-violet-500" />
-            <span className="text-violet-300 font-medium">All changes synced</span>
+            <span className="text-violet-300 font-medium">
+              All changes synced
+            </span>
           </>
         )}
       </Button>
@@ -88,7 +104,8 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                 onClick={() =>
                   toast({
                     title: 'Coming Soon!',
-                    description: 'you will be able to share and collaborate on chats with others',
+                    description:
+                      'you will be able to share and collaborate on chats with others',
                   })
                 }
               >
@@ -183,7 +200,11 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
               >
                 <Tooltip delayDuration={200}>
                   <TooltipTrigger asChild>
-                    <Link to="/conversation/$id" params={{ id: conversation.id }} preload="render">
+                    <Link
+                      to="/conversation/$id"
+                      params={{ id: conversation.id }}
+                      preload="render"
+                    >
                       <Button
                         variant="ghost"
                         className={`
@@ -196,14 +217,21 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                         // onClick={() => navigateToConversation(conversation.id)}
                       >
                         {(() => {
-                          const displayText = conversation.conversation_summary || conversation.name || '';
-                          return displayText.length > 20 ? `${displayText.slice(0, 20)}...` : displayText;
+                          const displayText =
+                            conversation.conversation_summary ||
+                            conversation.name ||
+                            '';
+                          return displayText.length > 20
+                            ? `${displayText.slice(0, 20)}...`
+                            : displayText;
                         })()}
                       </Button>
                     </Link>
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    <p>{conversation.conversation_summary ?? conversation.name}</p>
+                    <p>
+                      {conversation.conversation_summary ?? conversation.name}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
                 <Button
@@ -225,7 +253,7 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                         ? () => {
                             setSidebarCollapsed(true);
                           }
-                        : undefined
+                        : undefined,
                     );
                   }}
                 >

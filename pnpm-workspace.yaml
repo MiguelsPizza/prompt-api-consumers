@@ -1,3 +1,4 @@
 packages:
   - 'use-prompt-api'
   - 'local-first-chat'
+  - 'chrome-ai'

@@ -27,7 +27,7 @@ function RootLayout() {
         }),
       });
     },
-    [navigate]
+    [navigate],
   );
 
   return (

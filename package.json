@@ -9,10 +9,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "prepare": "husky install",
-    "grok": "pnpm  use prompt-api",
-    "dev": "pnpm --filter use-prompt-api run build --watch & pnpm --filter local-first-chat run dev",
-    "deploy:web": "pnpm --filter use-prompt-api run build && pnpm -filter local-first-chat run build && wrangler pages deploy ./local-first-chat/dist",
-    "deploy:local": "pnpm --filter use-prompt-api run build && pnpm -filter local-first-chat run build && pnpm --filter local-first-chat run preview"
+    "dev": "nx run-many --target=build --projects=use-prompt-api --watch & nx serve local-first-chat",
+    "deploy:web": "nx run-many --target=build --projects=use-prompt-api,local-first-chat && wrangler pages deploy ./local-first-chat/dist",
+    "deploy:local": "nx run-many --target=build --projects=use-prompt-api,local-first-chat && nx preview local-first-chat"
   },
   "keywords": [],
   "author": "",
@@ -23,8 +22,12 @@
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
+    "@nx/eslint": "20.2.2",
+    "@nx/vite": "20.2.2",
+    "@nx/web": "20.2.2",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
+    "@vitest/ui": "^1.3.1",
     "eslint": "latest",
     "eslint-config-next": "^15.1.0",
     "eslint-config-prettier": "^9.1.0",
@@ -32,13 +35,17 @@
     "globals": "^15.13.0",
     "husky": "^8.0.3",
     "lint-staged": "^14.0.0",
+    "nx": "20.2.2",
     "prettier": "^3.4.2",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.3.1"
   },
   "lint-staged": {
     "**/*.{js,ts,tsx}": [
       "eslint --fix"
     ],
     "**/*": "prettier --write --ignore-unknown"
-  }
+  },
+  "dependencies": {}
 }

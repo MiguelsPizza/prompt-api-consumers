@@ -25,5 +25,5 @@
     },
     "types": ["dom-chromium-ai", "react", "react-dom"]
   },
-  "include": ["src"]
+  "include": ["src/**/*", "vite.config.ts"]
 }

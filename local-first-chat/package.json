@@ -6,8 +6,8 @@
   "license": "AGPL-3.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
+    "build": "tsc -b && nx vite:build",
+    "preview": "nx vite:preview",
     "start": "pnpm build && pnpm preview",
     "generate-pwa-assets": "pwa-assets-generator",
     "db:generate": "drizzle-kit generate && tsx ./compile-migrations.ts",

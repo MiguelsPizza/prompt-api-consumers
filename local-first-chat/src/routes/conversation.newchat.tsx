@@ -2,10 +2,21 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { PlusCircle, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { useConversation } from '@/utils/Contexts';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const Route = createFileRoute('/conversation/newchat')({
   component: NewConversation,
@@ -50,8 +61,10 @@ function NewConversation() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
                       <p>
-                        Controls randomness in responses. Higher values (closer to 1) make the output more creative but
-                        less focused, while lower values make it more deterministic and focused.
+                        Controls randomness in responses. Higher values (closer
+                        to 1) make the output more creative but less focused,
+                        while lower values make it more deterministic and
+                        focused.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -82,9 +95,10 @@ function NewConversation() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[300px]">
                       <p>
-                        Limits the number of tokens the model considers for each prediction. Lower values make responses
-                        more focused but potentially less nuanced, while higher values allow for more diverse
-                        vocabulary.
+                        Limits the number of tokens the model considers for each
+                        prediction. Lower values make responses more focused but
+                        potentially less nuanced, while higher values allow for
+                        more diverse vocabulary.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -114,8 +128,9 @@ function NewConversation() {
                   </TooltipTrigger>
                   <TooltipContent className="max-w-[300px]">
                     <p>
-                      Initial instructions that define the AI's behavior and role. This sets the context and guidelines
-                      for how the AI should respond throughout the conversation.
+                      Initial instructions that define the AI's behavior and
+                      role. This sets the context and guidelines for how the AI
+                      should respond throughout the conversation.
                     </p>
                   </TooltipContent>
                 </Tooltip>

@@ -1,18 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
 
 export interface IPromptAPIError {
-  readonly code: 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'PROMPT_FAILED' | 'EMPTY_PROMPT';
+  readonly code:
+    | 'SESSION_UNAVAILABLE'
+    | 'SESSION_CREATION_FAILED'
+    | 'PROMPT_FAILED'
+    | 'EMPTY_PROMPT';
   name: string;
   message: string;
 }
 
-class PromptAPIError<T extends 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'PROMPT_FAILED' | 'EMPTY_PROMPT'>
+class PromptAPIError<
+    T extends
+      | 'SESSION_UNAVAILABLE'
+      | 'SESSION_CREATION_FAILED'
+      | 'PROMPT_FAILED'
+      | 'EMPTY_PROMPT',
+  >
   extends Error
   implements IPromptAPIError
 {
   constructor(
     message: string,
-    public readonly code: T
+    public readonly code: T,
   ) {
     super(message);
     this.name = 'PromptAPIError';
@@ -20,7 +30,10 @@ class PromptAPIError<T extends 'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED'
 }
 
 export type UseStatelessPromptAPIError = PromptAPIError<
-  'SESSION_UNAVAILABLE' | 'SESSION_CREATION_FAILED' | 'PROMPT_FAILED' | 'EMPTY_PROMPT'
+  | 'SESSION_UNAVAILABLE'
+  | 'SESSION_CREATION_FAILED'
+  | 'PROMPT_FAILED'
+  | 'EMPTY_PROMPT'
 >;
 
 interface StatelessPromptAPIResult {
@@ -32,7 +45,7 @@ interface StatelessPromptAPIResult {
     options?: AILanguageModelPromptOptions & {
       streaming?: boolean;
       onToken?: (response: string) => void | Promise<void>;
-    }
+    },
   ) => Promise<void | string | null>;
   abort: () => void;
   session: AILanguageModel | null;
@@ -49,11 +62,12 @@ export function useStatelessPromptAPI(
     systemPrompt,
     temperature,
     topK,
-  }: AILanguageModelCreateOptionsWithSystemPrompt
+  }: AILanguageModelCreateOptionsWithSystemPrompt,
 ): StatelessPromptAPIResult {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<UseStatelessPromptAPIError | null>(null);
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
   const [session, setSession] = useState<AILanguageModel | null>(null);
   const [isResponding, setIsResponding] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
@@ -89,7 +103,10 @@ export function useStatelessPromptAPI(
       .catch((err) => {
         console.error(error);
         setError(
-          new PromptAPIError(err instanceof Error ? err.message : 'Failed to create session', 'SESSION_CREATION_FAILED')
+          new PromptAPIError(
+            err instanceof Error ? err.message : 'Failed to create session',
+            'SESSION_CREATION_FAILED',
+          ),
         );
       });
     return () => {
@@ -110,7 +127,7 @@ export function useStatelessPromptAPI(
       promptOptions: AILanguageModelPromptOptions & {
         streaming?: boolean;
         onToken?: (response: string) => void | Promise<void>;
-      } = {}
+      } = {},
     ): Promise<void | string | null> => {
       const { streaming = false, signal, onToken } = promptOptions;
       if (!input.trim()) {
@@ -128,10 +145,18 @@ export function useStatelessPromptAPI(
       const promptAbortSignal: AbortSignal[] = signal ? [signal] : [];
 
       setAbortController(controller);
-      const combinedSignal = AbortSignal.any([controller.signal, ...promptAbortSignal, ...sessionAbortSignal]);
+      const combinedSignal = AbortSignal.any([
+        controller.signal,
+        ...promptAbortSignal,
+        ...sessionAbortSignal,
+      ]);
 
       try {
-        if (!session) throw new PromptAPIError('Session not available', 'SESSION_UNAVAILABLE');
+        if (!session)
+          throw new PromptAPIError(
+            'Session not available',
+            'SESSION_UNAVAILABLE',
+          );
 
         if (streaming) {
           const stream = session.promptStreaming(input, {
@@ -174,7 +199,10 @@ export function useStatelessPromptAPI(
         if (err instanceof PromptAPIError) {
           throw err;
         }
-        throw new PromptAPIError(err instanceof Error ? err.message : 'Failed to process prompt', 'PROMPT_FAILED');
+        throw new PromptAPIError(
+          err instanceof Error ? err.message : 'Failed to process prompt',
+          'PROMPT_FAILED',
+        );
       } finally {
         setLoading(false);
         setAbortController(null);
@@ -182,7 +210,7 @@ export function useStatelessPromptAPI(
         setIsThinking(false);
       }
     },
-    [signal, session]
+    [signal, session],
   );
 
   const abort = useCallback(() => {

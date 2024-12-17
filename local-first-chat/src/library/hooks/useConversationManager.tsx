@@ -7,16 +7,23 @@ import { useNavigate } from '@tanstack/react-router';
 import { eq } from 'drizzle-orm';
 
 export interface ConversationContextType {
-  handleDeleteConversation: (id: string, sideEffect?: () => any) => Promise<void>;
+  handleDeleteConversation: (
+    id: string,
+    sideEffect?: () => any,
+  ) => Promise<void>;
   handleNewConversation: (
     system_prompt?: string | null,
     top_k?: number,
-    temperature?: number
+    temperature?: number,
   ) => Promise<string | undefined>;
   navigateToConversation: (convId: string, sideEffect?: () => any) => void;
 }
 
-export function ConversationProvider({ children }: { children: React.ReactNode }) {
+export function ConversationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { toast } = useToast();
   // const supabase = useSupabase();
   const navigate = useNavigate();
@@ -29,7 +36,7 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
           conversationOptions: 'collapsed',
         },
       }) as const,
-    []
+    [],
   );
 
   const navigateToConversation = useCallback(
@@ -50,16 +57,20 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
         sideEffect();
       }
     },
-    [navigate, navigationOptions]
+    [navigate, navigationOptions],
   );
 
   const handleDeleteConversation = useCallback(
     async (id: string, sideEffect?: () => any) => {
       try {
         await db.transaction(async (tx) => {
-          await tx.delete(conversation_messages).where(eq(conversation_messages.id, id.toString()));
+          await tx
+            .delete(conversation_messages)
+            .where(eq(conversation_messages.id, id.toString()));
 
-          await tx.delete(conversations).where(eq(conversations.id, id.toString()));
+          await tx
+            .delete(conversations)
+            .where(eq(conversations.id, id.toString()));
 
           const newCurrentConversation = await tx.select().from(conversations);
 
@@ -91,11 +102,15 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
         });
       }
     },
-    [navigateToConversation]
+    [navigateToConversation],
   );
 
   const handleNewConversation = useCallback(
-    async (system_prompt: string | null = null, top_k = 10, temperature = 0.7) => {
+    async (
+      system_prompt: string | null = null,
+      top_k = 10,
+      temperature = 0.7,
+    ) => {
       try {
         console.log({ system_prompt });
         const now = new Date();
@@ -122,7 +137,7 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
         console.error('Error creating new conversation:', error);
       }
     },
-    [navigateToConversation]
+    [navigateToConversation],
   );
 
   const contextValue = useMemo(
@@ -131,8 +146,12 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
       handleNewConversation,
       navigateToConversation,
     }),
-    [handleDeleteConversation, handleNewConversation, navigateToConversation]
+    [handleDeleteConversation, handleNewConversation, navigateToConversation],
   );
 
-  return <ConversationContext.Provider value={contextValue}>{children}</ConversationContext.Provider>;
+  return (
+    <ConversationContext.Provider value={contextValue}>
+      {children}
+    </ConversationContext.Provider>
+  );
 }

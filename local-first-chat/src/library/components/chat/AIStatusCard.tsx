@@ -12,7 +12,13 @@ import {
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 import { Progress } from '../ui/progress';
 import { useAICapabilities } from 'use-prompt-api';
 import {
@@ -28,12 +34,21 @@ import { useToast } from '@/hooks/use-toast';
 export function AIStatusCard() {
   const [showSetup, setShowSetup] = useState(false);
 
-  const { available, error, downloadProgress, isDownloading, startDownload, cancelDownload } = useAICapabilities();
+  const {
+    available,
+    error,
+    downloadProgress,
+    isDownloading,
+    startDownload,
+    cancelDownload,
+  } = useAICapabilities();
 
   const { toast } = useToast();
 
   const isChrome = navigator.userAgent.includes('Chrome');
-  const chromeVersion = parseInt((/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [])[1] || '0');
+  const chromeVersion = parseInt(
+    (/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [])[1] || '0',
+  );
   const isCompatibleVersion = chromeVersion >= 128;
 
   const copyToClipboard = (text: string) => {
@@ -55,8 +70,8 @@ export function AIStatusCard() {
               AI Model Setup Required
             </AlertDialogTitle>
             <AlertDialogDescription className="text-base">
-              To use the AI features, you'll need to set up the model in Chrome. Choose one of the options below to get
-              started.
+              To use the AI features, you'll need to set up the model in Chrome.
+              Choose one of the options below to get started.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -88,7 +103,8 @@ export function AIStatusCard() {
                       <div className="absolute right-0 top-full mt-2 z-50 bg-popover p-4 rounded-lg border shadow-lg w-[300px]">
                         <h4 className="font-medium mb-2">Chrome Extension</h4>
                         <p className="text-sm text-muted-foreground mb-3">
-                          Use our polyfill extension to connect this UI with any LLM - local or cloud-based.
+                          Use our polyfill extension to connect this UI with any
+                          LLM - local or cloud-based.
                         </p>
                         <Button
                           variant="outline"
@@ -97,7 +113,7 @@ export function AIStatusCard() {
                           onClick={() =>
                             window.open(
                               'mailto:alexmnahas@gmail.com?subject=Chrome Extension Beta Access Request',
-                              '_blank'
+                              '_blank',
                             )
                           }
                         >
@@ -125,7 +141,9 @@ export function AIStatusCard() {
                     ) : (
                       <XCircle className="h-4 w-4 text-red-500" />
                     )}
-                    <span>Chrome v128+ Required (Current: v{chromeVersion})</span>
+                    <span>
+                      Chrome v128+ Required (Current: v{chromeVersion})
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Info className="h-4 w-4 text-blue-500" />
@@ -145,11 +163,14 @@ export function AIStatusCard() {
                         <div>
                           <h5 className="font-medium">Enable Model Support</h5>
                           <p className="text-sm text-muted-foreground mb-2">
-                            Copy and paste this URL in Chrome, then enable "BypassPerfRequirement"
+                            Copy and paste this URL in Chrome, then enable
+                            "BypassPerfRequirement"
                           </p>
                           <Button
                             onClick={() => {
-                              copyToClipboard('chrome://flags/#optimization-guide-on-device-model');
+                              copyToClipboard(
+                                'chrome://flags/#optimization-guide-on-device-model',
+                              );
                             }}
                             variant="secondary"
                             className="h-8 text-sm"
@@ -166,11 +187,14 @@ export function AIStatusCard() {
                         <div>
                           <h5 className="font-medium">Enable Prompt API</h5>
                           <p className="text-sm text-muted-foreground mb-2">
-                            Copy and paste this URL, enable the flag, then restart Chrome
+                            Copy and paste this URL, enable the flag, then
+                            restart Chrome
                           </p>
                           <Button
                             onClick={() => {
-                              copyToClipboard('chrome://flags/#prompt-api-for-gemini-nano');
+                              copyToClipboard(
+                                'chrome://flags/#prompt-api-for-gemini-nano',
+                              );
                             }}
                             variant="secondary"
                             className="h-8 text-sm"
@@ -187,7 +211,8 @@ export function AIStatusCard() {
                         <div>
                           <h5 className="font-medium">Update Components</h5>
                           <p className="text-sm text-muted-foreground mb-2">
-                            Check for Gemini Nano updates (version ≥2024.5.21.1031)
+                            Check for Gemini Nano updates (version
+                            ≥2024.5.21.1031)
                           </p>
                           <Button
                             onClick={() => {
@@ -207,7 +232,10 @@ export function AIStatusCard() {
                 <div className="mt-6 flex items-center gap-2">
                   <Button
                     onClick={() =>
-                      window.open('https://developer.chrome.com/docs/ai/built-in#get_an_early_preview', '_blank')
+                      window.open(
+                        'https://developer.chrome.com/docs/ai/built-in#get_an_early_preview',
+                        '_blank',
+                      )
                     }
                     variant="outline"
                     size="sm"
@@ -240,14 +268,21 @@ export function AIStatusCard() {
       <Card className="w-[400px]">
         <CardHeader>
           <CardTitle>Download Required</CardTitle>
-          <CardDescription>The AI model needs to be downloaded before you can start chatting</CardDescription>
+          <CardDescription>
+            The AI model needs to be downloaded before you can start chatting
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {isDownloading && downloadProgress && (
             <div className="space-y-2">
-              <Progress value={(downloadProgress.loaded / downloadProgress.total) * 100} />
+              <Progress
+                value={(downloadProgress.loaded / downloadProgress.total) * 100}
+              />
               <p className="text-sm text-muted-foreground">
-                {Math.round((downloadProgress.loaded / downloadProgress.total) * 100)}%
+                {Math.round(
+                  (downloadProgress.loaded / downloadProgress.total) * 100,
+                )}
+                %
               </p>
             </div>
           )}
@@ -258,7 +293,11 @@ export function AIStatusCard() {
                 Download Model
               </Button>
             ) : (
-              <Button onClick={cancelDownload} variant="destructive" className="flex gap-2">
+              <Button
+                onClick={cancelDownload}
+                variant="destructive"
+                className="flex gap-2"
+              >
                 <XCircle className="h-5 w-5" />
                 Cancel Download
               </Button>

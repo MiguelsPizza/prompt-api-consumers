@@ -50,7 +50,9 @@ export default defineConfig({
 
       workbox: {
         sourcemap: true,
-        globPatterns: ['**/*.{js,css,html,ico,wasm,png,svg,json,vue,txt,woff2}'],
+        globPatterns: [
+          '**/*.{js,css,html,ico,wasm,png,svg,json,vue,txt,woff2}',
+        ],
         maximumFileSizeToCacheInBytes: 500000000,
       },
       registerType: 'autoUpdate',

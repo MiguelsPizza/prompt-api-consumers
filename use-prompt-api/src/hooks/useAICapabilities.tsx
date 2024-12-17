@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback, createContext, PropsWithChildren, useContext } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  PropsWithChildren,
+  useContext,
+} from 'react';
 
 // Add interfaces before the class implementations
 interface IAICapabilityError {
@@ -19,17 +26,20 @@ class AICapabilityError<T extends 'API_UNAVAILABLE' | 'CAPABILITY_CHECK_FAILED'>
 {
   constructor(
     message: string,
-    public readonly code: T
+    public readonly code: T,
   ) {
     super(message);
     this.name = 'AICapabilityError';
   }
 }
 
-class AIDownloadError<T extends 'DOWNLOAD_CANCELLED' | 'DOWNLOAD_FAILED'> extends Error implements IAIDownloadError {
+class AIDownloadError<T extends 'DOWNLOAD_CANCELLED' | 'DOWNLOAD_FAILED'>
+  extends Error
+  implements IAIDownloadError
+{
   constructor(
     message: string,
-    public readonly code: T
+    public readonly code: T,
   ) {
     super(message);
     this.name = 'AIDownloadError';
@@ -51,7 +61,9 @@ interface AICapabilitiesResult {
   isDownloading: boolean;
 
   // Model capabilities
-  supportsLanguage: (languageTag: Intl.UnicodeBCP47LocaleIdentifier) => AICapabilityAvailability;
+  supportsLanguage: (
+    languageTag: Intl.UnicodeBCP47LocaleIdentifier,
+  ) => AICapabilityAvailability;
   defaultTemperature: number | null;
   defaultTopK: number | null;
   maxTopK: number | null;
@@ -66,20 +78,30 @@ const AICapabilitiesContext = createContext<AICapabilitiesResult | null>(null);
 
 export function AICapabilitiesProvider({ children }: PropsWithChildren) {
   const [available, setAvailable] = useState<AICapabilityAvailability>('no');
-  const [capabilities, setCapabilities] = useState<AILanguageModelCapabilities | null>(null);
+  const [capabilities, setCapabilities] =
+    useState<AILanguageModelCapabilities | null>(null);
   const [error, setError] = useState<UseAICapabilitiesError | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<{
     loaded: number;
     total: number;
   } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
 
   const checkCapabilities = useCallback(async () => {
     // Add check for window object (SSR safety)
-    if (typeof window === 'undefined' || !window.ai.languageModel.capabilities) {
+    if (
+      typeof window === 'undefined' ||
+      !window.ai.languageModel.capabilities
+    ) {
       setAvailable('no');
-      setError(new AICapabilityError('Language Model API not available', 'API_UNAVAILABLE'));
+      setError(
+        new AICapabilityError(
+          'Language Model API not available',
+          'API_UNAVAILABLE',
+        ),
+      );
       return;
     }
 
@@ -94,8 +116,8 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
       setError(
         new AICapabilityError(
           err instanceof Error ? err.message : 'Failed to check capabilities',
-          'CAPABILITY_CHECK_FAILED'
-        )
+          'CAPABILITY_CHECK_FAILED',
+        ),
       );
     }
     // usually I'd clean this up but I'm not sure with this one since it's a background process of the browser
@@ -115,13 +137,23 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
   const startDownload = useCallback(async () => {
     // Add additional checks before starting download
     if (!window.ai.languageModel.create) {
-      setError(new AIDownloadError('Language Model API not available', 'DOWNLOAD_FAILED'));
+      setError(
+        new AIDownloadError(
+          'Language Model API not available',
+          'DOWNLOAD_FAILED',
+        ),
+      );
       return;
     }
 
     if (available !== 'after-download') {
       console.log('here');
-      setError(new AIDownloadError('Download not required in current state', 'DOWNLOAD_FAILED'));
+      setError(
+        new AIDownloadError(
+          'Download not required in current state',
+          'DOWNLOAD_FAILED',
+        ),
+      );
       return;
     }
 
@@ -152,9 +184,16 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
       await checkCapabilities();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        setError(new AIDownloadError('Download cancelled', 'DOWNLOAD_CANCELLED'));
+        setError(
+          new AIDownloadError('Download cancelled', 'DOWNLOAD_CANCELLED'),
+        );
       } else {
-        setError(new AIDownloadError(err instanceof Error ? err.message : 'Download failed', 'DOWNLOAD_FAILED'));
+        setError(
+          new AIDownloadError(
+            err instanceof Error ? err.message : 'Download failed',
+            'DOWNLOAD_FAILED',
+          ),
+        );
       }
     } finally {
       if (tempSession) {
@@ -171,10 +210,12 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
   }, [abortController]);
 
   const supportsLanguage = useCallback(
-    (languageTag: Intl.UnicodeBCP47LocaleIdentifier): AICapabilityAvailability => {
+    (
+      languageTag: Intl.UnicodeBCP47LocaleIdentifier,
+    ): AICapabilityAvailability => {
       return capabilities?.languageAvailable(languageTag) ?? 'no';
     },
-    [capabilities]
+    [capabilities],
   );
 
   const value: AICapabilitiesResult = {
@@ -190,13 +231,19 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
     startDownload,
     cancelDownload,
   };
-  return <AICapabilitiesContext.Provider value={value}>{children}</AICapabilitiesContext.Provider>;
+  return (
+    <AICapabilitiesContext.Provider value={value}>
+      {children}
+    </AICapabilitiesContext.Provider>
+  );
 }
 
 export function useAICapabilities() {
   const context = useContext(AICapabilitiesContext);
   if (!context) {
-    throw new Error('useAICapabilities must be used within AICapabilitiesProvider');
+    throw new Error(
+      'useAICapabilities must be used within AICapabilitiesProvider',
+    );
   }
   return context;
 }

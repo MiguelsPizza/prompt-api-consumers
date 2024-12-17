@@ -40,5 +40,16 @@
     "bps": true,
     "folderMillis": 1734306054297,
     "hash": "1634c5def3ef3ac6621f9728eb90c08e93b6a37d1b56db26d9a2a519f63de996"
+  },
+  {
+    "sql": [
+      "ALTER TABLE \"conversation_messages\" ALTER COLUMN \"created_at\" SET DEFAULT now();",
+      "\nALTER TABLE \"conversation_messages\" ALTER COLUMN \"updated_at\" SET DEFAULT now();",
+      "\nALTER TABLE \"conversations\" ALTER COLUMN \"created_at\" SET DEFAULT now();",
+      "\nALTER TABLE \"conversations\" ALTER COLUMN \"updated_at\" SET DEFAULT now();"
+    ],
+    "bps": true,
+    "folderMillis": 1734393055043,
+    "hash": "2cdae67f5d33fb28e3fa228c3f135a9d247b1df6da352d5f7d05df6fbabff58c"
   }
 ]
