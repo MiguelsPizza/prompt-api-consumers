@@ -8,14 +8,14 @@ import {
 } from '@/components/ui/sheet';
 import { Slider } from '@/components/ui/slider';
 import { Settings, ArrowRight, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
-import { db } from '@/dataLayer/db';
-import { conversations, conversation_messages } from '@/dataLayer/db/schema';
+import { db } from '@/dataLayer';
+import { conversations, conversation_messages } from '@/dataLayer/schema';
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from '@tanstack/react-router';
 import { getRouteApi } from '@tanstack/react-router';
 import { useConversation } from '@/utils/Contexts';
-import { useDrizzleLiveIncremental } from '@/dataLayer/db';
+import { useDrizzleLiveIncremental } from '@/dataLayer';
 import { eq } from 'drizzle-orm';
 
 export const ChatHeader = () => {

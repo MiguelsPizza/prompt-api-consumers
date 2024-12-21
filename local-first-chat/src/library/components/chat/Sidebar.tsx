@@ -8,13 +8,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { db } from '@/dataLayer/db';
+import { db } from '@/dataLayer';
 import {
   conversations as conversationsSchema,
   conversation_messages,
-} from '@/dataLayer/db/schema';
+} from '@/dataLayer/schema';
 import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
-import { useDrizzleLiveIncremental } from '@/dataLayer/db';
+import { useDrizzleLiveIncremental } from '@/dataLayer';
 import { useConversation } from '@/utils/Contexts';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';

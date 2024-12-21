@@ -1,4 +1,3 @@
-import { authUsers } from 'drizzle-orm/supabase';
 import {
   text,
   real,
@@ -8,7 +7,38 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
+
+const timestamps = {
+  created_at: timestamp({ withTimezone: true, mode: 'string' })
+    .default(sql`(now() AT TIME ZONE 'utc'::text)`)
+    .notNull(),
+  updated_at: timestamp({ withTimezone: true, mode: 'string' })
+    .default(sql`(now() AT TIME ZONE 'utc'::text)`)
+    .notNull()
+    .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`),
+}
+
+// export const authUsers = pgTable(
+//   'users',
+//   {
+//     id: uuid('id').primaryKey(),
+//     email: text('email'),
+//     phone: text('phone'),
+//     email_confirmed_at: timestamp('email_confirmed_at', { mode: 'string' }),
+//     phone_confirmed_at: timestamp('phone_confirmed_at', { mode: 'string' }),
+//     last_sign_in_at: timestamp('last_sign_in_at', { mode: 'string' }),
+//     created_at: timestamp('created_at', { mode: 'string' })
+//       .defaultNow()
+//       .notNull(),
+//     updated_at: timestamp('updated_at', { mode: 'string' })
+//       .defaultNow()
+//       .notNull(),
+//   },
+//   (table) => [
+//     { schema: 'auth' }
+//   ]
+// );
 
 export const conversations = pgTable(
   'conversations',
@@ -19,21 +49,11 @@ export const conversations = pgTable(
     system_prompt: text('system_prompt').default('').notNull(),
     top_k: real('top_k').notNull(),
     temperature: real('temperature').notNull(),
-    user_id: uuid('user_id')
-      .notNull()
-      .references(() => authUsers.id, { onDelete: 'cascade' }),
-    created_at: timestamp('created_at', { mode: 'string' })
-      .defaultNow()
-      .notNull(),
-    updated_at: timestamp('updated_at', { mode: 'string' })
-      .defaultNow()
-      .notNull()
-      .$onUpdate(() => new Date().toISOString()),
+    user_id: uuid('user_id').notNull(),
+    ...timestamps
   },
   (table) => [
-    index('idx_conversations_user').on(table.user_id),
     index('idx_conversations_updated').on(table.updated_at),
-    index('idx_conversations_user_updated').on(table.user_id, table.updated_at),
   ],
 );
 
@@ -49,16 +69,8 @@ export const conversation_messages = pgTable(
     content: text('content').notNull(),
     temperature_at_creation: real('temperature_at_creation').notNull(),
     top_k_at_creation: real('top_k_at_creation').notNull(),
-    user_id: uuid('user_id')
-      .notNull()
-      .references(() => authUsers.id, { onDelete: 'cascade' }),
-    created_at: timestamp('created_at', { mode: 'string' })
-      .defaultNow()
-      .notNull(),
-    updated_at: timestamp('updated_at', { mode: 'string' })
-      .defaultNow()
-      .notNull()
-      .$onUpdate(() => new Date().toISOString()),
+    user_id: uuid('user_id').notNull(),
+    ...timestamps
   },
   (table) => [
     index('idx_messages_conversation').on(table.conversation_id),
@@ -68,18 +80,14 @@ export const conversation_messages = pgTable(
       table.position,
     ),
     index('idx_messages_created').on(table.created_at),
-    index('idx_messages_user_created').on(table.user_id, table.created_at),
   ],
 );
+
 
 export const conversationsRelations = relations(
   conversations,
   ({ many, one }) => ({
     conversation_messages: many(conversation_messages),
-    user: one(authUsers, {
-      fields: [conversations.user_id],
-      references: [authUsers.id],
-    }),
   }),
 );
 
@@ -90,26 +98,19 @@ export const conversationMessagesRelations = relations(
       fields: [conversation_messages.conversation_id],
       references: [conversations.id],
     }),
-    user: one(authUsers, {
-      fields: [conversation_messages.user_id],
-      references: [authUsers.id],
-    }),
   }),
 );
 
-export type AuthUser = typeof authUsers.$inferSelect;
 
 export type Conversation = typeof conversations.$inferSelect;
 export type ConversationMessage = typeof conversation_messages.$inferSelect;
 
 export type ConversationWithRelations = Conversation & {
   conversation_messages?: ConversationMessage[];
-  user?: AuthUser;
 };
 
 export type ConversationMessageWithRelations = ConversationMessage & {
   conversation?: Conversation;
-  user?: AuthUser;
 };
 export type NewConversation = typeof conversations.$inferInsert;
 export type NewConversationMessage = typeof conversation_messages.$inferInsert;

@@ -1,6 +1,6 @@
 {
-  "id": "feec63e8-485b-4775-b475-30fb9a1dc945",
-  "prevId": "e2fda3d5-ac8a-4193-addb-8cbfc9a97fb1",
+  "id": "66e36a03-5e91-4d40-84dc-5b1f8fac558a",
+  "prevId": "38491d3c-bcfd-434f-bad1-19c1fc26a2b7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -61,14 +61,14 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "'2024-12-15T23:40:54.289Z'"
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "'2024-12-15T23:40:54.289Z'"
+          "default": "now()"
         }
       },
       "indexes": {
@@ -165,8 +165,12 @@
           "name": "conversation_messages_conversation_id_conversations_id_fk",
           "tableFrom": "conversation_messages",
           "tableTo": "conversations",
-          "columnsFrom": ["conversation_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "conversation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -175,8 +179,12 @@
           "tableFrom": "conversation_messages",
           "tableTo": "users",
           "schemaTo": "auth",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -239,14 +247,14 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "'2024-12-15T23:40:54.288Z'"
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "'2024-12-15T23:40:54.288Z'"
+          "default": "now()"
         }
       },
       "indexes": {
@@ -308,8 +316,12 @@
           "tableFrom": "conversations",
           "tableTo": "users",
           "schemaTo": "auth",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

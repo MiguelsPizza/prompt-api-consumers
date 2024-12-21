@@ -33,13 +33,14 @@ pnpm deploy:local # a functional self host of the app to a local port
 ## Roadmap
 
 - [ ] Self-hosting support for sync service
-- [ ] Migration to PGlite and RAG support
+- [x] Migration to PGlite and RAG support
   - Currently uses WASM SQLite for client-side DB
   - PGlite will enable Postgres vector store capabilities
 - [ ] ElectricSQL with Cloudflare Durable Objects for sync
   - Replacing PowerSync due to PGlite compatibility
-- [ ] Chrome Extension Polyfill
+- [x] Chrome Extension Polyfill
   - Enables bringing custom models while maintaining offline chat storage
+- [ ] Add window.ai support for the vercel-ai-sdk
 
 ## Contributing
 

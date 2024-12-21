@@ -3,7 +3,6 @@ import { worker } from '@electric-sql/pglite/worker';
 import { drizzle } from 'drizzle-orm/pglite/driver';
 import type { MigrationConfig } from 'drizzle-orm/migrator';
 import migrations from './migrations.json';
-import { syncShapeToTable } from '@makisuo/pglite-drizzle';
 import { OpfsAhpFS } from '@electric-sql/pglite/opfs-ahp';
 
 worker({

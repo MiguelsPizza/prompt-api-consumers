@@ -9,9 +9,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "prepare": "husky install",
-    "dev": "nx run-many --target=build --projects=use-prompt-api --watch & nx serve local-first-chat",
-    "deploy:web": "nx run-many --target=build --projects=use-prompt-api,local-first-chat && wrangler pages deploy ./local-first-chat/dist",
-    "deploy:local": "nx run-many --target=build --projects=use-prompt-api,local-first-chat && nx preview local-first-chat"
+    "dev": "nx run-many  --target=dev --projects=use-prompt-api,local-first-chat",
+    "deploy:web": "nx run-many --target=build --projects=use-prompt-api,local-first-chat && nx run local-first-chat:deploy:web",
+    "deploy:local": "nx run-many --target=build --projects=use-prompt-api,local-first-chat && nx run local-first-chat:preview"
   },
   "keywords": [],
   "author": "",

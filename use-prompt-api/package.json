@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "tsc --watch & nx vite:build --watch",
     "build": "tsc && nx vite:build",
     "preview": "nx vite:preview",
     "prepublishOnly": "npm run build"

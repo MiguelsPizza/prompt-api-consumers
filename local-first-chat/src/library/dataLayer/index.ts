@@ -2,7 +2,7 @@ import { live } from '@electric-sql/pglite/live';
 import { PGliteWorker } from '@electric-sql/pglite/worker';
 import PGWorker from './worker.ts?worker';
 import { drizzle } from 'drizzle-orm/pglite/driver';
-import * as schema from './schema';
+import * as schema from './schema.js';
 import { PGlite } from '@electric-sql/pglite';
 import { createDrizzle } from '@makisuo/pglite-drizzle/react';
 

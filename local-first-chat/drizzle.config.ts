@@ -3,7 +3,7 @@ import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
   out: './drizzle',
-  schema: './src/library/dataLayer/db/schema.ts',
+  schema: './src/library/dataLayer/schema.ts',
   dialect: 'postgresql',
   driver: 'pglite',
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { db } from '@/dataLayer/db';
-import { conversation_messages } from '@/dataLayer/db/schema';
+import { db } from '@/dataLayer';
+import { conversation_messages } from '@/dataLayer/schema';
 import {
   AppendMessage,
   AssistantRuntimeProvider,
@@ -12,7 +12,7 @@ import { ToastAction } from '@/components/ui/toast';
 import { getRouteApi } from '@tanstack/react-router';
 import 'highlight.js/styles/github-dark.css';
 import { MyThread } from '../ui/thread';
-import { useDrizzleLiveIncremental } from '@/dataLayer/db';
+import { useDrizzleLiveIncremental } from '@/dataLayer';
 import { and, count, eq, gte } from 'drizzle-orm';
 
 export const ChatMessages = () => {

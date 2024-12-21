@@ -7,8 +7,8 @@ CREATE TABLE "conversation_messages" (
 	"temperature_at_creation" real NOT NULL,
 	"top_k_at_creation" real NOT NULL,
 	"user_id" uuid NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "conversations" (
@@ -19,8 +19,8 @@ CREATE TABLE "conversations" (
 	"top_k" real NOT NULL,
 	"temperature" real NOT NULL,
 	"user_id" uuid NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "conversation_messages" ADD CONSTRAINT "conversation_messages_conversation_id_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

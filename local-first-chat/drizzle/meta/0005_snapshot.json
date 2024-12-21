@@ -1,6 +1,6 @@
 {
-  "id": "c71bd776-3ad8-4618-bd50-bd9dc3eb68e4",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "235bf210-90c5-4088-b2ad-4bf4bf441d56",
+  "prevId": "ad2ba0a0-577d-4b7b-a891-32dbc26ed57f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -137,27 +137,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "idx_messages_user_created": {
-          "name": "idx_messages_user_created",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -167,20 +146,6 @@
           "tableTo": "conversations",
           "columnsFrom": [
             "conversation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "conversation_messages_user_id_users_id_fk": {
-          "name": "conversation_messages_user_id_users_id_fk",
-          "tableFrom": "conversation_messages",
-          "tableTo": "users",
-          "schemaTo": "auth",
-          "columnsFrom": [
-            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -258,21 +223,6 @@
         }
       },
       "indexes": {
-        "idx_conversations_user": {
-          "name": "idx_conversations_user",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "idx_conversations_updated": {
           "name": "idx_conversations_updated",
           "columns": [
@@ -287,45 +237,9 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "idx_conversations_user_updated": {
-          "name": "idx_conversations_user_updated",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "updated_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
-      "foreignKeys": {
-        "conversations_user_id_users_id_fk": {
-          "name": "conversations_user_id_users_id_fk",
-          "tableFrom": "conversations",
-          "tableTo": "users",
-          "schemaTo": "auth",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

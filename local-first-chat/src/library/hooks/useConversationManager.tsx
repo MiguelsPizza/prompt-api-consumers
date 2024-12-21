@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
-import { db } from '@/dataLayer/db';
-import { conversations, conversation_messages } from '@/dataLayer/db/schema';
+import { db } from '@/dataLayer';
+import { conversations, conversation_messages } from '@/dataLayer/schema';
 import { useToast } from './use-toast';
 import { ConversationContext } from '@/utils/Contexts';
 import { useNavigate } from '@tanstack/react-router';

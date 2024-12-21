@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { db } from '@/dataLayer/db';
+import { db } from '@/dataLayer';
 import {
   conversations,
   ConversationMessage,
   ConversationWithRelations,
-} from '@/dataLayer/db/schema';
+} from '@/dataLayer/schema';
 import { useSummarizer } from 'use-prompt-api';
-import { useDrizzleLiveIncremental } from '@/dataLayer/db';
+import { useDrizzleLiveIncremental } from '@/dataLayer';
 import { eq } from 'drizzle-orm';
 
 export function useConversationSummary(currentConversationId: string | null) {

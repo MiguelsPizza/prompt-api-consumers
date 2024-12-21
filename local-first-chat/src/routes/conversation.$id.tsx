@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChatMessages } from '@/components/chat/ChatMessages';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatInterfaceSchema } from '@/utils/paramValidators';
-import { db } from '@/dataLayer/db';
+import { db } from '@/dataLayer';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useConversationSummary } from '@/hooks/useConversationSummary';
