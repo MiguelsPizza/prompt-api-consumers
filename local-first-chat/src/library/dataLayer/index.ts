@@ -13,6 +13,16 @@ export const pglite = await new PGliteWorker(
 
 export const db = drizzle(pglite as unknown as PGlite, { schema });
 
+await db
+  .insert(schema.users)
+  .values({
+    id: 'Local_ID',
+    username: 'Local User',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  })
+  .onConflictDoNothing();
+
 export const { useDrizzleLive, useDrizzleLiveIncremental } = createDrizzle({
   casing: 'snake_case',
   schema: schema,

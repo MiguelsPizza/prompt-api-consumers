@@ -7,3 +7,4 @@ use-prompt-api/miguelspizza-use-prompt-api-1.0.1.tgz
 .nx/cache
 .nx/workspace-data
 vite.config.*.timestamp*
+.wrangler

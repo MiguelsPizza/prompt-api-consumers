@@ -1,0 +1,21 @@
+# Development files
+src/
+tests/
+.github/
+.gitignore
+.eslintrc
+.prettierrc
+tsconfig.json
+vite.config.ts
+
+# Build artifacts
+coverage/
+.nyc_output/
+*.log
+
+# Editor directories
+.idea/
+.vscode/
+
+# Environment files
+.env*

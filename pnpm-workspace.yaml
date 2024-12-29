@@ -2,3 +2,5 @@ packages:
   - 'use-prompt-api'
   - 'local-first-chat'
   - 'chrome-ai'
+  - 'browser-ai-extension/*'
+  - 'use-drizzle-live-incremental-query'

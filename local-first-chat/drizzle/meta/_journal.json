@@ -5,50 +5,22 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1734577110350,
-      "tag": "0000_flaky_electro",
+      "when": 1735436811845,
+      "tag": "0000_fluffy_odin",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1734577393228,
-      "tag": "0001_closed_bromley",
+      "when": 1735437539828,
+      "tag": "0001_thankful_marvex",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1734577700622,
-      "tag": "0002_jazzy_true_believers",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1734577983315,
-      "tag": "0003_broad_black_tarantula",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1734578295612,
-      "tag": "0004_secret_daimon_hellstrom",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1734578424990,
-      "tag": "0005_lethal_legion",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1734578949302,
-      "tag": "0006_legal_prima",
+      "when": 1735438239842,
+      "tag": "0002_living_viper",
       "breakpoints": true
     }
   ]

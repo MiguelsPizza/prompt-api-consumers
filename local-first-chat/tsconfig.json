@@ -4,6 +4,7 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -15,7 +16,8 @@
     "incremental": true,
     "paths": {
       "@/*": ["./src/library/*"]
-    }
+    },
+    "types": ["react", "react-dom", "dom-chromium-ai"]
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/routeTree.gen.ts"]
 }

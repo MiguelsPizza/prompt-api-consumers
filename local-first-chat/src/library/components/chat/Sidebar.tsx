@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Cloud, CloudOff } from 'lucide-react';
 import { desc, eq, sql } from 'drizzle-orm';
+import { UserButton, useUser } from '@clerk/clerk-react';
 
 export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
   const { toast } = useToast();
@@ -39,6 +40,7 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
     navigateToConversation,
   } = useConversation();
   const router = useRouter();
+  const user = useUser()
   const currentPath = router.state.location.pathname;
   const [syncStatus, setSyncStatus] = useState<
     'offline' | 'syncing' | 'synced'
@@ -82,9 +84,8 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
               <Button
                 variant="outline"
                 size="icon"
-                className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${
-                  !currentPath.includes('auth') ? 'gradient-violet' : ''
-                }`}
+                className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${!currentPath.includes('auth') ? 'gradient-violet' : ''
+                  }`}
                 onClick={() => handleNewConversation()}
               >
                 <PlusCircle className="h-5 w-5" />
@@ -116,20 +117,16 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
           </Tooltip>
         </TooltipProvider>
 
-        {false ? null : (
-          // <TooltipProvider>
-          //   <Tooltip delayDuration={200}>
-          //     <TooltipTrigger asChild>
-          //       <Link to='/conversation/profile'>
-          //         <Avatar className="h-10 w-10 hover:ring-2 hover:ring-primary transition-all">
-          //           <AvatarImage src={supabase.currentSession.user.user_metadata?.avatar_url} />
-          //           <AvatarFallback>{supabase.currentSession.user.email?.[0].toUpperCase()}</AvatarFallback>
-          //         </Avatar>
-          //       </Link>
-          //     </TooltipTrigger>
-          //     <TooltipContent>Profile</TooltipContent>
-          //   </Tooltip>
-          // </TooltipProvider>
+        {user?.isSignedIn ? <TooltipProvider>
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+              <Link to='/conversation/profile'>
+                <UserButton />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Profile</TooltipContent>
+          </Tooltip>
+        </TooltipProvider> : (
           <>
             <TooltipProvider>
               <Tooltip delayDuration={200}>
@@ -145,9 +142,8 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${
-                        authType === 'login' ? 'gradient-violet' : ''
-                      }`}
+                        className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'login' ? 'gradient-violet' : ''
+                          }`}
                     >
                       <LogIn className="h-5 w-5" />
                     </Button>
@@ -171,9 +167,8 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${
-                        authType === 'signup' ? 'gradient-violet' : ''
-                      }`}
+                        className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'signup' ? 'gradient-violet' : ''
+                          }`}
                     >
                       <Upload className="h-5 w-5" />
                     </Button>
@@ -251,8 +246,8 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                       conversation.id,
                       count === 1
                         ? () => {
-                            setSidebarCollapsed(true);
-                          }
+                          setSidebarCollapsed(true);
+                        }
                         : undefined,
                     );
                   }}
