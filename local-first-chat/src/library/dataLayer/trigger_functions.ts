@@ -153,8 +153,6 @@
 // $$ LANGUAGE plpgsql;
 // `;
 
-
-
 // const { baseTableName, schemaDefinition, extraColumns = {} } = options;
 // // Derive columns from the Drizzle table definition
 // const columnNames = Object.keys(schemaDefinition).filter((k) => !k.startsWith('') && !k.startsWith('$'));

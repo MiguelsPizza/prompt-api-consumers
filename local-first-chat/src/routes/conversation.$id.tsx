@@ -2,10 +2,14 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChatMessages } from '@/components/chat/ChatMessages';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatInterfaceSchema } from '@/utils/paramValidators';
-import { db } from '@/dataLayer';
+import { useDrizzlePGlite } from '@/dataLayer';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useConversationSummary } from '@/hooks/useConversationSummary';
+import { useQuery } from '@tanstack/react-query';
+import { conversation_messages } from '@/dataLayer/schema';
+import { eq } from 'drizzle-orm';
+import { queryClient } from '../main';
 
 export const Route = createFileRoute('/conversation/$id')({
   component: ConversationView,
@@ -19,14 +23,18 @@ export const Route = createFileRoute('/conversation/$id')({
   preload: true,
   // staleTime: 10000,
   // preloadGcTime: 10000,
-  loader: async ({ params }) => {
+  loader: async ({ params, context: { db }, preload }) => {
     console.log('prefectching');
-    const conversation = await db.query.conversations.findFirst({
+    const conversation = await db!.query.conversations.findFirst({
       where: (conversations, { eq }) => eq(conversations.id, params.id),
       with: {
         conversation_messages: true,
       },
     });
+    queryClient.setQueryData(
+      ['conversation', conversation!.id, 'messages'],
+      conversation?.conversation_messages ?? [],
+    );
 
     if (!conversation) {
       throw new Error('Conversation not found');
@@ -59,7 +67,7 @@ export const Route = createFileRoute('/conversation/$id')({
 function ConversationView() {
   const { id } = Route.useParams();
 
-  useConversationSummary(id);
+  // useConversationSummary(id);
 
   return (
     <>

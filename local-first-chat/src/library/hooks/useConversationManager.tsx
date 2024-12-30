@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { db } from '@/dataLayer';
+import { useDrizzlePGlite } from '@/dataLayer';
 import { conversations, conversation_messages } from '@/dataLayer/schema';
 import { useToast } from './use-toast';
 import { ConversationContext } from '@/utils/Contexts';
@@ -25,6 +25,7 @@ export function ConversationProvider({
   children: React.ReactNode;
 }) {
   const { toast } = useToast();
+  const db = useDrizzlePGlite();
   // const supabase = useSupabase();
   const navigate = useNavigate();
 
@@ -107,7 +108,7 @@ export function ConversationProvider({
 
   const handleNewConversation = useCallback(
     async (
-      system_prompt: string | null = null,
+      system_prompt: string | null = '',
       top_k = 10,
       temperature = 0.7,
     ) => {
@@ -121,7 +122,7 @@ export function ConversationProvider({
             id: crypto.randomUUID(),
             name: 'New conversation',
             conversation_summary: '',
-            system_prompt: system_prompt!,
+            system_prompt: system_prompt,
             created_at: now.toLocaleDateString(),
             updated_at: now.toLocaleDateString(),
             top_k: top_k,

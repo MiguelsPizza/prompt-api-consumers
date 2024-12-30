@@ -1,29 +1,17 @@
-import { live } from '@electric-sql/pglite/live';
-import { PGliteWorker } from '@electric-sql/pglite/worker';
-import PGWorker from './worker.ts?worker';
 import { drizzle } from 'drizzle-orm/pglite/driver';
 import * as schema from './schema.js';
-import { PGlite } from '@electric-sql/pglite';
-import { createDrizzle } from '@makisuo/pglite-drizzle/react';
+import { createDrizzle } from './src/react.js';
+// import { createDrizzle } from '@makisuo/pglite-drizzle/react';
 
-export const pglite = await new PGliteWorker(
-  new PGWorker({ name: 'pglite-worker' }),
-  { extensions: { live } },
-);
+export type GlobalDrizzleDB = ReturnType<typeof drizzle<typeof schema>>;
 
-export const db = drizzle(pglite as unknown as PGlite, { schema });
-
-await db
-  .insert(schema.users)
-  .values({
-    id: 'Local_ID',
-    username: 'Local User',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  })
-  .onConflictDoNothing();
-
-export const { useDrizzleLive, useDrizzleLiveIncremental } = createDrizzle({
+export const {
+  useDrizzleLive,
+  useDrizzleLiveIncremental,
+  syncShapeToTable,
+  useDrizzlePGlite,
+  useDrizzleTanstackLiveIncremental,
+} = createDrizzle({
   casing: 'snake_case',
   schema: schema,
 });

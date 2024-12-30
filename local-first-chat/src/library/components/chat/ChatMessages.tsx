@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { db } from '@/dataLayer';
+import { useDrizzlePGlite } from '@/dataLayer';
 import { conversation_messages } from '@/dataLayer/schema';
 import {
   AppendMessage,
@@ -12,24 +12,26 @@ import { ToastAction } from '@/components/ui/toast';
 import { getRouteApi } from '@tanstack/react-router';
 import 'highlight.js/styles/github-dark.css';
 import { MyThread } from '../ui/thread';
-import { useDrizzleLiveIncremental } from '@/dataLayer';
+import { useDrizzleTanstackLiveIncremental } from '@/dataLayer/src/react-tanstack';
 import { and, count, eq, gte } from 'drizzle-orm';
 
 export const ChatMessages = () => {
   const { toast } = useToast();
-
+  const db = useDrizzlePGlite();
   const { useParams } = getRouteApi('/conversation/$id');
   const { id: currentConversationId } = useParams();
   const { useLoaderData } = getRouteApi('/conversation/$id');
   const currentConversation = useLoaderData();
 
-  let { data: messages } = useDrizzleLiveIncremental('id', (db) =>
-    db
+  let { data: messages } = useDrizzleTanstackLiveIncremental({
+    drizzleQuery: db
       .select()
       .from(conversation_messages)
       .where(eq(conversation_messages.conversation_id, currentConversationId))
       .orderBy(conversation_messages.position),
-  );
+    diffKey: 'id',
+    queryKey: ['conversation', currentConversationId, 'messages'],
+  });
   messages ??= currentConversation.conversation_messages;
   //don't pass in the user prompt if it makes it into the arr before the request is sent
   //this is not a great solution

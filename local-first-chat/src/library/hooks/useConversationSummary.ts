@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { db } from '@/dataLayer';
+import { useDrizzlePGlite } from '@/dataLayer';
 import {
   conversations,
   ConversationMessage,
@@ -10,6 +10,7 @@ import { useDrizzleLiveIncremental } from '@/dataLayer';
 import { eq } from 'drizzle-orm';
 
 export function useConversationSummary(currentConversationId: string | null) {
+  const db = useDrizzlePGlite();
   const [error, setError] = useState<string | null>(null);
 
   const { summarize, error: summarizerError } = useSummarizer({

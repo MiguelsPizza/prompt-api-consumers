@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { RootSchema } from '@/utils/paramValidators';
-import { db } from '@/dataLayer';
+import { useDrizzlePGlite } from '@/dataLayer';
 
 export const Route = createFileRoute('/')({
   validateSearch: RootSchema,

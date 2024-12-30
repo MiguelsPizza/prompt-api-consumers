@@ -8,39 +8,53 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { db } from '@/dataLayer';
 import {
   conversations as conversationsSchema,
   conversation_messages,
 } from '@/dataLayer/schema';
 import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
-import { useDrizzleLiveIncremental } from '@/dataLayer';
+import {
+  useDrizzleLiveIncremental,
+  useDrizzlePGlite,
+  // useDrizzleTanstackLiveIncremental,
+} from '@/dataLayer';
 import { useConversation } from '@/utils/Contexts';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Cloud, CloudOff } from 'lucide-react';
 import { desc, eq, sql } from 'drizzle-orm';
 import { UserButton, useUser } from '@clerk/clerk-react';
+import { useDrizzleTanstackLiveIncremental } from '@/dataLayer/src/react-tanstack';
+import { conversations } from '../../dataLayer/schema';
 
 export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
   const { toast } = useToast();
+  const db = useDrizzlePGlite();
   const { useSearch, useParams } = getRouteApi('/conversation');
   // @ts-expect-error Not sure how to do this properly with Tanstack router
   const { sidebar, authType } = useSearch();
   // @ts-expect-error Not sure how to do this properly with Tanstack router
   const { id: currentConversationId } = useParams();
-  const { data: conversations } = useDrizzleLiveIncremental('id', (db) =>
-    db.query.conversations.findMany({
-      orderBy: (conversations, { desc }) => [desc(conversations.created_at)],
+  // console.log('test');
+  const { data: conversations } = useDrizzleTanstackLiveIncremental({
+    diffKey: 'id',
+    queryKey: ['sidebar'],
+    drizzleQuery: db.query.conversations.findMany({
+      orderBy: (conversationsSchema, { desc }) => [
+        desc(conversationsSchema.created_at),
+      ],
     }),
-  );
+  });
+  // const conversations = [];
+  console.log({ conversations });
+
   const {
     handleNewConversation,
     handleDeleteConversation,
     navigateToConversation,
   } = useConversation();
   const router = useRouter();
-  const user = useUser()
+  const user = useUser();
   const currentPath = router.state.location.pathname;
   const [syncStatus, setSyncStatus] = useState<
     'offline' | 'syncing' | 'synced'
@@ -117,16 +131,18 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
           </Tooltip>
         </TooltipProvider>
 
-        {user?.isSignedIn ? <TooltipProvider>
-          <Tooltip delayDuration={200}>
-            <TooltipTrigger asChild>
-              <Link to='/conversation/profile'>
-                <UserButton />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>Profile</TooltipContent>
-          </Tooltip>
-        </TooltipProvider> : (
+        {user?.isSignedIn ? (
+          <TooltipProvider>
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger asChild>
+                <Link to="/conversation/profile">
+                  <UserButton />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Profile</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
           <>
             <TooltipProvider>
               <Tooltip delayDuration={200}>

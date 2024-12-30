@@ -45,5 +45,5 @@ function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
-  return <UserProfile />
+  return <UserProfile />;
 }

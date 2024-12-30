@@ -41,14 +41,7 @@ function AuthForm() {
               : 'Sign up to get started with our application'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {isLogin ? (
-            <SignIn
-            />
-          ) : (
-              <SignUp />
-          )}
-        </CardContent>
+        <CardContent>{isLogin ? <SignIn /> : <SignUp />}</CardContent>
       </Card>
     </div>
   );

@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/sheet';
 import { Slider } from '@/components/ui/slider';
 import { Settings, ArrowRight, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
-import { db } from '@/dataLayer';
+import { useDrizzlePGlite } from '@/dataLayer';
 import { conversations, conversation_messages } from '@/dataLayer/schema';
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,8 @@ import { eq } from 'drizzle-orm';
 
 export const ChatHeader = () => {
   const { toast } = useToast();
+  const db = useDrizzlePGlite();
+
   const { handleDeleteConversation } = useConversation();
   const { useSearch, useParams } = getRouteApi('/conversation/$id');
   const [system_prompt, setsystem_prompt] = useState('');
@@ -32,7 +34,7 @@ export const ChatHeader = () => {
       .where(eq(conversations.id, currentConversationId))
       .limit(1)
       .then((a) => {
-        setsystem_prompt(a[0].system_prompt);
+        setsystem_prompt(a[0].system_prompt ?? '');
       });
   }, []);
 
@@ -172,7 +174,7 @@ export const ChatHeader = () => {
                 Top K: {currentConversation?.top_k}
               </label>
               <Slider
-                defaultValue={[currentConversation?.top_k!]}
+                defaultValue={[currentConversation?.top_k ?? 10]}
                 max={40}
                 min={1}
                 step={1}

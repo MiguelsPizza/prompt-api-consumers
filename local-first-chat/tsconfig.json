@@ -17,7 +17,7 @@
     "paths": {
       "@/*": ["./src/library/*"]
     },
-    "types": ["react", "react-dom", "dom-chromium-ai"]
+    "types": ["react", "react-dom", "dom-chromium-ai", "./global.d.ts"]
   },
   "exclude": ["node_modules", "src/routeTree.gen.ts"]
 }

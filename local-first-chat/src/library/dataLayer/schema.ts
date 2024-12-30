@@ -6,7 +6,7 @@ import {
   index,
   timestamp,
   uuid,
-  boolean
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
@@ -19,7 +19,7 @@ const timestamps = {
     .notNull()
     .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`),
   deleted_at: timestamp({ withTimezone: true, mode: 'string' }),
-}
+};
 
 export const conversations = pgTable(
   'conversations',
@@ -34,7 +34,7 @@ export const conversations = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     softDeleted: boolean('soft_deleted').default(false).notNull(),
-    ...timestamps
+    ...timestamps,
   },
   (table) => [
     index('idx_conversations_updated').on(table.updated_at),
@@ -60,7 +60,7 @@ export const conversation_messages = pgTable(
       .notNull()
       .references(() => users.id),
     softDeleted: boolean('soft_deleted').default(false).notNull(),
-    ...timestamps
+    ...timestamps,
   },
   (table) => [
     index('idx_messages_conversation').on(table.conversation_id),
@@ -81,7 +81,7 @@ export const users = pgTable('users', {
   email: text('email'),
   username: text('username'),
   lastSignInAt: timestamp('last_sign_in_at', { mode: 'string' }),
-  ...timestamps
+  ...timestamps,
 });
 
 export const organizations = pgTable('organizations', {
@@ -89,18 +89,26 @@ export const organizations = pgTable('organizations', {
   name: text('name').notNull(),
   slug: text('slug').notNull(),
   createdById: text('created_by_id').references(() => users.id),
-  ...timestamps
+  ...timestamps,
 });
 
-export const organizationMemberships = pgTable('organization_memberships', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: text('user_id').notNull().references(() => users.id),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  role: text('role').notNull(),
-  ...timestamps
-}, (table) => [
-  index('unique_membership').on(table.userId, table.organizationId)
-]);
+export const organizationMemberships = pgTable(
+  'organization_memberships',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organizations.id),
+    role: text('role').notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    index('unique_membership').on(table.userId, table.organizationId),
+  ],
+);
 
 export const conversationsRelations = relations(
   conversations,
@@ -123,24 +131,30 @@ export const userRelations = relations(users, ({ many }) => ({
   memberships: many(organizationMemberships),
 }));
 
-export const organizationRelations = relations(organizations, ({ many, one }) => ({
-  memberships: many(organizationMemberships),
-  createdBy: one(users, {
-    fields: [organizations.createdById],
-    references: [users.id],
+export const organizationRelations = relations(
+  organizations,
+  ({ many, one }) => ({
+    memberships: many(organizationMemberships),
+    createdBy: one(users, {
+      fields: [organizations.createdById],
+      references: [users.id],
+    }),
   }),
-}));
+);
 
-export const organizationMembershipRelations = relations(organizationMemberships, ({ one }) => ({
-  user: one(users, {
-    fields: [organizationMemberships.userId],
-    references: [users.id],
+export const organizationMembershipRelations = relations(
+  organizationMemberships,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [organizationMemberships.userId],
+      references: [users.id],
+    }),
+    organization: one(organizations, {
+      fields: [organizationMemberships.organizationId],
+      references: [organizations.id],
+    }),
   }),
-  organization: one(organizations, {
-    fields: [organizationMemberships.organizationId],
-    references: [organizations.id],
-  }),
-}));
+);
 
 export type Conversation = typeof conversations.$inferSelect;
 export type ConversationMessage = typeof conversation_messages.$inferSelect;
@@ -157,7 +171,8 @@ export type NewConversationMessage = typeof conversation_messages.$inferInsert;
 
 export type User = typeof users.$inferSelect;
 export type Organization = typeof organizations.$inferSelect;
-export type OrganizationMembership = typeof organizationMemberships.$inferSelect;
+export type OrganizationMembership =
+  typeof organizationMemberships.$inferSelect;
 
 export type UserWithRelations = User & {
   memberships?: OrganizationMembership[];
