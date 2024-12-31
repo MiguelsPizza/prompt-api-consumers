@@ -19,7 +19,7 @@ const timestamps = {
     .notNull()
     .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`),
   deleted_at: timestamp({ withTimezone: true, mode: 'string' }),
-};
+} as const;
 
 export const conversations = pgTable(
   'conversations',

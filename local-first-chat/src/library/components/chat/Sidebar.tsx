@@ -25,7 +25,7 @@ import { AlertCircle, CheckCircle2, Cloud, CloudOff } from 'lucide-react';
 import { desc, eq, sql } from 'drizzle-orm';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { useDrizzleTanstackLiveIncremental } from '@/dataLayer/src/react-tanstack';
-import { conversations } from '../../dataLayer/schema';
+import { conversations } from '../../../../../local-first-chat-api/src/db/schema';
 
 export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
   const { toast } = useToast();

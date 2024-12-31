@@ -2,7 +2,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { worker } from '@electric-sql/pglite/worker';
 import { drizzle } from 'drizzle-orm/pglite/driver';
 import type { MigrationConfig } from 'drizzle-orm/migrator';
-import * as schema from './schema';
+import * as schema from '../../../../local-first-chat-api/src/db/schema';
 import migrations from './migrations.json';
 import { IdbFs } from '@electric-sql/pglite';
 

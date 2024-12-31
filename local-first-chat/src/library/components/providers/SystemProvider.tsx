@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { PGliteProvider } from '@electric-sql/pglite-react';
 
 import PGWorker from '../../dataLayer/worker?worker';
-import * as schema from '../../dataLayer/schema';
+import * as schema from '../../../../../local-first-chat-api/src/db/schema';
 
 import { useAuth } from '@clerk/clerk-react';
 import { PGliteWorker } from '@electric-sql/pglite/worker';

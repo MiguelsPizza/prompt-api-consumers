@@ -9,10 +9,8 @@ const migrations = readMigrationFiles({ migrationsFolder: './drizzle/' });
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
-await writeFile(
-  join(__dirname, './src/library/dataLayer/migrations.json'),
+writeFile(
+  join(__dirname, '../local-first-chat/src/library/dataLayer/migrations.json'),
   JSON.stringify(migrations),
   'utf-8',
-);
-
-console.log('Migrations compiled!');
+).then(() => console.log('Migrations compiled!'));
