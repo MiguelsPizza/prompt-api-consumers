@@ -1,6 +1,5 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { conversations, conversation_messages } from './db/schema';
-import { z } from 'zod';
 import 'zod-openapi/extend';
 
 // Conversation schemas
@@ -14,6 +13,8 @@ export const createConversationSchema = createInsertSchema(conversations)
     top_k: true,
     temperature: true,
     user_id: true,
+    llm_id: true,
+    id: true,
   })
   .openapi({ ref: 'CreateConversation' });
 
@@ -24,6 +25,8 @@ export const conversationResponseSchema = createSelectSchema(conversations)
 // Message schemas
 export const createMessageSchema = createInsertSchema(conversation_messages)
   .pick({
+    id: true,
+    llm_id_at_creation: true,
     conversation_id: true,
     role: true,
     content: true,

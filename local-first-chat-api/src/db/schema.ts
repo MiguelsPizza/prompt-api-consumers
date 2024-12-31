@@ -7,6 +7,8 @@ import {
   timestamp,
   uuid,
   boolean,
+  check,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
@@ -21,10 +23,30 @@ const timestamps = {
   deleted_at: timestamp({ withTimezone: true, mode: 'string' }),
 } as const;
 
+// Create the PostgreSQL enum
+export const supportedLLMEnum = pgEnum('supported_llm', [
+  'chrome-ai',
+  'web-llm',
+]);
+
+export const supported_llms = pgTable(
+  'supported_llms',
+  {
+    id: text('id', { enum: supportedLLMEnum.enumValues }).primaryKey(),
+    name: text('name').notNull(),
+    max_temperature: real('max_temperature').notNull(),
+    min_temperature: real('min_temperature').notNull(),
+    max_top_k: real('max_top_k'),
+    min_top_k: real('min_top_k'),
+    ...timestamps,
+  },
+  (table) => [index('idx_supported_llms_name').on(table.name)],
+);
+
 export const conversations = pgTable(
   'conversations',
   {
-    id: uuid('id').primaryKey(),
+    id: uuid('id').primaryKey().defaultRandom(),
     name: text('name').notNull(),
     conversation_summary: text('conversation_summary'),
     system_prompt: text('system_prompt').default(''),
@@ -34,9 +56,18 @@ export const conversations = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     softDeleted: boolean('soft_deleted').default(false).notNull(),
+    llm_id: supportedLLMEnum('llm_id').notNull().default('chrome-ai'),
     ...timestamps,
   },
   (table) => [
+    check('name_length', sql`length(${table.name}) <= 255`),
+    check('summary_length', sql`length(${table.conversation_summary}) <= 4000`),
+    check('prompt_length', sql`length(${table.system_prompt}) <= 32000`),
+    check('top_k_range', sql`${table.top_k} >= 0 AND ${table.top_k} <= 1000`),
+    check(
+      'temperature_range',
+      sql`${table.temperature} >= 0 AND ${table.temperature} <= 10`,
+    ),
     index('idx_conversations_updated').on(table.updated_at),
     index('idx_conversations_deleted').on(table.deleted_at),
     index('idx_conversations_user').on(table.user_id),
@@ -47,7 +78,7 @@ export const conversations = pgTable(
 export const conversation_messages = pgTable(
   'conversation_messages',
   {
-    id: uuid('id').primaryKey(),
+    id: uuid('id').primaryKey().defaultRandom(),
     conversation_id: uuid('conversation_id')
       .notNull()
       .references(() => conversations.id, { onDelete: 'cascade' }),
@@ -56,6 +87,9 @@ export const conversation_messages = pgTable(
     content: text('content').notNull(),
     temperature_at_creation: real('temperature_at_creation').notNull(),
     top_k_at_creation: real('top_k_at_creation').notNull(),
+    llm_id_at_creation: supportedLLMEnum('llm_id_at_creation')
+      .notNull()
+      .default('chrome-ai'),
     user_id: text('user_id')
       .notNull()
       .references(() => users.id),
@@ -63,6 +97,17 @@ export const conversation_messages = pgTable(
     ...timestamps,
   },
   (table) => [
+    check('position_range', sql`${table.position} >= 0`),
+    check('content_length', sql`length(${table.content}) <= 32000`),
+    check(
+      'temperature_range',
+      sql`${table.temperature_at_creation} >= 0 AND ${table.temperature_at_creation} <= 10`,
+    ),
+    check(
+      'top_k_range',
+      sql`${table.top_k_at_creation} >= 0 AND ${table.top_k_at_creation} <= 1000`,
+    ),
+
     index('idx_messages_conversation').on(table.conversation_id),
     index('idx_messages_position').on(table.position),
     index('idx_messages_conv_position').on(
@@ -110,10 +155,18 @@ export const organizationMemberships = pgTable(
   ],
 );
 
+export const supportedLlmsRelations = relations(supported_llms, ({ many }) => ({
+  conversations: many(conversations),
+}));
+
 export const conversationsRelations = relations(
   conversations,
   ({ many, one }) => ({
     conversation_messages: many(conversation_messages),
+    llm: one(supported_llms, {
+      fields: [conversations.llm_id],
+      references: [supported_llms.id],
+    }),
   }),
 );
 
@@ -123,6 +176,10 @@ export const conversationMessagesRelations = relations(
     conversation: one(conversations, {
       fields: [conversation_messages.conversation_id],
       references: [conversations.id],
+    }),
+    llm: one(supported_llms, {
+      fields: [conversation_messages.llm_id_at_creation],
+      references: [supported_llms.id],
     }),
   }),
 );
@@ -161,10 +218,12 @@ export type ConversationMessage = typeof conversation_messages.$inferSelect;
 
 export type ConversationWithRelations = Conversation & {
   conversation_messages?: ConversationMessage[];
+  llm?: SupportedLlm;
 };
 
 export type ConversationMessageWithRelations = ConversationMessage & {
   conversation?: Conversation;
+  llm?: SupportedLlm;
 };
 export type NewConversation = typeof conversations.$inferInsert;
 export type NewConversationMessage = typeof conversation_messages.$inferInsert;
@@ -187,3 +246,6 @@ export type OrganizationMembershipWithRelations = OrganizationMembership & {
   user?: User;
   organization?: Organization;
 };
+
+export type SupportedLlm = typeof supported_llms.$inferSelect;
+export type NewSupportedLlm = typeof supported_llms.$inferInsert;
