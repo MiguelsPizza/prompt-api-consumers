@@ -99,48 +99,43 @@ function useDrizzleTanstackCore<TData>(
 		? useDrizzleLiveIncremental(diffKey!, resolvedQuery)
 		: useDrizzleLive(resolvedQuery);
 
-	const { data: electricData, ...rest } = liveResult;
+	const { data: electricData } = liveResult;
 
-	// Only setQueryData if electricData reference is different
-	React.useEffect(() => {
-		const cached = queryClient.getQueryData<TData>(queryKey);
-		console.log({ electricData, queryClient, queryKey, cached });
-		if (
-			JSON.stringify(cached) !== JSON.stringify(electricData) &&
-			electricData !== undefined
-		) {
-			console.log('test');
-			queryClient.setQueryData<TData>(queryKey, electricData as TData);
-		}
-	}, [electricData]);
-
-	// For the actual queryFn, we can simply return the data we have set in the cache.
-	// Because ElectricSQL is already powering reactivity, the main benefit is that
-	// other TanStack Query features (like suspense, staleTime, or other caching) can be used.
+	// Memoize the queryFn to prevent unnecessary updates
 	const queryFn = React.useCallback(async (): Promise<TData> => {
 		return electricData as TData;
 	}, [electricData]);
 
-	/**
-	 * For suspense or normal usage, we can branch to the appropriate TanStack hook.
-	 * The "queryFn" is somewhat trivial here because ElectricSQL already does live updates,
-	 * but we need a queryFn for TanStack to be satisfied.
-	 */
+	// Only update cache if data has changed
+	React.useEffect(() => {
+		if (electricData !== undefined) {
+			const cached = queryClient.getQueryData<TData>(queryKey);
+			if (JSON.stringify(cached) !== JSON.stringify(electricData)) {
+				queryClient.setQueryData<TData>(queryKey, electricData as TData);
+			}
+		}
+	}, [electricData, queryKey, queryClient]);
+
+	const queryOptions = {
+		...(tanstackOptions as any),
+		queryKey,
+		queryFn,
+		initialData: electricData,
+		// Prevent unnecessary refetches since ElectricSQL handles live updates
+		staleTime: Infinity,
+		// Only refetch on mount if we don't have data
+		refetchOnMount: !electricData,
+		// Disable automatic background refetches
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
+	};
+
 	if (useSuspense) {
-		// note: useTanstackSuspenseQuery returns a slightly different type than useTanstackQuery
-		return useTanstackSuspenseQuery<TData>({
-			...(tanstackOptions as any),
-			queryKey,
-			queryFn,
-			initialData: electricData,
-		}) as UseSuspenseQueryResult<TData>;
+		return useTanstackSuspenseQuery<TData>(
+			queryOptions,
+		) as UseSuspenseQueryResult<TData>;
 	} else {
-		return useTanstackQuery<TData>({
-			...tanstackOptions,
-			queryKey,
-			queryFn,
-			initialData: electricData,
-		});
+		return useTanstackQuery<TData>(queryOptions);
 	}
 }
 

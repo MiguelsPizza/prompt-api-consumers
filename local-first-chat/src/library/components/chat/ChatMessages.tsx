@@ -12,7 +12,10 @@ import { ToastAction } from '@/components/ui/toast';
 import { getRouteApi } from '@tanstack/react-router';
 import 'highlight.js/styles/github-dark.css';
 import { MyThread } from '../ui/thread';
-import { useDrizzleTanstackLiveIncremental } from '@/dataLayer/src/react-tanstack';
+import {
+  useDrizzleTanstackLiveIncremental,
+  useDrizzleTanstackLiveIncrementalSuspense,
+} from '@/dataLayer/src/react-tanstack';
 import { and, count, eq, gte } from 'drizzle-orm';
 
 export const ChatMessages = () => {
@@ -23,7 +26,7 @@ export const ChatMessages = () => {
   const { useLoaderData } = getRouteApi('/conversation/$id');
   const currentConversation = useLoaderData();
 
-  let { data: messages } = useDrizzleTanstackLiveIncremental({
+  let { data: messages } = useDrizzleTanstackLiveIncrementalSuspense({
     drizzleQuery: db
       .select()
       .from(conversation_messages)
@@ -31,6 +34,7 @@ export const ChatMessages = () => {
       .orderBy(conversation_messages.position),
     diffKey: 'id',
     queryKey: ['conversation', currentConversationId, 'messages'],
+    initialData: currentConversation.conversation_messages,
   });
   messages ??= currentConversation.conversation_messages;
   //don't pass in the user prompt if it makes it into the arr before the request is sent

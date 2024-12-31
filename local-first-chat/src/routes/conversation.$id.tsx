@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { conversation_messages } from '@/dataLayer/schema';
 import { eq } from 'drizzle-orm';
 import { queryClient } from '../main';
+import React from 'react';
 
 export const Route = createFileRoute('/conversation/$id')({
   component: ConversationView,
@@ -21,24 +22,28 @@ export const Route = createFileRoute('/conversation/$id')({
     },
   }),
   preload: true,
-  // staleTime: 10000,
-  // preloadGcTime: 10000,
-  loader: async ({ params, context: { db }, preload }) => {
-    console.log('prefectching');
+  staleTime: 30000, // Data stays fresh for 30 seconds
+  gcTime: 5 * 60 * 1000, // Keep unused data in cache for 5 minutes
+
+  loader: async ({ params, context: { db } }) => {
     const conversation = await db!.query.conversations.findFirst({
       where: (conversations, { eq }) => eq(conversations.id, params.id),
       with: {
         conversation_messages: true,
       },
     });
-    queryClient.setQueryData(
-      ['conversation', conversation!.id, 'messages'],
-      conversation?.conversation_messages ?? [],
-    );
 
     if (!conversation) {
       throw new Error('Conversation not found');
     }
+
+    await queryClient.prefetchQuery({
+      queryKey: ['conversation', conversation.id, 'messages'],
+      queryFn: async () => conversation.conversation_messages,
+      staleTime: 30000,
+      gcTime: 5 * 60 * 1000,
+    });
+
     return conversation;
   },
   pendingComponent: () => (
@@ -67,12 +72,16 @@ export const Route = createFileRoute('/conversation/$id')({
 function ConversationView() {
   const { id } = Route.useParams();
 
-  // useConversationSummary(id);
-
-  return (
-    <>
-      <ChatHeader />
-      <ChatMessages />
-    </>
+  // Wrap the content in a memo to prevent unnecessary re-renders
+  const MemoizedContent = React.useMemo(
+    () => (
+      <>
+        <ChatHeader />
+        <ChatMessages />
+      </>
+    ),
+    [id] // Only re-render when conversation ID changes
   );
+
+  return MemoizedContent;
 }

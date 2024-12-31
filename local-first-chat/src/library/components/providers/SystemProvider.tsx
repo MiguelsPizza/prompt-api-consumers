@@ -32,17 +32,6 @@ export interface RouterContext {
   };
 }
 
-const router = createRouter({
-  routeTree,
-  context: {
-    session: null,
-    user: null,
-    isInitialized: false,
-    isAuthenticated: false,
-    db: undefined,
-  },
-});
-
 export const SystemProvider = () => {
   const { getToken } = useAuth();
 
@@ -99,18 +88,31 @@ export const SystemProvider = () => {
   return (
     <PGliteProvider db={pgForProvider}>
       <RouterProvider
-        router={router}
-        context={{
-          session: null,
-          user: null,
-          isInitialized: false,
-          isAuthenticated: false,
-          db,
-        }}
+        router={createRouter({
+          routeTree,
+          context: {
+            session: null,
+            user: null,
+            isInitialized: false,
+            isAuthenticated: false,
+            db,
+          },
+        })}
       />
     </PGliteProvider>
   );
 };
+
+const router = createRouter({
+  routeTree,
+  context: {
+    session: null,
+    user: null,
+    isInitialized: false,
+    isAuthenticated: false,
+    db: undefined,
+  },
+});
 
 declare module '@tanstack/react-router' {
   interface Register {
