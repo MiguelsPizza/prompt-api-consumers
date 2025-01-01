@@ -80,7 +80,7 @@ function ConversationView() {
         <ChatMessages />
       </>
     ),
-    [id] // Only re-render when conversation ID changes
+    [id], // Only re-render when conversation ID changes
   );
 
   return MemoizedContent;

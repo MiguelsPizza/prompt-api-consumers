@@ -1,21 +1,44 @@
-import { useLiveIncrementalQuery, useLiveQuery, usePGlite } from "@electric-sql/pglite-react"
-import { type DrizzleConfig, type ExtractTablesWithRelations, is } from "drizzle-orm"
+import {
+	useLiveIncrementalQuery,
+	useLiveQuery,
+	usePGlite,
+} from '@electric-sql/pglite-react';
+import {
+	type DrizzleConfig,
+	type ExtractTablesWithRelations,
+	is,
+} from 'drizzle-orm';
 
-import { PgRelationalQuery } from "drizzle-orm/pg-core/query-builders/query"
+import { PgRelationalQuery } from 'drizzle-orm/pg-core/query-builders/query';
 
-import type { SyncShapeToTableOptions, SyncShapeToTableResult } from "@electric-sql/pglite-sync"
+import type {
+	SyncShapeToTableOptions,
+	SyncShapeToTableResult,
+} from '@electric-sql/pglite-sync';
 
-import { type PgliteDatabase, drizzle as createPgLiteClient } from "drizzle-orm/pglite"
+import {
+	type PgliteDatabase,
+	drizzle as createPgLiteClient,
+} from 'drizzle-orm/pglite';
 import {
 	type DrizzleQueryType,
 	type LiveQueryReturnType,
 	type PGLiteWithElectric,
 	syncShapeToTable as syncShapeToTableImpl,
-} from "./index"
-import { processQueryResults } from "./relation-query-parser"
-import { useDrizzleTanstackLive, useDrizzleTanstackLiveIncremental, useDrizzleTanstackLiveIncrementalSuspense, useDrizzleTanstackLiveSuspense, type UseDrizzleTanstackOptions } from "./react-tanstack"
-import type { UseQueryResult, UseSuspenseQueryResult } from "@tanstack/react-query"
-import React from "react"
+} from './index';
+import { processQueryResults } from './relation-query-parser';
+import {
+	useDrizzleTanstackLive,
+	useDrizzleTanstackLiveIncremental,
+	useDrizzleTanstackLiveIncrementalSuspense,
+	useDrizzleTanstackLiveSuspense,
+	type UseDrizzleTanstackOptions,
+} from './react-tanstack';
+import type {
+	UseQueryResult,
+	UseSuspenseQueryResult,
+} from '@tanstack/react-query';
+import React from 'react';
 
 /**
  * Return type for the createDrizzle function providing type-safe Electric SQL hooks with DrizzleORM integration.
@@ -37,7 +60,9 @@ type CreateDrizzleReturnType<TSchema extends Record<string, unknown>> = {
 	 * @param fn - Function that receives the typed database instance and returns a DrizzleORM query
 	 * @returns {LiveQueryReturnType<T>} Typed query results that update reactively
 	 */
-	useDrizzleLive: <T extends DrizzleQueryType>(fn: (db: PgliteDatabase<TSchema>) => T) => LiveQueryReturnType<T>
+	useDrizzleLive: <T extends DrizzleQueryType>(
+		fn: (db: PgliteDatabase<TSchema>) => T,
+	) => LiveQueryReturnType<T>;
 
 	/**
 	 * Hook for type-safe reactive queries with incremental updates.
@@ -58,7 +83,7 @@ type CreateDrizzleReturnType<TSchema extends Record<string, unknown>> = {
 	useDrizzleLiveIncremental: <T extends DrizzleQueryType>(
 		diffKey: string,
 		fn: (db: PgliteDatabase<TSchema>) => T,
-	) => LiveQueryReturnType<T>
+	) => LiveQueryReturnType<T>;
 
 	/**
 	 * Type-safe wrapper around Electric SQL's syncShapeToTable utility.
@@ -93,14 +118,15 @@ type CreateDrizzleReturnType<TSchema extends Record<string, unknown>> = {
 	 */
 	syncShapeToTable: <
 		TTableKey extends keyof ExtractTablesWithRelations<TSchema>,
-		TPrimaryKey extends keyof ExtractTablesWithRelations<TSchema>[TTableKey]["columns"],
+		TPrimaryKey extends
+		keyof ExtractTablesWithRelations<TSchema>[TTableKey]['columns'],
 	>(
 		pg: PGLiteWithElectric,
 		options: {
-			table: TTableKey
-			primaryKey: TPrimaryKey
-		} & Omit<SyncShapeToTableOptions, "table" | "primaryKey">,
-	) => Promise<SyncShapeToTableResult>
+			table: TTableKey;
+			primaryKey: TPrimaryKey;
+		} & Omit<SyncShapeToTableOptions, 'table' | 'primaryKey'>,
+	) => Promise<SyncShapeToTableResult>;
 
 	/**
 	 * Hook to access the DrizzleORM-wrapped PGLite database instance.
@@ -108,7 +134,7 @@ type CreateDrizzleReturnType<TSchema extends Record<string, unknown>> = {
 	 *
 	 * @returns {PgliteDatabase<TSchema>} Typed DrizzleORM database instance
 	 */
-	useDrizzlePGlite: () => PgliteDatabase<TSchema>
+	useDrizzlePGlite: () => PgliteDatabase<TSchema>;
 
 	/**
 	 * Hook for type-safe reactive queries with TanStack Query integration.
@@ -126,7 +152,7 @@ type CreateDrizzleReturnType<TSchema extends Record<string, unknown>> = {
 	useDrizzleTanstackLive: <TData, T extends DrizzleQueryType>(
 		fn: (db: PgliteDatabase<TSchema>) => T,
 		options: UseDrizzleTanstackOptions<TData>,
-	) => UseQueryResult<TData>
+	) => UseQueryResult<TData>;
 
 	/**
 	 * Hook for type-safe reactive queries with TanStack Query integration and Suspense mode.
@@ -134,7 +160,7 @@ type CreateDrizzleReturnType<TSchema extends Record<string, unknown>> = {
 	useDrizzleTanstackLiveSuspense: <TData, T extends DrizzleQueryType>(
 		fn: (db: PgliteDatabase<TSchema>) => T,
 		options: UseDrizzleTanstackOptions<TData>,
-	) => UseSuspenseQueryResult<TData>
+	) => UseSuspenseQueryResult<TData>;
 
 	/**
 	 * Hook for type-safe incremental reactive queries with TanStack Query integration.
@@ -142,16 +168,19 @@ type CreateDrizzleReturnType<TSchema extends Record<string, unknown>> = {
 	useDrizzleTanstackLiveIncremental: <TData, T extends DrizzleQueryType>(
 		fn: (db: PgliteDatabase<TSchema>) => T,
 		options: UseDrizzleTanstackOptions<TData> & { diffKey: string },
-	) => UseQueryResult<TData>
+	) => UseQueryResult<TData>;
 
 	/**
 	 * Hook for type-safe incremental reactive queries with TanStack Query integration and Suspense mode.
 	 */
-	useDrizzleTanstackLiveIncrementalSuspense: <TData, T extends DrizzleQueryType>(
+	useDrizzleTanstackLiveIncrementalSuspense: <
+		TData,
+		T extends DrizzleQueryType,
+	>(
 		fn: (db: PgliteDatabase<TSchema>) => T,
 		options: UseDrizzleTanstackOptions<TData> & { diffKey: string },
-	) => UseSuspenseQueryResult<TData>
-}
+	) => UseSuspenseQueryResult<TData>;
+};
 
 /**
  * Creates a type-safe DrizzleORM client integrated with Electric SQL's reactive capabilities.
@@ -180,72 +209,81 @@ type CreateDrizzleReturnType<TSchema extends Record<string, unknown>> = {
  * @param {DrizzleConfig<TSchema>} config - DrizzleORM configuration with your schema
  * @returns {CreateDrizzleReturnType<TSchema>} Type-safe hooks for reactive database queries
  */
-export function createDrizzle<TSchema extends Record<string, unknown> = Record<string, never>>(
-	config: DrizzleConfig<TSchema>,
-): CreateDrizzleReturnType<TSchema> {
-	const useLiveQuery = <T extends DrizzleQueryType>(fn: (db: PgliteDatabase<TSchema>) => T) => {
-		const drizzle = useDrizzlePGlite(config)
-		const query = fn(drizzle)
-		return useDrizzleLive<T>(query)
-	}
+export function createDrizzle<
+	TSchema extends Record<string, unknown> = Record<string, never>,
+>(config: DrizzleConfig<TSchema>): CreateDrizzleReturnType<TSchema> {
+	const useLiveQuery = <T extends DrizzleQueryType>(
+		fn: (db: PgliteDatabase<TSchema>) => T,
+	) => {
+		const drizzle = useDrizzlePGlite(config);
+		const query = fn(drizzle);
+		return useDrizzleLive<T>(query);
+	};
 
 	const useLiveIncrementalQuery = <T extends DrizzleQueryType>(
 		diffKey: string,
 		fn: (db: PgliteDatabase<TSchema>) => T,
 	) => {
-		const drizzle = useDrizzlePGlite(config)
-		const query = fn(drizzle)
-		return useDrizzleLiveIncremental<T>(diffKey, query)
-	}
+		const drizzle = useDrizzlePGlite(config);
+		const query = fn(drizzle);
+		return useDrizzleLiveIncremental<T>(diffKey, query);
+	};
 
 	const syncShapeToTable = <
 		TTableKey extends keyof ExtractTablesWithRelations<TSchema>,
-		TPrimaryKey extends keyof ExtractTablesWithRelations<TSchema>[TTableKey]["columns"],
+		TPrimaryKey extends
+		keyof ExtractTablesWithRelations<TSchema>[TTableKey]['columns'],
 	>(
 		pg: PGLiteWithElectric,
 		options: {
-			table: TTableKey
-			primaryKey: TPrimaryKey
-		} & Omit<SyncShapeToTableOptions, "table" | "primaryKey">,
+			table: TTableKey;
+			primaryKey: TPrimaryKey;
+		} & Omit<SyncShapeToTableOptions, 'table' | 'primaryKey'>,
 	) => {
-		return syncShapeToTableImpl<TSchema, TTableKey, TPrimaryKey>(pg, options)
-	}
+		return syncShapeToTableImpl<TSchema, TTableKey, TPrimaryKey>(pg, options);
+	};
 
 	const useTanstackLive = <TData>(
 		fn: (db: PgliteDatabase<TSchema>) => DrizzleQueryType,
 		options: UseDrizzleTanstackOptions<TData>,
 	) => {
-		const drizzle = useDrizzlePGlite(config)
-		const query = React.useMemo(() => fn(drizzle), [drizzle, fn])
-		return useDrizzleTanstackLive({ ...options, drizzleQuery: query })
-	}
+		const drizzle = useDrizzlePGlite(config);
+		const query = React.useMemo(() => fn(drizzle), [drizzle, fn]);
+		return useDrizzleTanstackLive({ ...options, drizzleQuery: query });
+	};
 
 	const useTanstackLiveSuspense = <TData>(
 		fn: (db: PgliteDatabase<TSchema>) => DrizzleQueryType,
 		options: UseDrizzleTanstackOptions<TData>,
 	) => {
-		const drizzle = useDrizzlePGlite(config)
-		const query = React.useMemo(() => fn(drizzle), [drizzle, fn])
-		return useDrizzleTanstackLiveSuspense({ ...options, drizzleQuery: query })
-	}
+		const drizzle = useDrizzlePGlite(config);
+		const query = React.useMemo(() => fn(drizzle), [drizzle, fn]);
+		return useDrizzleTanstackLiveSuspense({ ...options, drizzleQuery: query });
+	};
 
 	const useTanstackLiveIncremental = <TData>(
 		fn: (db: PgliteDatabase<TSchema>) => DrizzleQueryType,
 		options: UseDrizzleTanstackOptions<TData> & { diffKey: string },
 	) => {
-		const drizzle = useDrizzlePGlite(config)
-		const query = React.useMemo(() => fn(drizzle), [drizzle, fn])
-		return useDrizzleTanstackLiveIncremental({ ...options, drizzleQuery: query })
-	}
+		const drizzle = useDrizzlePGlite(config);
+		const query = React.useMemo(() => fn(drizzle), [drizzle, fn]);
+		return useDrizzleTanstackLiveIncremental({
+			...options,
+			drizzleQuery: query,
+		});
+	};
 
 	const useTanstackLiveIncrementalSuspense = <TData>(
 		fn: (db: PgliteDatabase<TSchema>) => DrizzleQueryType,
 		options: UseDrizzleTanstackOptions<TData> & { diffKey: string },
 	) => {
-		const drizzle = useDrizzlePGlite(config)
-		const query = React.useMemo(() => fn(drizzle), [drizzle, fn])
-		return useDrizzleTanstackLiveIncrementalSuspense({ ...options, drizzleQuery: query })
-	}
+		const drizzle = useDrizzlePGlite(config);
+		const query = React.useMemo(() => fn(drizzle), [drizzle, fn]);
+		return useDrizzleTanstackLiveIncrementalSuspense({
+			...options,
+			drizzleQuery: query,
+		});
+	};
 
 	return {
 		useDrizzleLive: useLiveQuery,
@@ -255,21 +293,24 @@ export function createDrizzle<TSchema extends Record<string, unknown> = Record<s
 		useDrizzleTanstackLive: useTanstackLive,
 		useDrizzleTanstackLiveSuspense: useTanstackLiveSuspense,
 		useDrizzleTanstackLiveIncremental: useTanstackLiveIncremental,
-		useDrizzleTanstackLiveIncrementalSuspense: useTanstackLiveIncrementalSuspense,
-	}
+		useDrizzleTanstackLiveIncrementalSuspense:
+			useTanstackLiveIncrementalSuspense,
+	};
 }
 
 function createQueryResult<T extends DrizzleQueryType>(
 	mappedRows: Record<string, any>[],
-	mode: "many" | "one",
+	mode: 'many' | 'one',
 	items?: { affectedRows?: number; fields?: any[]; blob?: any },
 ): LiveQueryReturnType<T> {
 	return {
-		data: (mode === "many" ? mappedRows : mappedRows[0] || undefined) as Awaited<T>,
+		data: (mode === 'many'
+			? mappedRows
+			: mappedRows[0] || undefined) as Awaited<T>,
 		affectedRows: items?.affectedRows || 0,
 		fields: items?.fields || [],
 		blob: items?.blob,
-	}
+	};
 }
 
 /**
@@ -284,19 +325,21 @@ function createQueryResult<T extends DrizzleQueryType>(
  *
  * @param query Your drizzle query. This can be a normal select query, insert query, update query or relational query.
  */
-export const useDrizzleLive = <T extends DrizzleQueryType>(query: T): LiveQueryReturnType<T> => {
-	const sqlData = (query as any).toSQL()
-	const items = useLiveQuery(sqlData.sql, sqlData.params)
+export const useDrizzleLive = <T extends DrizzleQueryType>(
+	query: T,
+): LiveQueryReturnType<T> => {
+	const sqlData = (query as any).toSQL();
+	const items = useLiveQuery(sqlData.sql, sqlData.params);
 
 	if (is(query, PgRelationalQuery)) {
-		const mode = (query as any).mode
-		const mappedRows = processQueryResults(query, items?.rows || [])
+		const mode = (query as any).mode;
+		const mappedRows = processQueryResults(query, items?.rows || []);
 
-		return createQueryResult<T>(mappedRows, mode, items)
+		return createQueryResult<T>(mappedRows, mode, items);
 	}
 
-	return createQueryResult<T>(items?.rows || [], "many", items)
-}
+	return createQueryResult<T>(items?.rows || [], 'many', items);
+};
 
 /**
  * Enables you to reactively re-render your component whenever the results of a live query change.
@@ -313,19 +356,19 @@ export const useDrizzleLiveIncremental = <T extends DrizzleQueryType>(
 	diffKey: string,
 	query: T,
 ): LiveQueryReturnType<T> => {
-	const sqlData = (query as any).toSQL()
+	const sqlData = (query as any).toSQL();
 
-	const items = useLiveIncrementalQuery(sqlData.sql, sqlData.params, diffKey)
+	const items = useLiveIncrementalQuery(sqlData.sql, sqlData.params, diffKey);
 
 	if (is(query, PgRelationalQuery)) {
-		const mode = (query as any).mode
-		const mappedRows = processQueryResults(query, items?.rows || [])
+		const mode = (query as any).mode;
+		const mappedRows = processQueryResults(query, items?.rows || []);
 
-		return createQueryResult<T>(mappedRows, mode, items)
+		return createQueryResult<T>(mappedRows, mode, items);
 	}
 
-	return createQueryResult<T>(items?.rows || [], "many", items)
-}
+	return createQueryResult<T>(items?.rows || [], 'many', items);
+};
 
 /**
  * Hook to access the raw DrizzleORM client instance.
@@ -343,6 +386,6 @@ export const useDrizzleLiveIncremental = <T extends DrizzleQueryType>(
 export const useDrizzlePGlite = <TSchema extends Record<string, unknown>>(
 	config: DrizzleConfig<TSchema>,
 ): PgliteDatabase<TSchema> => {
-	const pg = usePGlite()
-	return createPgLiteClient<TSchema>(pg as any, config)
-}
+	const pg = usePGlite();
+	return createPgLiteClient<TSchema>(pg as any, config);
+};
