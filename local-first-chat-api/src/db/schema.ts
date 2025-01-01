@@ -13,16 +13,20 @@ import {
 import { relations, sql } from 'drizzle-orm';
 
 const timestamps = {
-  created_at: timestamp({ withTimezone: true, mode: 'string' })
+  created_at: timestamp('created_at', { withTimezone: true, mode: 'string' })
     .default(sql`(now() AT TIME ZONE 'utc'::text)`)
     .notNull(),
-  updated_at: timestamp({ withTimezone: true, mode: 'string' })
+  updated_at: timestamp('updated_at', { withTimezone: true, mode: 'string' })
     .default(sql`(now() AT TIME ZONE 'utc'::text)`)
     .notNull()
     .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`),
-  deleted_at: timestamp({ withTimezone: true, mode: 'string' }),
+  deleted_at: timestamp('deleted_at', { withTimezone: true, mode: 'string' }),
+  server_synced: boolean('server_synced').default(false).notNull(),
+  server_synced_date: timestamp('server_synced_date', {
+    withTimezone: true,
+    mode: 'string',
+  }),
 } as const;
-
 // Create the PostgreSQL enum
 export const supportedLLMEnum = pgEnum('supported_llm', [
   'chrome-ai',
@@ -120,7 +124,8 @@ export const conversation_messages = pgTable(
 );
 
 export const users = pgTable('users', {
-  id: text('id').primaryKey(),
+  id: uuid('id').primaryKey(), // the uuid created by the web browser
+  clerk_id: text('clerk_id').unique(), // the uuid from clerk
   firstName: text('first_name'),
   lastName: text('last_name'),
   email: text('email'),

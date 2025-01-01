@@ -4,46 +4,80 @@ import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
 import { clerkMiddleware } from '@hono/clerk-auth';
 import { requestId } from 'hono/request-id';
-import { describeRoute } from 'hono-openapi';
-import { resolver } from 'hono-openapi/zod';
-import { z } from 'zod';
 import { openAPISpecs } from 'hono-openapi';
 import { apiReference } from '@scalar/hono-api-reference';
+import { Webhook } from 'svix';
+import { WebhookEvent } from '@clerk/backend';
+import * as schema from './db/schema';
 
-import conversationsController from './controllers/conversations';
-import messagesController from './controllers/conversationMessages';
+import apiControllers from './controllers';
+import { ContentfulStatusCode } from 'hono/utils/http-status';
+import { Env } from './env';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
 
-export type Bindings = {
-  DATABASE_URL: string;
-};
+const app = new Hono<{ Bindings: Env }>()
+  .use('*', clerkMiddleware(), logger(), prettyJSON(), requestId())
+  .post('/api/webhooks', async (c) => {
+    const SIGNING_SECRET = c.env.SIGNING_SECRET;
+    if (!SIGNING_SECRET) {
+      throw new Error('Missing CLERK_WEBHOOK_SECRET environment variable');
+    }
 
-const apiVersion = 'v1';
-const app = new Hono<{ Bindings: Bindings }>();
+    // Create new Svix instance with secret
+    const wh = new Webhook(SIGNING_SECRET);
 
-app.use('*', clerkMiddleware(), logger(), prettyJSON(), requestId());
+    // Get headers
+    const svix_id = c.req.header('svix-id');
+    const svix_timestamp = c.req.header('svix-timestamp');
+    const svix_signature = c.req.header('svix-signature');
 
-// Root route
-app.get(
-  '/',
-  describeRoute({
-    tags: ['System'],
-    responses: {
-      200: {
-        description: 'Welcome message',
-        content: {
-          'text/plain': {
-            schema: resolver(z.string()),
-          },
-        },
-      },
-    },
-  }),
-  (c) => c.text('Supa Honc! 📯🪿📯🪿📯🪿📯'),
-);
+    // If there are no headers, error out
+    if (!svix_id || !svix_timestamp || !svix_signature) {
+      return c.json({ error: 'Missing Svix headers' }, 400);
+    }
 
-// Mount controllers
-app.route(`${apiVersion}`, conversationsController);
-app.route(`${apiVersion}`, messagesController);
+    // Get body
+    const payload = await c.req.json();
+    const body = JSON.stringify(payload);
+
+    let evt: WebhookEvent;
+
+    // Verify payload with headers
+    try {
+      evt = wh.verify(body, {
+        'svix-id': svix_id,
+        'svix-timestamp': svix_timestamp,
+        'svix-signature': svix_signature,
+      }) as WebhookEvent;
+    } catch (err) {
+      console.error('Error verifying webhook:', err);
+      return c.json({ error: 'Verification failed' }, 400);
+    }
+
+    // Handle the webhook event
+    const { id } = evt.data;
+    const eventType = evt.type;
+    console.log(`Received webhook with ID ${id} and type ${eventType}`);
+    const sql = postgres(c.env.DATABASE_URL);
+    const db = drizzle(sql, { schema });
+    // Optional: Handle specific event types
+    if (evt.type === 'user.created') {
+      console.log('New user created:', evt.data.id);
+      await db.insert(schema.users).values({
+        // id: evt.data.external_id!,
+        // clerk_id: evt.data.id,
+        created_at: evt.data.created_at,
+        updated_at: evt.data.updated_at,
+        first_name: evt.data.first_name, // changed from firstName to first_name
+        last_name: evt.data.last_name, // changed from lastName to last_name
+        email: evt.data.email_addresses?.[0]?.email_address,
+        username: evt.data.username,
+      });
+    }
+    return c.json({ message: 'Webhook received' }, 200);
+  })
+  .route('/', apiControllers);
 
 // OpenAPI documentation
 app.get(
@@ -59,13 +93,7 @@ app.get(
           url: 'https://github.com/yourusername/local-first-chat-api',
         },
       },
-      servers: [
-        {
-          url: 'http://localhost:3000',
-          description: 'Local Development',
-        },
-        // Add your production server here when ready
-      ],
+      servers: [],
       components: {
         securitySchemes: {
           clerkAuth: {
@@ -80,9 +108,8 @@ app.get(
     },
   }),
 );
-
 app.get(
-  '/docs',
+  '/',
   apiReference({
     theme: 'saturn',
     spec: {
@@ -119,5 +146,151 @@ app.get(
     },
   }),
 );
+
+app.notFound((c) => {
+  return c.html(
+    `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>404 - Page Not Found</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-family: system-ui, -apple-system, sans-serif;
+          background: #111827;
+          color: #e5e7eb;
+          position: relative;
+          overflow: hidden;
+        }
+        .container {
+          text-align: center;
+          padding: 2rem;
+          position: relative;
+          z-index: 1;
+          background: rgba(17, 24, 39, 0.7);
+          backdrop-filter: blur(8px);
+          border-radius: 1rem;
+          border: 1px solid rgba(100, 108, 255, 0.2);
+          box-shadow: 0 0 30px rgba(100, 108, 255, 0.2);
+        }
+        h1 {
+          font-size: 8rem;
+          margin: 0;
+          color: #646cff;
+          text-shadow: 0 0 20px rgba(100, 108, 255, 0.5);
+          animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+          from {
+            text-shadow: 0 0 20px rgba(100, 108, 255, 0.5);
+          }
+          to {
+            text-shadow: 0 0 30px rgba(100, 108, 255, 0.8),
+                         0 0 40px rgba(100, 108, 255, 0.3);
+          }
+        }
+        p {
+          font-size: 1.5rem;
+          margin: 1rem 0;
+          color: #9ca3af;
+        }
+        .back-link {
+          display: inline-block;
+          margin-top: 1rem;
+          padding: 0.75rem 1.5rem;
+          background: #646cff;
+          color: white;
+          text-decoration: none;
+          border-radius: 0.375rem;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+        .back-link:hover {
+          background: #4e54cc;
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(100, 108, 255, 0.4);
+        }
+        .back-link:active {
+          transform: translateY(0);
+        }
+        .particles {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: radial-gradient(circle at center, #646cff 0%, transparent 70%);
+          opacity: 0.1;
+          animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.1; }
+          50% { transform: scale(1.2); opacity: 0.15; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="particles"></div>
+      <div class="container">
+        <h1>404</h1>
+        <p>Oops! The page you're looking for doesn't exist.</p>
+        <a href="/" class="back-link">Go Back Home</a>
+      </div>
+    </body>
+    </html>
+  `,
+    404,
+  );
+});
+
+interface ApiError {
+  code: string;
+  message: string;
+  requestId?: string;
+  timestamp: string;
+}
+
+app.onError((err, c) => {
+  const requestId = c.get('requestId');
+  const timestamp = new Date().toISOString();
+
+  // Log error with context
+  console.error({
+    error: err.message,
+    stack: err.stack,
+    requestId,
+    path: c.req.path,
+    method: c.req.method,
+    timestamp,
+  });
+
+  // Prepare client-safe error response
+  const errorResponse: ApiError = {
+    code: err.name || 'INTERNAL_SERVER_ERROR',
+    message:
+      process.env.NODE_ENV === 'production'
+        ? 'An unexpected error occurred'
+        : err.message,
+    requestId,
+    timestamp,
+  };
+
+  // Return JSON response with appropriate status
+  return c.json(
+    errorResponse,
+    err instanceof Error && 'status' in err
+      ? (err.status as ContentfulStatusCode)
+      : 500,
+  );
+});
 
 export default instrument(app);

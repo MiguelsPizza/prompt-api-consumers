@@ -11,14 +11,16 @@ import {
   createConversationSchema,
   conversationResponseSchema,
 } from '../validators';
-import { Bindings } from '..';
+import { Env } from '../env';
 
-const app = new Hono<{ Bindings: Bindings }>()
+const app = new Hono<{ Bindings: Env }>()
   .basePath('conversations')
   .post(
     '/',
     describeRoute({
       tags: ['Conversations'],
+      summary: 'Create a new conversation',
+      description: 'Creates a new conversation with the provided details',
       responses: {
         200: {
           description: 'Conversation created successfully',
@@ -40,7 +42,6 @@ const app = new Hono<{ Bindings: Bindings }>()
       const conversation = await db
         .insert(conversations)
         .values({
-          id: crypto.randomUUID(),
           ...body,
         })
         .returning();
@@ -52,6 +53,8 @@ const app = new Hono<{ Bindings: Bindings }>()
     '/',
     describeRoute({
       tags: ['Conversations'],
+      summary: 'List all conversations',
+      description: 'Retrieves a list of all non-deleted conversations',
       responses: {
         200: {
           description: 'List all conversations',
@@ -79,6 +82,8 @@ const app = new Hono<{ Bindings: Bindings }>()
     '/:id',
     describeRoute({
       tags: ['Conversations'],
+      summary: 'Get conversation by ID',
+      description: 'Retrieves a specific conversation by its unique identifier',
       responses: {
         200: {
           description: 'Get conversation by ID',
@@ -121,6 +126,8 @@ const app = new Hono<{ Bindings: Bindings }>()
     '/:id',
     describeRoute({
       tags: ['Conversations'],
+      summary: 'Update conversation',
+      description: 'Updates an existing conversation with the provided changes',
       responses: {
         200: {
           description: 'Conversation updated successfully',
@@ -160,22 +167,49 @@ const app = new Hono<{ Bindings: Bindings }>()
       return c.json(updated[0]);
     },
   )
-  .delete('/:id', async (c) => {
-    const sql = postgres(c.env.DATABASE_URL);
-    const db = drizzle(sql);
-    const { id } = c.req.param();
+  .delete(
+    '/:id',
+    describeRoute({
+      tags: ['Conversations'],
+      summary: 'Delete conversation',
+      description:
+        'Soft deletes an existing conversation by marking it as deleted',
+      responses: {
+        200: {
+          description: 'Conversation deleted successfully',
+          content: {
+            'application/json': {
+              schema: resolver(z.object({ message: z.string() })),
+            },
+          },
+        },
+        404: {
+          description: 'Conversation not found',
+          content: {
+            'application/json': {
+              schema: resolver(z.object({ error: z.string() })),
+            },
+          },
+        },
+      },
+    }),
+    async (c) => {
+      const sql = postgres(c.env.DATABASE_URL);
+      const db = drizzle(sql);
+      const { id } = c.req.param();
 
-    const deleted = await db
-      .update(conversations)
-      .set({ softDeleted: true })
-      .where(eq(conversations.id, id))
-      .returning();
+      const deleted = await db
+        .update(conversations)
+        .set({ softDeleted: true })
+        .where(eq(conversations.id, id))
+        .returning();
 
-    if (!deleted.length) {
-      return c.json({ error: 'Conversation not found' }, 404);
-    }
+      if (!deleted.length) {
+        return c.json({ error: 'Conversation not found' }, 404);
+      }
 
-    return c.json({ message: 'Conversation deleted successfully' });
-  });
+      return c.json({ message: 'Conversation deleted successfully' });
+    },
+  );
 
 export default app;

@@ -1,5 +1,11 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { conversations, conversation_messages } from './db/schema';
+import {
+  conversations,
+  conversation_messages,
+  users,
+  organizations,
+  organizationMemberships,
+} from './db/schema';
 import 'zod-openapi/extend';
 
 // Conversation schemas
@@ -42,3 +48,52 @@ export const createMessageSchema = createInsertSchema(conversation_messages)
 export const messageResponseSchema = createSelectSchema(conversation_messages)
   .omit({ deleted_at: true })
   .openapi({ ref: 'Message' });
+
+// User schemas
+export const createUserSchema = createInsertSchema(users)
+  .pick({
+    id: true,
+    clerk_id: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    username: true,
+    lastSignInAt: true,
+  })
+  .openapi({ ref: 'CreateUser' });
+
+export const userResponseSchema = createSelectSchema(users)
+  .omit({ deleted_at: true })
+  .openapi({ ref: 'User' });
+
+// Organization schemas
+export const createOrganizationSchema = createInsertSchema(organizations)
+  .pick({
+    id: true,
+    name: true,
+    slug: true,
+    createdById: true,
+  })
+  .openapi({ ref: 'CreateOrganization' });
+
+export const organizationResponseSchema = createSelectSchema(organizations)
+  .omit({ deleted_at: true })
+  .openapi({ ref: 'Organization' });
+
+// Organization Membership schemas
+export const createOrganizationMembershipSchema = createInsertSchema(
+  organizationMemberships,
+)
+  .pick({
+    id: true,
+    userId: true,
+    organizationId: true,
+    role: true,
+  })
+  .openapi({ ref: 'CreateOrganizationMembership' });
+
+export const organizationMembershipResponseSchema = createSelectSchema(
+  organizationMemberships,
+)
+  .omit({ deleted_at: true })
+  .openapi({ ref: 'OrganizationMembership' });

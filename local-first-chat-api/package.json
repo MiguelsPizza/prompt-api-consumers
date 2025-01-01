@@ -1,7 +1,7 @@
 {
   "name": "local-first-chat-api",
   "scripts": {
-    "dev": "wrangler dev src/index.ts",
+    "dev": "wrangler dev src/index.ts --env dev.vars",
     "deploy": "wrangler deploy --minify src/index.ts",
     "db:generate:supabase": "drizzle-kit generate --config=drizzle.supabase.config.ts",
     "db:generate:pglite": "drizzle-kit generate --config=drizzle.pglite.config.ts && tsx ./compile-migrations.ts",
@@ -23,6 +23,7 @@
     "hono": "^4.6.15",
     "hono-openapi": "^0.3.1",
     "postgres": "^3.4.5",
+    "svix": "^1.44.0",
     "zod": "^3.24.1",
     "zod-openapi": "^4.2.2"
   },
