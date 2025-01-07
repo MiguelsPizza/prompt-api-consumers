@@ -5,6 +5,8 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { and, eq } from 'drizzle-orm';
 import { organizations, organizationMemberships } from '../db/schema';
+import * as schema from '../db/schema';
+
 import {
   createOrganizationSchema,
   organizationResponseSchema,
@@ -36,7 +38,7 @@ const app = new Hono<{ Bindings: Env }>()
     zValidator('json', createOrganizationSchema),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const body = c.req.valid('json');
 
       const organization = await db
@@ -73,7 +75,7 @@ const app = new Hono<{ Bindings: Env }>()
     }),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
 
       const orgs = await db
         .select()
@@ -115,7 +117,7 @@ const app = new Hono<{ Bindings: Env }>()
     async (c) => {
       const body = c.req.valid('json');
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { organizationId } = c.req.param();
 
       const updated = await db
@@ -166,7 +168,7 @@ const app = new Hono<{ Bindings: Env }>()
     }),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { organizationId } = c.req.param();
 
       const deleted = await db

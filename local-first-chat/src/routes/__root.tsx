@@ -4,10 +4,11 @@ import {
   createRootRouteWithContext,
   useMatches,
 } from '@tanstack/react-router';
-import { RouterContext } from '@/components/providers/SystemProvider';
 import { Button } from '@/components/ui/button';
 import { HomeIcon } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import ReplWDb from '@/dataLayer/repl';
+import { RouterContext } from '../router.def';
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
@@ -43,6 +44,7 @@ function RootComponent() {
 
   return (
     <React.Fragment>
+      <ReplWDb />
       <Outlet />
     </React.Fragment>
   );

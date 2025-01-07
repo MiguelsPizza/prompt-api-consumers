@@ -7,7 +7,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useConversationSummary } from '@/hooks/useConversationSummary';
 import { useQuery } from '@tanstack/react-query';
-import { conversation_messages } from '@/dataLayer/schema';
+import { conversation_messages } from 'local-first-chat-api/schema';
 import { eq } from 'drizzle-orm';
 import { queryClient } from '../main';
 import React from 'react';

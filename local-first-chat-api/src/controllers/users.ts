@@ -6,6 +6,8 @@ import postgres from 'postgres';
 import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import { createUserSchema, userResponseSchema } from '../validators';
+import * as schema from '../db/schema';
+
 import { Env } from '../env';
 
 const app = new Hono<{ Bindings: Env }>()
@@ -31,7 +33,7 @@ const app = new Hono<{ Bindings: Env }>()
     zValidator('json', createUserSchema),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const body = c.req.valid('json');
 
       const user = await db.insert(users).values(body).returning();
@@ -69,7 +71,7 @@ const app = new Hono<{ Bindings: Env }>()
     }),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { userId } = c.req.param();
 
       const user = await db
@@ -116,7 +118,7 @@ const app = new Hono<{ Bindings: Env }>()
     zValidator('json', createUserSchema.partial()),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { userId } = c.req.param();
       const body = c.req.valid('json');
 

@@ -4,60 +4,44 @@ import { useCallback, useEffect, useState } from 'react';
 import { PGliteProvider } from '@electric-sql/pglite-react';
 
 import PGWorker from '../../dataLayer/worker?worker';
-import * as schema from '../../../../../local-first-chat-api/src/db/schema';
+import * as schema from 'local-first-chat-api/schema';
 
 import { useAuth } from '@clerk/clerk-react';
 import { PGliteWorker } from '@electric-sql/pglite/worker';
-import { Loader } from 'lucide-react';
+import { Loader, Loader2 } from 'lucide-react';
 import { GlobalDrizzleDB } from '@/dataLayer';
 import { drizzle } from 'drizzle-orm/pglite';
 import { PGlite } from '@electric-sql/pglite';
-import {
-  createRouter,
-  RouterProvider,
-  useRouter,
-} from '@tanstack/react-router';
-import type { Session, User } from '@supabase/supabase-js';
-import { routeTree } from '../../../routeTree.gen';
+import { RouterProvider } from '@tanstack/react-router';
+import { RouterType } from '../../../main';
 
-export interface RouterContext {
-  session: Session | null;
-  user: User | null;
-  isInitialized: boolean;
-  isAuthenticated: boolean;
-  db?: GlobalDrizzleDB;
-  meta?: {
-    title?: string;
-    description?: string;
-  };
-}
-
-export const SystemProvider = () => {
-  const { getToken } = useAuth();
+export function SystemProvider({ router }: { router: RouterType }) {
+  // const { getToken } = useAuth();
 
   const [pgForProvider, setPgForProvider] = useState<
     PGliteWithLive | undefined
   >(undefined);
 
   const [db, setDb] = useState<GlobalDrizzleDB | null>(null);
+  const [user, setUser] = useState<schema.User | null>(null);
 
-  const sendToken = useCallback(async () => {
-    const bc = new BroadcastChannel('auth');
-    bc.postMessage({ type: 'bearer', payload: await getToken() });
-  }, [getToken]);
+  // const sendToken = useCallback(async () => {
+  //   const bc = new BroadcastChannel('auth');
+  //   bc.postMessage({ type: 'bearer', payload: await getToken() });
+  // }, [getToken]);
 
-  useEffect(() => {
-    const bc = new BroadcastChannel('auth');
-    bc.onmessage = (event) => {
-      if (event.data.type !== 'request') return;
+  // useEffect(() => {
+  //   const bc = new BroadcastChannel('auth');
+  //   bc.onmessage = (event) => {
+  //     if (event.data.type !== 'request') return;
 
-      sendToken().then(() => console.log('SEND_TOKEN'));
-    };
+  //     sendToken().then(() => console.log('SEND_TOKEN'));
+  //   };
 
-    return () => {
-      bc.close();
-    };
-  }, [sendToken]);
+  //   return () => {
+  //     bc.close();
+  //   };
+  // }, [sendToken]);
 
   useEffect(() => {
     const loadPglite = async () => {
@@ -69,53 +53,34 @@ export const SystemProvider = () => {
           },
         },
       );
-
       const pg = await pgPromise;
       await pg.waitReady;
+
       const newDb = drizzle(pg as unknown as PGlite, {
         schema,
         casing: 'snake_case',
       });
       setDb(newDb);
 
+      // setUser(userTemp!);
       return pg;
     };
     loadPglite().then(setPgForProvider);
   }, []);
 
-  if (!pgForProvider || !db) return <Loader />;
+  if (!pgForProvider || !db)
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading app...</p>
+        </div>
+      </div>
+    );
 
   return (
     <PGliteProvider db={pgForProvider}>
-      <RouterProvider
-        router={createRouter({
-          routeTree,
-          context: {
-            session: null,
-            user: null,
-            isInitialized: false,
-            isAuthenticated: false,
-            db,
-          },
-        })}
-      />
+      <RouterProvider router={router} context={{ user, db }} />
     </PGliteProvider>
   );
-};
-
-const router = createRouter({
-  routeTree,
-  context: {
-    session: null,
-    user: null,
-    isInitialized: false,
-    isAuthenticated: false,
-    db: undefined,
-  },
-});
-
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router;
-  }
 }

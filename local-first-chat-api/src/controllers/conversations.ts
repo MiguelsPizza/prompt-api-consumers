@@ -6,6 +6,8 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { and, eq } from 'drizzle-orm';
 import { getAuth } from '@hono/clerk-auth';
+import * as schema from '../db/schema';
+
 import { conversations } from '../db/schema';
 import {
   createConversationSchema,
@@ -36,7 +38,7 @@ const app = new Hono<{ Bindings: Env }>()
     async (c) => {
       const auth = getAuth(c);
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const body = c.req.valid('json');
 
       const conversation = await db
@@ -68,7 +70,7 @@ const app = new Hono<{ Bindings: Env }>()
     }),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
 
       const allConversations = await db
         .select()
@@ -105,7 +107,7 @@ const app = new Hono<{ Bindings: Env }>()
     }),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { id } = c.req.param();
 
       const conversation = await db
@@ -150,7 +152,7 @@ const app = new Hono<{ Bindings: Env }>()
     validator('json', createConversationSchema.partial()),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { id } = c.req.param();
       const body = c.req.valid('json');
 
@@ -195,7 +197,7 @@ const app = new Hono<{ Bindings: Env }>()
     }),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { id } = c.req.param();
 
       const deleted = await db

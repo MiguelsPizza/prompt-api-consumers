@@ -11,6 +11,7 @@ import {
   pgEnum,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
+import { electricTable, scaffoldLocalSchema } from './createThroughDBFromDrizzle';
 
 const timestamps = {
   created_at: timestamp('created_at', { withTimezone: true, mode: 'string' })
@@ -84,7 +85,11 @@ export const supported_llms = pgTable(
   (table) => [index('idx_supported_llms_name').on(table.name)],
 );
 
-export const conversations = pgTable(
+export const {
+  combinedTableView: conversations,
+  localTable: conversations_local,
+  syncedTable: conversations_synced,
+} = electricTable(
   'conversations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -93,8 +98,9 @@ export const conversations = pgTable(
     system_prompt: text('system_prompt').default(''),
     top_k: real('top_k').notNull(),
     temperature: real('temperature').notNull(),
-    user_id: text('user_id').notNull(),
-    // .references(() => users.id, { onDelete: 'cascade' }),
+    user_id: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
     softDeleted: boolean('soft_deleted').default(false).notNull(),
     llm_id: supportedLLMEnum('llm_id').notNull().default('chrome-ai'),
     ...timestamps,
@@ -115,7 +121,11 @@ export const conversations = pgTable(
   ],
 );
 
-export const conversation_messages = pgTable(
+export const {
+  combinedTableView: conversation_messages,
+  localTable: local_conversation_messages,
+  syncedTable: synced_conversation_messages,
+} = electricTable(
   'conversation_messages',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -159,34 +169,34 @@ export const conversation_messages = pgTable(
   ],
 );
 
-export const supportedLlmsRelations = relations(supported_llms, ({ many }) => ({
-  conversations: many(conversations),
-}));
+// export const supportedLlmsRelations = relations(supported_llms, ({ many }) => ({
+//   conversations: many(conversations),
+// }));
 
-export const conversationsRelations = relations(
-  conversations,
-  ({ many, one }) => ({
-    conversation_messages: many(conversation_messages),
-    llm: one(supported_llms, {
-      fields: [conversations.llm_id],
-      references: [supported_llms.id],
-    }),
-  }),
-);
+// export const conversationsRelations = relations(
+//   conversations,
+//   ({ many, one }) => ({
+//     conversation_messages: many(conversation_messages),
+//     llm: one(supported_llms, {
+//       fields: [conversations.llm_id],
+//       references: [supported_llms.id],
+//     }),
+//   }),
+// );
 
-export const conversationMessagesRelations = relations(
-  conversation_messages,
-  ({ one }) => ({
-    conversation: one(conversations, {
-      fields: [conversation_messages.conversation_id],
-      references: [conversations.id],
-    }),
-    llm: one(supported_llms, {
-      fields: [conversation_messages.llm_id_at_creation],
-      references: [supported_llms.id],
-    }),
-  }),
-);
+// export const conversationMessagesRelations = relations(
+//   conversation_messages,
+//   ({ one }) => ({
+//     conversation: one(conversations, {
+//       fields: [conversation_messages.conversation_id],
+//       references: [conversations.id],
+//     }),
+//     llm: one(supported_llms, {
+//       fields: [conversation_messages.llm_id_at_creation],
+//       references: [supported_llms.id],
+//     }),
+//   }),
+// );
 
 export const userRelations = relations(users, ({ many }) => ({
   memberships: many(organizationMemberships),
@@ -217,20 +227,20 @@ export const organizationMembershipRelations = relations(
   }),
 );
 
-export type Conversation = typeof conversations.$inferSelect;
-export type ConversationMessage = typeof conversation_messages.$inferSelect;
+// export type Conversation = typeof conversations.$inferSelect;
+// export type ConversationMessage = typeof conversation_messages.$inferSelect;
 
-export type ConversationWithRelations = Conversation & {
-  conversation_messages?: ConversationMessage[];
-  llm?: SupportedLlm;
-};
+// export type ConversationWithRelations = Conversation & {
+//   conversation_messages?: ConversationMessage[];
+//   llm?: SupportedLlm;
+// };
 
-export type ConversationMessageWithRelations = ConversationMessage & {
-  conversation?: Conversation;
-  llm?: SupportedLlm;
-};
-export type NewConversation = typeof conversations.$inferInsert;
-export type NewConversationMessage = typeof conversation_messages.$inferInsert;
+// export type ConversationMessageWithRelations = ConversationMessage & {
+//   conversation?: Conversation;
+//   llm?: SupportedLlm;
+// };
+// export type NewConversation = typeof conversations.$inferInsert;
+// export type NewConversationMessage = typeof conversation_messages.$inferInsert;
 
 export type User = typeof users.$inferSelect;
 export type Organization = typeof organizations.$inferSelect;

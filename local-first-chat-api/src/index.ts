@@ -15,6 +15,8 @@ import { ContentfulStatusCode } from 'hono/utils/http-status';
 import { Env } from './env';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
+import { createUserSchema, updateUserSchema } from './validators';
+import { eq } from 'drizzle-orm';
 
 const app = new Hono<{ Bindings: Env }>()
   .use('*', clerkMiddleware(), logger(), prettyJSON(), requestId())
@@ -61,19 +63,56 @@ const app = new Hono<{ Bindings: Env }>()
     console.log(`Received webhook with ID ${id} and type ${eventType}`);
     const sql = postgres(c.env.DATABASE_URL);
     const db = drizzle(sql, { schema });
+    const currTime = new Date().toUTCString();
     // Optional: Handle specific event types
-    if (evt.type === 'user.created') {
+    if (eventType === 'user.created') {
       console.log('New user created:', evt.data.id);
-      await db.insert(schema.users).values({
-        // id: evt.data.external_id!,
-        // clerk_id: evt.data.id,
-        created_at: evt.data.created_at,
-        updated_at: evt.data.updated_at,
-        first_name: evt.data.first_name, // changed from firstName to first_name
-        last_name: evt.data.last_name, // changed from lastName to last_name
+      const newUser = createUserSchema.safeParse({
+        id: evt.data.external_id as string,
+        last_active_at: evt.data.last_active_at,
+        server_synced: true,
+        server_synced_date: currTime,
+        clerk_id: evt.data.id,
+        first_name: evt.data.first_name,
+        last_name: evt.data.last_name,
         email: evt.data.email_addresses?.[0]?.email_address,
         username: evt.data.username,
       });
+      if (newUser.error) {
+        return c.json(JSON.stringify(newUser.error, null, 2), 400);
+      }
+      await db.insert(schema.users).values(newUser.data);
+    } else if (eventType === 'user.updated') {
+      console.log('User updated:', evt.data.id);
+      const updateData = updateUserSchema.safeParse({
+        first_name: evt.data.first_name,
+        last_name: evt.data.last_name,
+        email: evt.data.email_addresses?.[0]?.email_address,
+        username: evt.data.username,
+        last_active_at: evt.data.last_active_at,
+        server_synced: true,
+        server_synced_date: currTime,
+      });
+
+      if (updateData.error) {
+        return c.json(JSON.stringify(updateData.error, null, 2), 400);
+      }
+
+      await db
+        .update(schema.users)
+        .set(updateData.data)
+        .where(eq(schema.users.clerk_id, evt.data.id));
+    } else if (eventType === 'user.deleted') {
+      console.log('User deleted:', evt.data.id);
+      // Soft delete by updating the deleted_at timestamp
+      await db
+        .update(schema.users)
+        .set({
+          deleted_at: new Date().toISOString(),
+          server_synced: true,
+          server_synced_date: currTime,
+        })
+        .where(eq(schema.users.clerk_id, evt.data.id!));
     }
     return c.json({ message: 'Webhook received' }, 200);
   })
@@ -294,3 +333,5 @@ app.onError((err, c) => {
 });
 
 export default instrument(app);
+
+export type AppType = typeof app;

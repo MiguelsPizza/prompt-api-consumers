@@ -1,6 +1,6 @@
 {
-  "id": "a357b0d5-ed11-4202-b8b9-8b2bb7ea066a",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "4ec9e9b7-6add-4fed-b752-f4df5cdab904",
+  "prevId": "6a20fd9e-deb3-4b60-8738-aa3dfc37b2cc",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -12,7 +12,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "conversation_id": {
           "name": "conversation_id",
@@ -50,6 +51,14 @@
           "primaryKey": false,
           "notNull": true
         },
+        "llm_id_at_creation": {
+          "name": "llm_id_at_creation",
+          "type": "supported_llm",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'chrome-ai'"
+        },
         "user_id": {
           "name": "user_id",
           "type": "text",
@@ -79,6 +88,19 @@
         },
         "deleted_at": {
           "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "server_synced": {
+          "name": "server_synced",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "server_synced_date": {
+          "name": "server_synced_date",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
@@ -198,7 +220,24 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "position_range": {
+          "name": "position_range",
+          "value": "\"conversation_messages\".\"position\" >= 0"
+        },
+        "content_length": {
+          "name": "content_length",
+          "value": "length(\"conversation_messages\".\"content\") <= 32000"
+        },
+        "temperature_range": {
+          "name": "temperature_range",
+          "value": "\"conversation_messages\".\"temperature_at_creation\" >= 0 AND \"conversation_messages\".\"temperature_at_creation\" <= 10"
+        },
+        "top_k_range": {
+          "name": "top_k_range",
+          "value": "\"conversation_messages\".\"top_k_at_creation\" >= 0 AND \"conversation_messages\".\"top_k_at_creation\" <= 1000"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.conversations": {
@@ -209,7 +248,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -255,6 +295,14 @@
           "notNull": true,
           "default": false
         },
+        "llm_id": {
+          "name": "llm_id",
+          "type": "supported_llm",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'chrome-ai'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -271,6 +319,19 @@
         },
         "deleted_at": {
           "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "server_synced": {
+          "name": "server_synced",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "server_synced_date": {
+          "name": "server_synced_date",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
@@ -356,7 +417,28 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "name_length": {
+          "name": "name_length",
+          "value": "length(\"conversations\".\"name\") <= 255"
+        },
+        "summary_length": {
+          "name": "summary_length",
+          "value": "length(\"conversations\".\"conversation_summary\") <= 4000"
+        },
+        "prompt_length": {
+          "name": "prompt_length",
+          "value": "length(\"conversations\".\"system_prompt\") <= 32000"
+        },
+        "top_k_range": {
+          "name": "top_k_range",
+          "value": "\"conversations\".\"top_k\" >= 0 AND \"conversations\".\"top_k\" <= 1000"
+        },
+        "temperature_range": {
+          "name": "temperature_range",
+          "value": "\"conversations\".\"temperature\" >= 0 AND \"conversations\".\"temperature\" <= 10"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.organization_memberships": {
@@ -404,6 +486,19 @@
         },
         "deleted_at": {
           "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "server_synced": {
+          "name": "server_synced",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "server_synced_date": {
+          "name": "server_synced_date",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
@@ -513,6 +608,19 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
+        },
+        "server_synced": {
+          "name": "server_synced",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "server_synced_date": {
+          "name": "server_synced_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -537,6 +645,104 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.supported_llms": {
+      "name": "supported_llms",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_temperature": {
+          "name": "max_temperature",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "min_temperature": {
+          "name": "min_temperature",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_top_k": {
+          "name": "max_top_k",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "min_top_k": {
+          "name": "min_top_k",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(now() AT TIME ZONE 'utc'::text)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(now() AT TIME ZONE 'utc'::text)"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "server_synced": {
+          "name": "server_synced",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "server_synced_date": {
+          "name": "server_synced_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_supported_llms_name": {
+          "name": "idx_supported_llms_name",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.users": {
       "name": "users",
       "schema": "",
@@ -546,6 +752,12 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true
+        },
+        "clerk_id": {
+          "name": "clerk_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "first_name": {
           "name": "first_name",
@@ -571,9 +783,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "last_sign_in_at": {
-          "name": "last_sign_in_at",
-          "type": "timestamp",
+        "last_active_at": {
+          "name": "last_active_at",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -596,18 +808,48 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
+        },
+        "server_synced": {
+          "name": "server_synced",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "server_synced_date": {
+          "name": "server_synced_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "users_clerk_id_unique": {
+          "name": "users_clerk_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "clerk_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.supported_llm": {
+      "name": "supported_llm",
+      "schema": "public",
+      "values": [
+        "chrome-ai",
+        "web-llm"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},

@@ -9,7 +9,10 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Settings, ArrowRight, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
 import { useDrizzlePGlite } from '@/dataLayer';
-import { conversations, conversation_messages } from '@/dataLayer/schema';
+import {
+  conversations,
+  conversation_messages,
+} from 'local-first-chat-api/schema';
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from '@tanstack/react-router';

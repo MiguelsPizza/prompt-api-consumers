@@ -7,6 +7,8 @@ import { and, eq } from 'drizzle-orm';
 import { conversation_messages } from '../db/schema';
 import { createMessageSchema, messageResponseSchema } from '../validators';
 import { z } from 'zod';
+import * as schema from '../db/schema';
+
 import { Env } from '../env';
 
 const app = new Hono<{ Bindings: Env }>()
@@ -42,7 +44,7 @@ const app = new Hono<{ Bindings: Env }>()
     zValidator('json', createMessageSchema),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const body = c.req.valid('json');
 
       const message = await db
@@ -76,9 +78,8 @@ const app = new Hono<{ Bindings: Env }>()
     }),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { conversationId } = c.req.param();
-
       const messages = await db
         .select()
         .from(conversation_messages)
@@ -125,7 +126,7 @@ const app = new Hono<{ Bindings: Env }>()
     async (c) => {
       const body = c.req.valid('json');
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { messageId } = c.req.param();
 
       const updated = await db
@@ -178,7 +179,7 @@ const app = new Hono<{ Bindings: Env }>()
     }),
     async (c) => {
       const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const db = drizzle(sql, { schema });
       const { messageId } = c.req.param();
 
       const deleted = await db

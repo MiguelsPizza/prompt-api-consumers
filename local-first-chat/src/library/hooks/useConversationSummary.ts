@@ -4,7 +4,7 @@ import {
   conversations,
   ConversationMessage,
   ConversationWithRelations,
-} from '@/dataLayer/schema';
+} from 'local-first-chat-api/schema';
 import { useSummarizer } from 'use-prompt-api';
 import { useDrizzleLiveIncremental } from '@/dataLayer';
 import { eq } from 'drizzle-orm';

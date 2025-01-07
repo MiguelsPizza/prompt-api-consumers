@@ -1,13 +1,1 @@
-{
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1735615957359,
-      "tag": "0000_unique_fabian_cortez",
-      "breakpoints": true
-    }
-  ]
-}
+{"version":"7","dialect":"postgresql","entries":[]}

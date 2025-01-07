@@ -1,6 +1,10 @@
+import { config } from 'dotenv';
 import type { Config } from 'drizzle-kit';
 
 export const SCHEMA_PATH = './src/db/schema.ts';
+export const LOCAL_SCHEMA_PATH = './src/db/localSchema.ts';
+
+config({ path: './.dev.vars' });
 
 export const supabaseConfig: Config = {
   schema: SCHEMA_PATH,
@@ -12,7 +16,7 @@ export const supabaseConfig: Config = {
 };
 
 export const pgliteConfig: Config = {
-  schema: SCHEMA_PATH,
+  schema: LOCAL_SCHEMA_PATH,
   out: './drizzle',
   dialect: 'postgresql',
   driver: 'pglite',

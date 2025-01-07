@@ -1,6 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { useDrizzlePGlite } from '@/dataLayer';
-import { conversations, conversation_messages } from '@/dataLayer/schema';
+import {
+  conversations,
+  conversation_messages,
+} from 'local-first-chat-api/schema';
 import { useToast } from './use-toast';
 import { ConversationContext } from '@/utils/Contexts';
 import { useNavigate } from '@tanstack/react-router';
@@ -116,19 +119,20 @@ export function ConversationProvider({
         console.log({ system_prompt });
         const now = new Date();
         // const user = await supabase?.client.auth.getUser();
+        const conv = {
+          id: crypto.randomUUID(),
+          name: 'New conversation',
+          conversation_summary: '',
+          system_prompt: system_prompt,
+          created_at: now.toLocaleDateString(),
+          updated_at: now.toLocaleDateString(),
+          top_k: top_k,
+          temperature,
+          user_id: 'Local_ID',
+        };
         const result = await db
           .insert(conversations)
-          .values({
-            id: crypto.randomUUID(),
-            name: 'New conversation',
-            conversation_summary: '',
-            system_prompt: system_prompt,
-            created_at: now.toLocaleDateString(),
-            updated_at: now.toLocaleDateString(),
-            top_k: top_k,
-            temperature,
-            user_id: 'Local_ID',
-          })
+          .values(conv)
           .returning({ id: conversations.id });
 
         const newConvId = result[0]?.id ?? '0';

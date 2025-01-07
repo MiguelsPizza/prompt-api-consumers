@@ -41,13 +41,13 @@
 
 import * as React from 'react';
 import {
-	useQuery as useTanstackQuery,
-	useSuspenseQuery as useTanstackSuspenseQuery,
-	type QueryClient,
-	useQueryClient,
-	type UseQueryOptions,
-	type UseQueryResult,
-	type UseSuspenseQueryResult,
+  useQuery as useTanstackQuery,
+  useSuspenseQuery as useTanstackSuspenseQuery,
+  type QueryClient,
+  useQueryClient,
+  type UseQueryOptions,
+  type UseQueryResult,
+  type UseSuspenseQueryResult,
 } from '@tanstack/react-query';
 import { useDrizzleLive, useDrizzleLiveIncremental } from './react';
 import type { DrizzleQueryType } from './index';
@@ -56,23 +56,23 @@ import type { DrizzleQueryType } from './index';
  * Shared options for wrapping Drizzle live queries with TanStack Query.
  */
 export interface UseDrizzleTanstackOptions<TData>
-	extends Omit<UseQueryOptions<TData>, 'queryKey' | 'queryFn'> {
-	/**
-	 * The "queryKey" used by TanStack Query for caching and invalidation.
-	 */
-	queryKey: readonly unknown[];
+  extends Omit<UseQueryOptions<TData>, 'queryKey' | 'queryFn'> {
+  /**
+   * The "queryKey" used by TanStack Query for caching and invalidation.
+   */
+  queryKey: readonly unknown[];
 
-	/**
-	 * A callback that receives the typed drizzle database instance and returns a Drizzle query
-	 * or the Drizzle query object itself. This is what you'd normally pass to:
-	 *   useDrizzleLive((db) => db.select().from(schema.users))
-	 */
-	drizzleQuery: DrizzleQueryType | ((...args: any[]) => DrizzleQueryType);
+  /**
+   * A callback that receives the typed drizzle database instance and returns a Drizzle query
+   * or the Drizzle query object itself. This is what you'd normally pass to:
+   *   useDrizzleLive((db) => db.select().from(schema.users))
+   */
+  drizzleQuery: DrizzleQueryType | ((...args: any[]) => DrizzleQueryType);
 
-	/**
-	 * If using incremental live queries, specify the "diffKey" used for incremental changes.
-	 */
-	diffKey?: string;
+  /**
+   * If using incremental live queries, specify the "diffKey" used for incremental changes.
+   */
+  diffKey?: string;
 }
 
 /**
@@ -80,63 +80,63 @@ export interface UseDrizzleTanstackOptions<TData>
  * This is not exported directly; use "useDrizzleTanstackLive" or "useDrizzleTanstackLiveIncremental" instead.
  */
 function useDrizzleTanstackCore<TData>(
-	options: UseDrizzleTanstackOptions<TData>,
-	queryClient: QueryClient,
-	useSuspense: boolean,
-	incremental: boolean,
+  options: UseDrizzleTanstackOptions<TData>,
+  queryClient: QueryClient,
+  useSuspense: boolean,
+  incremental: boolean,
 ): UseQueryResult<TData> | UseSuspenseQueryResult<TData> {
-	const { queryKey, drizzleQuery, diffKey, ...tanstackOptions } = options;
+  const { queryKey, drizzleQuery, diffKey, ...tanstackOptions } = options;
 
-	// Resolve drizzleQuery if it's a function
-	const resolvedQuery = React.useMemo<DrizzleQueryType>(() => {
-		return typeof drizzleQuery === 'function'
-			? (drizzleQuery as any)()
-			: drizzleQuery;
-	}, [drizzleQuery]);
+  // Resolve drizzleQuery if it's a function
+  const resolvedQuery = React.useMemo<DrizzleQueryType>(() => {
+    return typeof drizzleQuery === 'function'
+      ? (drizzleQuery as any)()
+      : drizzleQuery;
+  }, [drizzleQuery]);
 
-	// Retrieve data from ElectricSQL's live queries
-	const liveResult = incremental
-		? useDrizzleLiveIncremental(diffKey!, resolvedQuery)
-		: useDrizzleLive(resolvedQuery);
+  // Retrieve data from ElectricSQL's live queries
+  const liveResult = incremental
+    ? useDrizzleLiveIncremental(diffKey!, resolvedQuery)
+    : useDrizzleLive(resolvedQuery);
 
-	const { data: electricData } = liveResult;
+  const { data: electricData } = liveResult;
 
-	// Memoize the queryFn to prevent unnecessary updates
-	const queryFn = React.useCallback(async (): Promise<TData> => {
-		return electricData as TData;
-	}, [electricData]);
+  // Memoize the queryFn to prevent unnecessary updates
+  const queryFn = React.useCallback(async (): Promise<TData> => {
+    return electricData as TData;
+  }, [electricData]);
 
-	// Only update cache if data has changed
-	React.useEffect(() => {
-		if (electricData !== undefined) {
-			const cached = queryClient.getQueryData<TData>(queryKey);
-			if (JSON.stringify(cached) !== JSON.stringify(electricData)) {
-				queryClient.setQueryData<TData>(queryKey, electricData as TData);
-			}
-		}
-	}, [electricData, queryKey, queryClient]);
+  // Only update cache if data has changed
+  React.useEffect(() => {
+    if (electricData !== undefined) {
+      const cached = queryClient.getQueryData<TData>(queryKey);
+      if (JSON.stringify(cached) !== JSON.stringify(electricData)) {
+        queryClient.setQueryData<TData>(queryKey, electricData as TData);
+      }
+    }
+  }, [electricData, queryKey, queryClient]);
 
-	const queryOptions = {
-		...(tanstackOptions as any),
-		queryKey,
-		queryFn,
-		initialData: electricData,
-		// Prevent unnecessary refetches since ElectricSQL handles live updates
-		staleTime: Infinity,
-		// Only refetch on mount if we don't have data
-		refetchOnMount: !electricData,
-		// Disable automatic background refetches
-		refetchOnWindowFocus: false,
-		refetchOnReconnect: false,
-	};
+  const queryOptions = {
+    ...(tanstackOptions as any),
+    queryKey,
+    queryFn,
+    initialData: electricData,
+    // Prevent unnecessary refetches since ElectricSQL handles live updates
+    staleTime: Infinity,
+    // Only refetch on mount if we don't have data
+    refetchOnMount: !electricData,
+    // Disable automatic background refetches
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  };
 
-	if (useSuspense) {
-		return useTanstackSuspenseQuery<TData>(
-			queryOptions,
-		) as UseSuspenseQueryResult<TData>;
-	} else {
-		return useTanstackQuery<TData>(queryOptions);
-	}
+  if (useSuspense) {
+    return useTanstackSuspenseQuery<TData>(
+      queryOptions,
+    ) as UseSuspenseQueryResult<TData>;
+  } else {
+    return useTanstackQuery<TData>(queryOptions);
+  }
 }
 
 /**
@@ -154,15 +154,15 @@ function useDrizzleTanstackCore<TData>(
  * ```
  */
 export function useDrizzleTanstackLive<TData = unknown>(
-	options: UseDrizzleTanstackOptions<TData>,
-	queryClient: QueryClient = useQueryClient(),
+  options: UseDrizzleTanstackOptions<TData>,
+  queryClient: QueryClient = useQueryClient(),
 ): UseQueryResult<TData> {
-	return useDrizzleTanstackCore<TData>(
-		options,
-		queryClient,
-		false,
-		false,
-	) as UseQueryResult<TData>;
+  return useDrizzleTanstackCore<TData>(
+    options,
+    queryClient,
+    false,
+    false,
+  ) as UseQueryResult<TData>;
 }
 
 /**
@@ -180,15 +180,15 @@ export function useDrizzleTanstackLive<TData = unknown>(
  * ```
  */
 export function useDrizzleTanstackLiveSuspense<TData = unknown>(
-	options: UseDrizzleTanstackOptions<TData>,
-	queryClient: QueryClient = useQueryClient(),
+  options: UseDrizzleTanstackOptions<TData>,
+  queryClient: QueryClient = useQueryClient(),
 ): UseSuspenseQueryResult<TData> {
-	return useDrizzleTanstackCore<TData>(
-		options,
-		queryClient,
-		true,
-		false,
-	) as UseSuspenseQueryResult<TData>;
+  return useDrizzleTanstackCore<TData>(
+    options,
+    queryClient,
+    true,
+    false,
+  ) as UseSuspenseQueryResult<TData>;
 }
 
 /**
@@ -206,28 +206,28 @@ export function useDrizzleTanstackLiveSuspense<TData = unknown>(
  * ```
  */
 export function useDrizzleTanstackLiveIncremental<TData = unknown>(
-	options: UseDrizzleTanstackOptions<TData> & { diffKey: string },
-	queryClient: QueryClient = useQueryClient(),
+  options: UseDrizzleTanstackOptions<TData> & { diffKey: string },
+  queryClient: QueryClient = useQueryClient(),
 ): UseQueryResult<TData> {
-	return useDrizzleTanstackCore<TData>(
-		options,
-		queryClient,
-		false,
-		true,
-	) as UseQueryResult<TData>;
+  return useDrizzleTanstackCore<TData>(
+    options,
+    queryClient,
+    false,
+    true,
+  ) as UseQueryResult<TData>;
 }
 
 /**
  * Same as useDrizzleTanstackLiveIncremental, but in TanStack Query's suspense mode.
  */
 export function useDrizzleTanstackLiveIncrementalSuspense<TData = unknown>(
-	options: UseDrizzleTanstackOptions<TData> & { diffKey: string },
-	queryClient: QueryClient = useQueryClient(),
+  options: UseDrizzleTanstackOptions<TData> & { diffKey: string },
+  queryClient: QueryClient = useQueryClient(),
 ): UseSuspenseQueryResult<TData> {
-	return useDrizzleTanstackCore<TData>(
-		options,
-		queryClient,
-		true,
-		true,
-	) as UseSuspenseQueryResult<TData>;
+  return useDrizzleTanstackCore<TData>(
+    options,
+    queryClient,
+    true,
+    true,
+  ) as UseSuspenseQueryResult<TData>;
 }

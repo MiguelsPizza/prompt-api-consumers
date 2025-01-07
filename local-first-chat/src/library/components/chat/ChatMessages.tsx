@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useDrizzlePGlite } from '@/dataLayer';
-import { conversation_messages } from '@/dataLayer/schema';
+import { conversation_messages } from 'local-first-chat-api/schema';
 import {
   AppendMessage,
   AssistantRuntimeProvider,

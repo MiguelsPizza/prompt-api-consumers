@@ -54,17 +54,29 @@ export const createUserSchema = createInsertSchema(users)
   .pick({
     id: true,
     clerk_id: true,
-    firstName: true,
-    lastName: true,
+    first_name: true,
+    last_name: true,
     email: true,
     username: true,
-    lastSignInAt: true,
+    last_active_at: true,
   })
   .openapi({ ref: 'CreateUser' });
 
 export const userResponseSchema = createSelectSchema(users)
   .omit({ deleted_at: true })
   .openapi({ ref: 'User' });
+
+// Add update user schema
+export const updateUserSchema = createInsertSchema(users)
+  .pick({
+    first_name: true,
+    last_name: true,
+    email: true,
+    username: true,
+    last_active_at: true,
+  })
+  .partial() // Makes all fields optional
+  .openapi({ ref: 'UpdateUser' });
 
 // Organization schemas
 export const createOrganizationSchema = createInsertSchema(organizations)

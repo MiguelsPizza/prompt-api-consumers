@@ -43,17 +43,20 @@ export function WorkerErrorListener() {
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     window.addEventListener('error', handleError);
 
-    // Cleanup
+    // Cleanup - remove listeners before closing channel
     return () => {
+      // First remove all event listeners
       channel.removeEventListener('message', handleWorkerError);
       window.removeEventListener(
         'unhandledrejection',
         handleUnhandledRejection,
       );
       window.removeEventListener('error', handleError);
+
+      // Then close the channel
       channel.close();
     };
-  }, []);
+  }, [toast]);
 
   return null;
 }

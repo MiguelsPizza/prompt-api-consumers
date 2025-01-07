@@ -1,12 +1,24 @@
 {
   "name": "local-first-chat-api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./schema": {
+      "types": "./src/db/schema.ts",
+      "default": "./src/db/schema.ts"
+    }
+  },
   "scripts": {
     "dev": "wrangler dev src/index.ts --env dev.vars",
     "deploy": "wrangler deploy --minify src/index.ts",
     "db:generate:supabase": "drizzle-kit generate --config=drizzle.supabase.config.ts",
-    "db:generate:pglite": "drizzle-kit generate --config=drizzle.pglite.config.ts && tsx ./compile-migrations.ts",
-    "db:generate": "npm run db:generate:supabase && npm run db:generate:pglite && tsx ./compile-migrations.ts",
-    "db:migrate": "drizzle-kit migrate",
+    "db:generate:pglite": "drizzle-kit generate --config=drizzle.pglite.config.ts",
+    "db:generate": "npm run db:generate:supabase && npm run db:generate:pglite",
+    "db:migrate": "drizzle-kit migrate --config=drizzle.supabase.config.ts && tsx ./compile-migrations.ts",
+    "db:migrate:local": "tsx ./compile-migrations.ts",
     "db:seed": "tsx seed.ts",
     "db:setup": "npm run db:generate && npm run db:migrate && npm run db:seed",
     "db:studio": "drizzle-kit studio",

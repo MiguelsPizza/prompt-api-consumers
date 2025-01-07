@@ -11,7 +11,7 @@ import {
 import {
   conversations as conversationsSchema,
   conversation_messages,
-} from '@/dataLayer/schema';
+} from 'local-first-chat-api/schema';
 import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
 import {
   useDrizzleLiveIncremental,
@@ -25,10 +25,11 @@ import { AlertCircle, CheckCircle2, Cloud, CloudOff } from 'lucide-react';
 import { desc, eq, sql } from 'drizzle-orm';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { useDrizzleTanstackLiveIncremental } from '@/dataLayer/src/react-tanstack';
-import { conversations } from '../../../../../local-first-chat-api/src/db/schema';
+import { conversations } from 'local-first-chat-api/schema';
 
 export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
   const { toast } = useToast();
+  const user = null;
   const db = useDrizzlePGlite();
   const { useSearch, useParams } = getRouteApi('/conversation');
   // @ts-expect-error Not sure how to do this properly with Tanstack router
@@ -54,7 +55,7 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
     navigateToConversation,
   } = useConversation();
   const router = useRouter();
-  const user = useUser();
+  // const user = useUser();
   const currentPath = router.state.location.pathname;
   const [syncStatus, setSyncStatus] = useState<
     'offline' | 'syncing' | 'synced'
@@ -98,8 +99,9 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
               <Button
                 variant="outline"
                 size="icon"
-                className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${!currentPath.includes('auth') ? 'gradient-violet' : ''
-                  }`}
+                className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${
+                  !currentPath.includes('auth') ? 'gradient-violet' : ''
+                }`}
                 onClick={() => handleNewConversation()}
               >
                 <PlusCircle className="h-5 w-5" />
@@ -158,8 +160,10 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                     <Button
                       variant="outline"
                       size="icon"
-                        className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'login' ? 'gradient-violet' : ''
-                          }`}
+                      className={`text-foreground
+                           hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${
+                             authType === 'login' ? 'gradient-violet' : ''
+                           }`}
                     >
                       <LogIn className="h-5 w-5" />
                     </Button>
@@ -183,8 +187,9 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                     <Button
                       variant="outline"
                       size="icon"
-                        className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${authType === 'signup' ? 'gradient-violet' : ''
-                          }`}
+                      className={`text-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200 h-10 w-10 ${
+                        authType === 'signup' ? 'gradient-violet' : ''
+                      }`}
                     >
                       <Upload className="h-5 w-5" />
                     </Button>
@@ -262,8 +267,8 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
                       conversation.id,
                       count === 1
                         ? () => {
-                          setSidebarCollapsed(true);
-                        }
+                            setSidebarCollapsed(true);
+                          }
                         : undefined,
                     );
                   }}
