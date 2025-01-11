@@ -74,7 +74,7 @@ export const electricTable: ElectricTableFn = (
     selectList.push(generateColumnCaseStatement(colName));
   }
 
-  const viewSql = sql`
+  const viewSql = sql<string>`
     SELECT ${sql.join(selectList, sql`, `)}
     FROM ${syncedTable} AS "synced"
     FULL OUTER JOIN ${localTable} AS "local"
