@@ -19,7 +19,15 @@ import { createUserSchema, updateUserSchema } from './validators';
 import { eq } from 'drizzle-orm';
 
 const app = new Hono<{ Bindings: Env }>()
-  .use('*', clerkMiddleware(), logger(), prettyJSON(), requestId())
+  .use(
+    '*',
+    clerkMiddleware({
+      requireSecretKey: true,
+    }),
+    logger(),
+    prettyJSON(),
+    requestId(),
+  )
   .post('/api/webhooks', async (c) => {
     const SIGNING_SECRET = c.env.SIGNING_SECRET;
     if (!SIGNING_SECRET) {
