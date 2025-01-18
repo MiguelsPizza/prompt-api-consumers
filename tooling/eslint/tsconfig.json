@@ -1,0 +1,5 @@
+{
+  "extends": "@local-first-web-ai-monorepo/tsconfig/base.json",
+  "include": ["."],
+  "exclude": ["node_modules"]
+}

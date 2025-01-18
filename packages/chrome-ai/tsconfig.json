@@ -1,0 +1,15 @@
+{
+  "extends": "@local-first-web-ai-monorepo/tsconfig/internal-package.json",
+  "compilerOptions": {
+    "plugins": [{ "name": "next" }],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./*"],
+      "chrome-ai/*": ["./src/*"],
+      "chrome-ai": ["./src/index.ts"]
+    },
+    "incremental": true
+  },
+  "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
