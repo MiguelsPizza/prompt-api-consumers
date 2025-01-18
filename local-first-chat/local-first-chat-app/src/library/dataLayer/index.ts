@@ -1,5 +1,5 @@
+import * as schema from '@local-first-web-ai-monorepo/schema/cloud';
 import { drizzle } from 'drizzle-orm/pglite/driver';
-import * as schema from 'local-first-chat-api/schema';
 import { createDrizzle } from './src/react.js';
 
 export type GlobalDrizzleDB = ReturnType<typeof drizzle<typeof schema>>;

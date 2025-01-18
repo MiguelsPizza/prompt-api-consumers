@@ -1,16 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { ChatMessages } from '@/components/chat/ChatMessages';
 import { ChatHeader } from '@/components/chat/ChatHeader';
-import { ChatInterfaceSchema } from '@/utils/paramValidators';
-import { useDrizzlePGlite } from '@/dataLayer';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { ChatMessages } from '@/components/chat/ChatMessages';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useConversationSummary } from '@/hooks/useConversationSummary';
-import { useQuery } from '@tanstack/react-query';
-import { conversation_messages } from 'local-first-chat-api/schema';
-import { eq } from 'drizzle-orm';
-import { queryClient } from '../main';
+import { ChatInterfaceSchema } from '@/utils/paramValidators';
+import { createFileRoute } from '@tanstack/react-router';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import React from 'react';
+import { queryClient } from '../main';
 
 export const Route = createFileRoute('/conversation/$id')({
   component: ConversationView,

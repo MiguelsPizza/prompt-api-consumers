@@ -39,18 +39,18 @@
  * ```
  */
 
-import * as React from 'react';
 import {
+  useQueryClient,
   useQuery as useTanstackQuery,
   useSuspenseQuery as useTanstackSuspenseQuery,
   type QueryClient,
-  useQueryClient,
   type UseQueryOptions,
   type UseQueryResult,
   type UseSuspenseQueryResult,
 } from '@tanstack/react-query';
-import { useDrizzleLive, useDrizzleLiveIncremental } from './react';
+import * as React from 'react';
 import type { DrizzleQueryType } from './index';
+import { useDrizzleLive, useDrizzleLiveIncremental } from './react';
 
 /**
  * Shared options for wrapping Drizzle live queries with TanStack Query.

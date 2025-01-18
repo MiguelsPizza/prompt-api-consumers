@@ -1,14 +1,14 @@
 import { PGlite } from '@electric-sql/pglite';
-import { worker } from '@electric-sql/pglite/worker';
-import { drizzle, PgliteDatabase } from 'drizzle-orm/pglite/driver';
-import type { MigrationConfig } from 'drizzle-orm/migrator';
-import * as schema from 'local-first-chat-api/schema';
 import { live } from '@electric-sql/pglite/live';
+import { worker } from '@electric-sql/pglite/worker';
+import * as schema from '@local-first-web-ai-monorepo/schema/cloud';
+import type { MigrationConfig } from 'drizzle-orm/migrator';
+import { drizzle } from 'drizzle-orm/pglite/driver';
 
-import migrations from './migrations.json';
 import { IdbFs } from '@electric-sql/pglite';
 import { electricSync } from '@electric-sql/pglite-sync';
 import { PgDialect } from 'drizzle-orm/pg-core';
+import migrations from './migrations.json';
 import { setupLocalFirstSchema } from './setUpLocalFirst';
 
 worker({

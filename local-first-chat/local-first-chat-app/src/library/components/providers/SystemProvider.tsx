@@ -1,18 +1,17 @@
 import { type PGliteWithLive, live } from '@electric-sql/pglite/live';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { PGliteProvider } from '@electric-sql/pglite-react';
 
+import * as schema from '@local-first-web-ai-monorepo/schema/cloud';
 import PGWorker from '../../dataLayer/worker?worker';
-import * as schema from 'local-first-chat-api/schema';
 
-import { useAuth } from '@clerk/clerk-react';
-import { PGliteWorker } from '@electric-sql/pglite/worker';
-import { Loader, Loader2 } from 'lucide-react';
 import { GlobalDrizzleDB } from '@/dataLayer';
-import { drizzle } from 'drizzle-orm/pglite';
 import { PGlite } from '@electric-sql/pglite';
+import { PGliteWorker } from '@electric-sql/pglite/worker';
 import { RouterProvider } from '@tanstack/react-router';
+import { drizzle } from 'drizzle-orm/pglite';
+import { Loader2 } from 'lucide-react';
 import { RouterType } from '../../../main';
 
 export function SystemProvider({ router }: { router: RouterType }) {

@@ -1,21 +1,13 @@
-import { PgliteDatabase, PgliteQueryResultHKT } from 'drizzle-orm/pglite';
-import { getTableName, isTable, Table, TableConfig } from 'drizzle-orm';
+import { isTable, Table, TableConfig } from 'drizzle-orm';
 import { Column } from 'drizzle-orm/column';
+import { PgliteDatabase } from 'drizzle-orm/pglite';
 
-import { createLocalFirstSchemaSql } from './local-db-gen';
-import {
-  AnyPgTable,
-  getTableConfig,
-  PgDatabase,
-  PgTable,
-  PgTableExtraConfig,
-} from 'drizzle-orm/pg-core';
-import * as schema from 'local-first-chat-api/schema';
-import {
-  ExtractTableRelationsFromSchema,
-  ExtractTablesWithRelations,
-} from 'drizzle-orm';
 import { PGlite } from '@electric-sql/pglite';
+import {
+  getTableConfig,
+  PgTable
+} from 'drizzle-orm/pg-core';
+import { createLocalFirstSchemaSql } from './local-db-gen';
 // Type definitions
 
 // Define the symbols we need

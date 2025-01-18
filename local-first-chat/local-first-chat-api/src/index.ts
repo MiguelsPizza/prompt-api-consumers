@@ -21,9 +21,7 @@ import { createUserSchema, updateUserSchema } from './validators';
 const app = new Hono<{ Bindings: Env }>()
   .use(
     '*',
-    clerkMiddleware({
-      requireSecretKey: true,
-    }),
+    clerkMiddleware(),
     logger(),
     prettyJSON(),
     requestId(),

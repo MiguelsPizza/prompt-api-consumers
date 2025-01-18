@@ -1,18 +1,17 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SystemProvider } from '@/components/providers/SystemProvider';
-import { AICapabilitiesProvider } from 'use-prompt-api';
-import PWABadge from '@/components/widgets/PWABadge';
 import { Toaster } from '@/components/ui/toaster';
-import { ClerkProvider } from '@clerk/clerk-react';
+import PWABadge from '@/components/widgets/PWABadge';
 import { WorkerErrorListener } from '@/components/widgets/WorkerErrorListener';
+import { GlobalDrizzleDB } from '@/dataLayer';
+import { ClerkProvider } from '@clerk/clerk-react';
+import * as schema from '@local-first-web-ai-monorepo/schema/cloud';
+import { AICapabilitiesProvider } from '@local-first-web-ai-monorepo/use-prompt-api';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createRouter } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
-import * as schema from 'local-first-chat-api/schema';
-import { GlobalDrizzleDB } from '@/dataLayer';
 
 // Import your Publishable Key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;

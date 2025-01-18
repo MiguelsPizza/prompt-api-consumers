@@ -16,17 +16,21 @@ import type {
   SyncShapeToTableResult,
 } from '@electric-sql/pglite-sync';
 
+import type {
+  UseQueryResult,
+  UseSuspenseQueryResult,
+} from '@tanstack/react-query';
 import {
-  type PgliteDatabase,
   drizzle as createPgLiteClient,
+  type PgliteDatabase,
 } from 'drizzle-orm/pglite';
+import React from 'react';
 import {
   type DrizzleQueryType,
   type LiveQueryReturnType,
   type PGLiteWithElectric,
   syncShapeToTable as syncShapeToTableImpl,
 } from './index';
-import { processQueryResults } from './relation-query-parser';
 import {
   useDrizzleTanstackLive,
   useDrizzleTanstackLiveIncremental,
@@ -34,11 +38,7 @@ import {
   useDrizzleTanstackLiveSuspense,
   type UseDrizzleTanstackOptions,
 } from './react-tanstack';
-import type {
-  UseQueryResult,
-  UseSuspenseQueryResult,
-} from '@tanstack/react-query';
-import React from 'react';
+import { processQueryResults } from './relation-query-parser';
 
 /**
  * Return type for the createDrizzle function providing type-safe Electric SQL hooks with DrizzleORM integration.

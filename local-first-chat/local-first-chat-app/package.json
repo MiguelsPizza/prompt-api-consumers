@@ -53,6 +53,7 @@
     "formik": "^2.4.6",
     "highlight.js": "^11.11.1",
     "@local-first-web-ai-monorepo/local-first-chat-api": "workspace:*",
+    "@local-first-web-ai-monorepo/schema": "workspace:*",
     "lodash": "^4.17.21",
     "lucide-react": "^0.469.0",
     "marked": "^15.0.4",

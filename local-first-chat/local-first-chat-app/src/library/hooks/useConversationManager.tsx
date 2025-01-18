@@ -1,13 +1,13 @@
-import { useCallback, useMemo } from 'react';
 import { useDrizzlePGlite } from '@/dataLayer';
-import {
-  conversations,
-  conversation_messages,
-} from 'local-first-chat-api/schema';
-import { useToast } from './use-toast';
 import { ConversationContext } from '@/utils/Contexts';
+import {
+  conversation_messages,
+  conversations,
+} from '@local-first-web-ai-monorepo/schema/cloud';
 import { useNavigate } from '@tanstack/react-router';
 import { eq } from 'drizzle-orm';
+import { useCallback, useMemo } from 'react';
+import { useToast } from './use-toast';
 
 export interface ConversationContextType {
   handleDeleteConversation: (

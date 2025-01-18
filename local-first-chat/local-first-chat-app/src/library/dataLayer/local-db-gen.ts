@@ -1,13 +1,6 @@
 import {
   AnyPgColumn,
-  AnyPgTable,
-  PgBoolean,
-  PgDialect,
-  PgEnumColumn,
-  PgReal,
-  PgText,
-  PgTimestampString,
-  PgUUID,
+  PgDialect
 } from 'drizzle-orm/pg-core';
 
 // import { DrizzleSymbolInfo } from './setUpLocalFirst';
@@ -51,10 +44,10 @@ import {
  *   // }
  *
  */
-import { ColumnBaseConfig, SQL, Table, TableConfig, sql } from 'drizzle-orm';
+import { PGlite } from '@electric-sql/pglite';
+import { Table, TableConfig } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { PgliteDatabase } from 'drizzle-orm/pglite';
-import { PGlite } from '@electric-sql/pglite';
 
 type DrizzleTable = Table<TableConfig<AnyPgColumn>>;
 

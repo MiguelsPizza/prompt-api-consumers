@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useDrizzlePGlite } from '@/dataLayer';
+import { useDrizzleLiveIncremental, useDrizzlePGlite } from '@/dataLayer';
 import {
-  conversations,
   ConversationMessage,
+  conversations,
   ConversationWithRelations,
-} from 'local-first-chat-api/schema';
-import { useSummarizer } from 'use-prompt-api';
-import { useDrizzleLiveIncremental } from '@/dataLayer';
+} from '@local-first-web-ai-monorepo/schema/cloud';
+import { useSummarizer } from '@local-first-web-ai-monorepo/use-prompt-api';
 import { eq } from 'drizzle-orm';
+import { useEffect, useState } from 'react';
 
 export function useConversationSummary(currentConversationId: string | null) {
   const db = useDrizzlePGlite();

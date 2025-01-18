@@ -10,7 +10,7 @@ import {
   conversation_messages,
   ConversationMessage,
   ConversationWithRelations,
-} from '@local-first-web-ai-monorepo/local-first-chat-api/schema';
+} from '@local-first-web-ai-monorepo/schema/cloud';
 import { useStatelessPromptAPI } from '@local-first-web-ai-monorepo/use-prompt-api';
 import { getRouteApi } from '@tanstack/react-router';
 import { and, count, eq, gt, gte } from 'drizzle-orm';

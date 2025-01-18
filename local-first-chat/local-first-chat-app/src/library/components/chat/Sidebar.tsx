@@ -1,7 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BookUser, LogIn, PlusCircle, Trash2, Upload } from 'lucide-react';
-import { SidebarProps } from '@/types/chat';
 import {
   Tooltip,
   TooltipContent,
@@ -9,23 +7,20 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  conversations as conversationsSchema,
-  conversation_messages,
-} from 'local-first-chat-api/schema';
-import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
-import {
   useDrizzleLiveIncremental,
   useDrizzlePGlite,
-  // useDrizzleTanstackLiveIncremental,
 } from '@/dataLayer';
-import { useConversation } from '@/utils/Contexts';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, Cloud, CloudOff } from 'lucide-react';
-import { desc, eq, sql } from 'drizzle-orm';
-import { UserButton, useUser } from '@clerk/clerk-react';
-import { useDrizzleTanstackLiveIncremental } from '@/dataLayer/src/react-tanstack';
-import { conversations } from 'local-first-chat-api/schema';
+import { SidebarProps } from '@/types/chat';
+import { useConversation } from '@/utils/Contexts';
+import { UserButton } from '@clerk/clerk-react';
+import {
+  conversations as conversationsSchema
+} from '@local-first-web-ai-monorepo/schema/cloud';
+import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
+import { sql } from 'drizzle-orm';
+import { BookUser, CheckCircle2, Cloud, CloudOff, LogIn, PlusCircle, Trash2, Upload } from 'lucide-react';
+import { useState } from 'react';
 
 export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
   const { toast } = useToast();

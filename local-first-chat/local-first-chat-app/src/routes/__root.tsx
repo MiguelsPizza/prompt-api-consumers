@@ -1,14 +1,14 @@
-import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import ReplWDb from '@/dataLayer/repl';
 import {
+  Link,
   Outlet,
   createRootRouteWithContext,
   useMatches,
 } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
 import { HomeIcon } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
-import ReplWDb from '@/dataLayer/repl';
-import { RouterContext } from '../router.def';
+import * as React from 'react';
+import type { RouterContext } from '../main';
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,

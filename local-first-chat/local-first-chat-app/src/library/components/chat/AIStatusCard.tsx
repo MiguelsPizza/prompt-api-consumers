@@ -1,3 +1,5 @@
+import { useToast } from '@/hooks/use-toast';
+import { useAICapabilities } from '@local-first-web-ai-monorepo/use-prompt-api';
 import {
   AlertCircle,
   Check,
@@ -10,7 +12,15 @@ import {
   Info,
   XCircle,
 } from 'lucide-react';
+import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
 import { Button } from '../ui/button';
 import {
   Card,
@@ -20,16 +30,6 @@ import {
   CardTitle,
 } from '../ui/card';
 import { Progress } from '../ui/progress';
-import { useAICapabilities } from 'use-prompt-api';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../ui/alert-dialog';
-import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 export function AIStatusCard() {
   const [showSetup, setShowSetup] = useState(false);
