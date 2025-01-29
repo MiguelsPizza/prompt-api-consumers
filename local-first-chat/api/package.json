@@ -1,5 +1,5 @@
 {
-  "name": "@local-first-web-ai-monorepo/local-first-chat-api",
+  "name": "@local-first-web-ai-monorepo/api",
   "type": "module",
   "exports": {
     ".": {
