@@ -1,0 +1,60 @@
+{
+  "name": "@local-first-web-ai-monorepo/window-extension",
+  "displayName": "Window AI",
+  "version": "0.0.21",
+  "private": true,
+  "description": "Use your own AI models on the web",
+  "author": "Alex Atallah <alexander.atallah@gmail.com>",
+  "scripts": {
+    "start": "next start",
+    "dev": "plasmo dev",
+    "stage": "plasmo dev --no-cs-reload",
+    "build": "plasmo build --no-minify --no-hoist",
+    "package": "plasmo package"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.0.18",
+    "@plasmohq/messaging": "^0.6.2",
+    "@plasmohq/storage": "^1.13.0",
+    "@types/chrome": "latest",
+    "@types/webextension-polyfill": "^0.12.1",
+    "@vespaiach/axios-fetch-adapter": "github:alexanderatallah/axios-fetch-adapter",
+    "@xenova/transformers": "^2.17.2",
+    "axios": "^1.4.0",
+    "axios-retry": "^3.5.0",
+    "object-hash": "^3.0.0",
+    "plasmo": "^0.89.4",
+    "puro": "^0.8.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "uuid": "^9.0.0",
+    "webextension-polyfill": "^0.12.0",
+    "@local-first-web-ai-monorepo/web-ai-polyfill": "workspace:*"
+  },
+  "devDependencies": {
+    "@plasmohq/prettier-plugin-sort-imports": "3.6.4",
+    "@plasmohq/rps": "^1.8.6",
+    "@types/dom-chromium-ai": "^0.0.4",
+    "@types/node": "20.2.5",
+    "@types/object-hash": "^3.0.2",
+    "@types/react": "18.2.7",
+    "@types/react-dom": "18.2.4",
+    "@types/uuid": "^9.0.1",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "prettier": "2.8.8",
+    "tailwindcss": "3.3.2",
+    "typescript": "5.0.4",
+    "@local-first-web-ai-monorepo/window.ai": "workspace:*"
+  },
+  "manifest": {
+    "host_permissions": [
+      "file://*/*",
+      "https://*/*",
+      "http://*/*"
+    ],
+    "permissions": [
+      "unlimitedStorage"
+    ]
+  }
+}

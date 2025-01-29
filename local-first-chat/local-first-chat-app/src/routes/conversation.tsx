@@ -1,10 +1,9 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Sidebar } from '@/components/chat/Sidebar';
 import { AIStatusCard } from '@/components/chat/AIStatusCard';
-import { Outlet } from '@tanstack/react-router';
-import { useCallback } from 'react';
-import { RootSchema } from '@/utils/paramValidators';
+import { Sidebar } from '@/components/chat/Sidebar';
 import { ConversationProvider } from '@/hooks/useConversationManager';
+import { RootSchema } from '@/utils/paramValidators';
+import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
+import { useCallback } from 'react';
 
 export const Route = createFileRoute('/conversation')({
   component: RootLayout,

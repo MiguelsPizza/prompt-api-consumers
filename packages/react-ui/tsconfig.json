@@ -1,0 +1,25 @@
+{
+  "extends": "@local-first-web-ai-monorepo/tsconfig/internal-package.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["dom", "dom.iterable", "esnext", "WebWorker"],
+    "outDir": "./dist",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["react", "react-dom", "dom-chromium-ai", "./global.d.ts"]
+  },
+  "include": ["src/*", "global.d.ts"],
+  "exclude": ["node_modules", "src/routeTree.gen.ts"]
+}

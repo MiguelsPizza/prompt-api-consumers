@@ -193,6 +193,7 @@ export function useStatelessPromptAPI(
           return result;
         }
       } catch (err) {
+        console.error(err)
         if (err instanceof Error && err.name === 'AbortError') {
           return null;
         }

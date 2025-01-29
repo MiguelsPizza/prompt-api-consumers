@@ -1,6 +1,3 @@
-import { SignIn, SignUp } from '@clerk/clerk-react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { AuthSchema } from '@/utils/paramValidators';
 import {
   Card,
   CardContent,
@@ -8,6 +5,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { AuthSchema } from '@/utils/paramValidators';
+import { SignIn, SignUp } from '@clerk/clerk-react';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/conversation/auth')({
   component: AuthForm,

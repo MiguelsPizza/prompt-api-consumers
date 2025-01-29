@@ -1,10 +1,10 @@
 {
   "name": "local-first-web-ai-monorepo",
   "version": "1.0.0",
-  "packageManager": "pnpm@10.0.0-rc.0",
+  "packageManager": "pnpm@10.0.0",
   "engines": {
     "node": "22.13",
-    "pnpm": "^10.0.0-rc.0"
+    "pnpm": "^10.0.0"
   },
   "description": "",
   "scripts": {

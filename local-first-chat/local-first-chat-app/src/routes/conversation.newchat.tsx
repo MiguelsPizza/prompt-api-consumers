@@ -1,6 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { PlusCircle, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,13 +7,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { useConversation } from '@/utils/Contexts';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useConversation } from '@/utils/Contexts';
+import { createFileRoute } from '@tanstack/react-router';
+import { HelpCircle, PlusCircle } from 'lucide-react';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/conversation/newchat')({
   component: NewConversation,

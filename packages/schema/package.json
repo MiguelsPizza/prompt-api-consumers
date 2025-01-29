@@ -5,6 +5,8 @@
   "type": "module",
   "exports": {
     "./browser": {
+      "types": "example.d.ts",
+      "require": "example.cjs",
       "default": "./src/localSchema.ts"
     },
     "./cloud": {

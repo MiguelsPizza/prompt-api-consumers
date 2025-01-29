@@ -66,3 +66,4 @@ apps/expo/android
 *.tsbuildinfo
 next-env.d.ts
 packages/schema/.dev.vars
+browser-extension
