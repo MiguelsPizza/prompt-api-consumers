@@ -253,13 +253,13 @@ importers:
     dependencies:
       '@assistant-ui/react':
         specifier: ^0.7.38
-        version: 0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0))
+        version: 0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))(use-sync-external-store@1.4.0(react@19.0.0))
       '@assistant-ui/react-markdown':
         specifier: ^0.7.10
-        version: 0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)
+        version: 0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))
       '@assistant-ui/react-syntax-highlighter':
         specifier: ^0.7.8
-        version: 0.7.9(@assistant-ui/react-markdown@0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2))(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-syntax-highlighter@15.5.13)(@types/react@19.0.8)(react-syntax-highlighter@15.6.1(react@19.0.0))(react@19.0.0)
+        version: 0.7.9(@assistant-ui/react-markdown@0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3))))(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-syntax-highlighter@15.5.13)(@types/react@19.0.8)(react-syntax-highlighter@15.6.1(react@19.0.0))(react@19.0.0)
       '@clerk/clerk-react':
         specifier: ^5.21.0
         version: 5.22.7(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -411,14 +411,14 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0
       tailwind-merge:
-        specifier: ^3.0.1
-        version: 3.0.1
+        specifier: ^2.6.0
+        version: 2.6.0
       tailwindcss:
-        specifier: ^4.0.2
-        version: 4.0.2
+        specifier: ^3.4.17
+        version: 3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3))
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@4.0.2)
+        version: 1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))
       vite-plugin-top-level-await:
         specifier: ^1.4.4
         version: 1.4.4(rollup@2.79.2)(vite@6.0.11(@types/node@22.12.0)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.0))
@@ -8775,9 +8775,6 @@ packages:
   tailwind-merge@2.6.0:
     resolution: {integrity: sha512-P+Vu1qXfzediirmHOC3xKGAYeZtPcV9g76X+xg2FD4tYgR71ewMA35Y3sCz3zhiN/dwefRpJX0yBcgwi1fXNQA==}
 
-  tailwind-merge@3.0.1:
-    resolution: {integrity: sha512-AvzE8FmSoXC7nC+oU5GlQJbip2UO7tmOhOfQyOmPhrStOGXHU08j8mZEHZ4BmCqY5dWTCo4ClWkNyRNx1wpT0g==}
-
   tailwindcss-animate@1.0.7:
     resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==}
     peerDependencies:
@@ -8790,9 +8787,6 @@ packages:
 
   tailwindcss@4.0.1:
     resolution: {integrity: sha512-UK5Biiit/e+r3i0O223bisoS5+y7ZT1PM8Ojn0MxRHzXN1VPZ2KY6Lo6fhu1dOfCfyUAlK7Lt6wSxowRabATBw==}
-
-  tailwindcss@4.0.2:
-    resolution: {integrity: sha512-cjWQjZEbzQNqH4IiSjRcYg96zjlu+rjzTFkqTc/fN3FNnIU4CoNlQvwCsIomwG/2EPWYT9ysFL1QF6Av3fZeNg==}
 
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
@@ -9954,38 +9948,10 @@ snapshots:
       - react-dom
       - supports-color
 
-  '@assistant-ui/react-markdown@0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)':
-    dependencies:
-      '@assistant-ui/react': 0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0))
-      '@radix-ui/react-primitive': 2.0.1(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@radix-ui/react-use-callback-ref': 1.1.0(@types/react@19.0.8)(react@19.0.0)
-      '@types/hast': 3.0.4
-      classnames: 2.5.1
-      lucide-react: 0.473.0(react@19.0.0)
-      react: 19.0.0
-      react-markdown: 9.0.3(@types/react@19.0.8)(react@19.0.0)
-    optionalDependencies:
-      '@types/react': 19.0.8
-      tailwindcss: 4.0.2
-    transitivePeerDependencies:
-      - '@types/react-dom'
-      - react-dom
-      - supports-color
-
   '@assistant-ui/react-syntax-highlighter@0.7.9(@assistant-ui/react-markdown@0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3))))(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-syntax-highlighter@15.5.13)(@types/react@19.0.8)(react-syntax-highlighter@15.6.1(react@19.0.0))(react@19.0.0)':
     dependencies:
       '@assistant-ui/react': 0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))(use-sync-external-store@1.4.0(react@19.0.0))
       '@assistant-ui/react-markdown': 0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)))
-      react: 19.0.0
-      react-syntax-highlighter: 15.6.1(react@19.0.0)
-    optionalDependencies:
-      '@types/react': 19.0.8
-      '@types/react-syntax-highlighter': 15.5.13
-
-  '@assistant-ui/react-syntax-highlighter@0.7.9(@assistant-ui/react-markdown@0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2))(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-syntax-highlighter@15.5.13)(@types/react@19.0.8)(react-syntax-highlighter@15.6.1(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      '@assistant-ui/react': 0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0))
-      '@assistant-ui/react-markdown': 0.7.11(@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0)))(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)
       react: 19.0.0
       react-syntax-highlighter: 15.6.1(react@19.0.0)
     optionalDependencies:
@@ -10023,41 +9989,6 @@ snapshots:
       '@types/react': 19.0.8
       '@types/react-dom': 19.0.3(@types/react@19.0.8)
       tailwindcss: 3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3))
-    transitivePeerDependencies:
-      - immer
-      - use-sync-external-store
-
-  '@assistant-ui/react@0.7.59(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(tailwindcss@4.0.2)(use-sync-external-store@1.4.0(react@19.0.0))':
-    dependencies:
-      '@ai-sdk/provider': 1.0.6
-      '@radix-ui/primitive': 1.1.1
-      '@radix-ui/react-avatar': 1.1.2(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@radix-ui/react-compose-refs': 1.1.1(@types/react@19.0.8)(react@19.0.0)
-      '@radix-ui/react-context': 1.1.1(@types/react@19.0.8)(react@19.0.0)
-      '@radix-ui/react-dialog': 1.1.5(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@radix-ui/react-popover': 1.1.5(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@radix-ui/react-primitive': 2.0.1(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@radix-ui/react-slot': 1.1.1(@types/react@19.0.8)(react@19.0.0)
-      '@radix-ui/react-tooltip': 1.1.7(@types/react-dom@19.0.3(@types/react@19.0.8))(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@radix-ui/react-use-callback-ref': 1.1.0(@types/react@19.0.8)(react@19.0.0)
-      '@radix-ui/react-use-escape-keydown': 1.1.0(@types/react@19.0.8)(react@19.0.0)
-      assistant-stream: 0.0.18
-      class-variance-authority: 0.7.1
-      classnames: 2.5.1
-      json-schema: 0.4.0
-      lucide-react: 0.473.0(react@19.0.0)
-      nanoid: 5.0.9
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      react-textarea-autosize: 8.5.7(@types/react@19.0.8)(react@19.0.0)
-      secure-json-parse: 3.0.2
-      zod: 3.24.1
-      zod-to-json-schema: 3.24.1(zod@3.24.1)
-      zustand: 5.0.3(@types/react@19.0.8)(react@19.0.0)(use-sync-external-store@1.4.0(react@19.0.0))
-    optionalDependencies:
-      '@types/react': 19.0.8
-      '@types/react-dom': 19.0.3(@types/react@19.0.8)
-      tailwindcss: 4.0.2
     transitivePeerDependencies:
       - immer
       - use-sync-external-store
@@ -18526,15 +18457,9 @@ snapshots:
 
   tailwind-merge@2.6.0: {}
 
-  tailwind-merge@3.0.1: {}
-
   tailwindcss-animate@1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3))):
     dependencies:
       tailwindcss: 3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3))
-
-  tailwindcss-animate@1.0.7(tailwindcss@4.0.2):
-    dependencies:
-      tailwindcss: 4.0.2
 
   tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@22.12.0)(typescript@5.7.3)):
     dependencies:
@@ -18564,8 +18489,6 @@ snapshots:
       - ts-node
 
   tailwindcss@4.0.1: {}
-
-  tailwindcss@4.0.2: {}
 
   tapable@2.2.1: {}
 
