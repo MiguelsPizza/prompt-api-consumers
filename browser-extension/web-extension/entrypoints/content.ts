@@ -2,7 +2,7 @@
 // content-script.ts
 import { defineContentScript } from 'wxt/sandbox';
 
-import { createWindowProxy } from '../../../src/link/windowToBGSWProxy';
+import { createWindowProxy } from '@/chromeTrpcAdditions/windowToBGSWProxy';
 
 // create the main→content "server" that proxies to background
 // this is the current api

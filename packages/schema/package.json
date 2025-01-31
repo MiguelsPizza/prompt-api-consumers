@@ -5,8 +5,6 @@
   "type": "module",
   "exports": {
     "./browser": {
-      "types": "example.d.ts",
-      "require": "example.cjs",
       "default": "./src/localSchema.ts"
     },
     "./cloud": {
@@ -14,9 +12,9 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "echo 'nada for now'",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "dev": "tsc --watch",
+    "dev": "echo 'nada for now'",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"

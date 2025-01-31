@@ -7,7 +7,6 @@ import { mockWriterFactory } from "./mocks/writer";
 import type { AIPolyfill, MergedAIPolyfill } from "./types/AIPolyfill";
 import type { AIProviderInfo } from "./types/AIProviderInfo";
 import type { AttachPolyfillOptions } from "./types/AttachPolyfillOptions";
-export * from "./attachAi";
 
 /**
  * CreateAIPolyfillParams

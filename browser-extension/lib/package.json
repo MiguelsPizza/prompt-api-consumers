@@ -39,8 +39,8 @@
     "prepublish": "tsup"
   },
   "devDependencies": {
-    "@types/node": "20.2.5",
-    "tsup": "6.7.0",
-    "typescript": "5.0.4"
+    "@types/node": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:"
   }
 }

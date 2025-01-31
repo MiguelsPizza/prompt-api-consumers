@@ -16,10 +16,11 @@ catalog:
   "@types/dom-chromium-ai": "^0.0.4"
   "tslib": "^2.8.1"
   "hono": "^4.6.17"
+  zod: ^3.24.1
   "drizzle-orm": "^0.38.4"
   "babel-plugin-react-compiler": "^19.0.0-beta-27714ef-20250124"
-  "@types/react": "^19.0.2"
-  "@types/react-dom": "^19.0.2"
+  "@types/react": "^19.0.3"
+  "@types/react-dom": "^19.0.3"
 
 
 

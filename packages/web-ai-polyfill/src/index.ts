@@ -10,4 +10,5 @@ export * from "./mocks/writer";
 export * from "./types/AIPolyfill";
 export * from "./types/AIProviderInfo";
 export * from "./types/AttachPolyfillOptions";
+export * from "./validators/language-model";
 

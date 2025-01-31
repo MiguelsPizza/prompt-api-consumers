@@ -1,6 +1,5 @@
+import { CreateChromeContextOptions } from '@/chromeTrpcAdditions/trpc-browser/adapter';
 import { ExtensionServiceWorkerMLCEngine, ExtensionServiceWorkerMLCEngineHandler, MLCEngine, modelLibURLPrefix, modelVersion } from '@mlc-ai/web-llm';
-import EventEmitter from "events";
-import { CreateChromeContextOptions } from "../../../../src/adapter";
 
 export const createEngine = (opts: CreateChromeContextOptions) => {
   try {
@@ -60,14 +59,15 @@ export const createHandler = (port: chrome.runtime.Port, engine: ExtensionServic
 };
 
 export const createContext = async (opts: CreateChromeContextOptions) => {
-  const eventEmitter = new EventEmitter();
+  // console.log(EventEmitter)
+  // const eventEmitter = new EventEmitter();
 
   const engine = createEngine(opts);
 
   console.log('[Background] Context creation completed successfully');
   return {
     chatEngine: engine,
-    eventEmitter
+    // eventEmitter
   };
 };
 

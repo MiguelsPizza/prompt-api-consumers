@@ -67,3 +67,6 @@ apps/expo/android
 next-env.d.ts
 packages/schema/.dev.vars
 extension
+_depricate-for-reference
+local-first-chat/api/cloud/fly.toml
+packages/web-ai-polyfill/.tsup

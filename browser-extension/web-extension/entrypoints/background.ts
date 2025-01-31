@@ -2,16 +2,13 @@
 
 import { appRouter } from "@/background/routers";
 import { createContext } from "@/background/routers/routerContext";
-import { createChromeHandler } from "../../../src/adapter";
+import { createChromeHandler } from "@/chromeTrpcAdditions/trpc-browser/adapter";
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 console.log('[Background] Creating event emitter...');
-
-
-
 
 export default defineBackground({
   persistent: true,
@@ -27,6 +24,12 @@ export default defineBackground({
       },
       createContext,
     });
-  console.log('[Background] Chrome handler setup complete');
+    console.log('[Background] Chrome handler setup complete');
+    const PING_INTERVAL = 25000; // 25 seconds
+    setInterval(() => {
+      chrome.runtime.getPlatformInfo(() => {
+        console.debug('[Background] Keeping service worker alive');
+      });
+    }, PING_INTERVAL);
   }
 });

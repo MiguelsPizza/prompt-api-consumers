@@ -20,6 +20,6 @@ export default defineConfig({
   },
   runner: {
     openConsole: true,
-    startUrls: ['localfirstchat.com'],
+    startUrls: ['http://localhost:5173'],
   },
 });

@@ -1,5 +1,5 @@
 {
-  "name": "@local-first-web-ai-monorepo/polyfill-extension",
+  "name": "@local-first-web-ai-monorepo/web-extension",
   "description": "manifest.json description",
   "private": true,
   "version": "0.0.0",
@@ -15,21 +15,25 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@local-first-web-ai-monorepo/web-ai-polyfill": "workspace:*",
     "@mlc-ai/web-llm": "^0.2.78",
     "@mlc-ai/web-runtime": "0.18.0-dev2",
     "@trpc/client": "^10.45.2",
     "@trpc/server": "^10.45.2",
-    "react": "catalog:*",
-    "trpc-chrome": "^1.0.0",
-    "react-dom": "catalog:*",
-    "zod": "^3.19.1"
+    "babel-plugin-react-compiler": "catalog:",
+    "dexie": "^4.0.11",
+    "dexie-react-hooks": "^1.1.7",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.280",
-    "@types/react": "^19.0.1",
-    "@types/react-dom": "^19.0.2",
+    "@types/dom-chromium-ai": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "@wxt-dev/module-react": "^1.1.2",
-    "typescript": "^5.6.3",
+    "typescript": "catalog:",
     "wxt": "^0.19.13"
   }
 }

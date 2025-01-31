@@ -1,5 +1,5 @@
 {
-  "name": "@local-first-web-ai-monorepo/local-first-chat-app",
+  "name": "@local-first-web-ai-monorepo/react-ui",
   "version": "1.0.0",
   "type": "module",
   "private": true,
@@ -8,13 +8,6 @@
     "./components/*": "./src/components/*",
     "./hooks/*": "./src/hooks/*",
     "./utils/*": "./src/utils/*"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "nx vite:preview",
-    "start": "pnpm build && pnpm preview",
-    "generate-pwa-assets": "pwa-assets-generator"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.7.38",
@@ -44,8 +37,8 @@
     "highlight.js": "^11.11.1",
     "lucide-react": "^0.469.0",
     "marked": "^15.0.4",
-    "react": "19",
-    "react-dom": "19",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "react-hook-form": "^7.54.2",
     "react-markdown": "^9.0.1",
     "react-syntax-highlighter": "^15.6.1",
@@ -58,12 +51,12 @@
   "devDependencies": {
     "@swc/core": "~1.10.3",
     "@types/dompurify": "^3.2.0",
-    "@types/node": "catalog:*",
-    "@types/react": "catalog*",
-    "@types/react-dom": "catalog:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "typescript": "catalog:*"
+    "typescript": "catalog:"
   }
 }

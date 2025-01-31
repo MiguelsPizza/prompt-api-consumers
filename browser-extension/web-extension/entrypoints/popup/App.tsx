@@ -1,7 +1,9 @@
+import { db } from '@/background/lib/sessionArchiveDB';
 import type { AppRouter } from '@/background/routers';
+import { chromeLink } from '@/chromeTrpcAdditions/trpc-browser/link';
 import { createTRPCProxyClient } from '@trpc/client';
+import { useLiveQuery } from "dexie-react-hooks";
 import { useState } from 'react';
-import { chromeLink } from '../../../../src/link/index';
 
 const port = chrome.runtime.connect();
 const trpc = createTRPCProxyClient<AppRouter>({
@@ -9,28 +11,40 @@ const trpc = createTRPCProxyClient<AppRouter>({
 });
 
 function Popup() {
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [messages, setMessages] = useState<{ role: "system" | "user" | "assistant", content: string }[]>([]);
+  const messages = useLiveQuery(() => sessionId ? db.session_messages.filter((m) => true).sortBy('position') : []) ?? []
   const [inputMessage, setInputMessage] = useState("");
-
+  console.log({ messages, sessionId })
   const downloadModel = async () => {
     setErrorMessage(null);
     try {
+      const newSession = window.crypto.randomUUID()
       await trpc.mlc.reload.mutate({
-        modelId: "SmolLM2-360M-Instruct-q4f16_1-MLC"
+        modelId: "SmolLM2-360M-Instruct-q4f16_1-MLC",
+        chatOpts: {},
+        requesterURL: 'popup',
+        sessionId: newSession,
       })
+      setSessionId(newSession)
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Something went wrong');
     }
   };
 
   const chatWithModel = async (chat: string) => {
+    if (!sessionId) return
+    console.log("sending chat")
     const { choices } = await trpc.mlc.chat.query({
       modelId: "SmolLM2-360M-Instruct-q4f16_1-MLC",
-      messages: [{ role: 'user', content: chat }, ...messages]
+      sessionId: sessionId,
+      message: {
+        content: chat,
+        role: 'user'
+      }
     })
-    const newMessage = choices[0].message
-    setMessages((currMessages) => [{ role: 'assistant', content: newMessage.content! }, ...currMessages])
+    console.log({ choices })
+    // const newMessage = choices[0].message
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +52,6 @@ function Popup() {
     if (!inputMessage.trim()) return;
 
     // Add user message to state
-    setMessages((curr) => [{ role: 'user', content: inputMessage }, ...curr]);
 
     try {
       await chatWithModel(inputMessage);

@@ -25,15 +25,15 @@ export const supportedModels = {
 } as const
 
 // Create union types directly from the supported models
-export const SupportedLLMModel = z.enum([
+export const ZSupportedLLMModel = z.enum([
   ...supportedModels.llms.mlc,
   ...supportedModels.llms.transformersJS,
 ])
 
-export const SupportedEmbeddingModel = z.enum([
+export const ZSupportedEmbeddingModel = z.enum([
   ...supportedModels.embeddings.transformersJS,
 ])
 
 // Type inference helpers
-export type SupportedLLMModel = z.infer<typeof SupportedLLMModel>
-export type SupportedEmbeddingModel = z.infer<typeof SupportedEmbeddingModel>
+export type SupportedLLMModel = z.infer<typeof ZSupportedLLMModel>
+export type SupportedEmbeddingModel = z.infer<typeof ZSupportedEmbeddingModel>

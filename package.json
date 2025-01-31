@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "packageManager": "pnpm@10.0.0",
   "engines": {
-    "node": "22.13",
+    "node": "^23",
     "pnpm": "^10.0.0"
   },
   "description": "",
@@ -11,7 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "dev": "turbo run dev --filter=use-prompt-api --filter=local-first-chat",
+    "dev": "turbo run dev --filter=@local-first-web-ai-monorepo/pwa --filter=@local-first-web-ai-monorepo/web-extension",
     "deploy:web": "turbo run build --filter=use-prompt-api --filter=local-first-chat && turbo run deploy:web --filter=local-first-chat",
     "deploy:local": "turbo run build --filter=use-prompt-api --filter=local-first-chat && turbo run preview --filter=local-first-chat"
   },
@@ -30,6 +30,6 @@
   "dependencies": {
     "turbo": "^2.3.3",
     "dotenv": "^16.4.7",
-    "pnpm": "10.0.0-rc.0"
+    "pnpm": "10.0.0"
   }
 }

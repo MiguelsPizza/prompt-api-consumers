@@ -9,7 +9,7 @@
   "publishConfig": {
     "types": "./dist/index.d.ts"
   },
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
     ".": {
@@ -32,14 +32,17 @@
     "@local-first-web-ai-monorepo/prettier-config": "workspace:*",
     "@local-first-web-ai-monorepo/tsconfig": "workspace:*",
     "@types/dom-chromium-ai": "catalog:",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "typescript": "catalog:",
-    "@types/node": "catalog:",
-    "tsup": "catalog:"
+    "tsup": "catalog:",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
     "@types/dom-chromium-ai": "catalog:"
   },
-  "prettier": "@local-first-web-ai-monorepo/prettier-config"
+  "prettier": "@local-first-web-ai-monorepo/prettier-config",
+  "dependencies": {
+    "zod": "catalog:"
+  }
 }

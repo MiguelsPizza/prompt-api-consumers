@@ -1,13 +1,52 @@
 import { createTRPCProxyClient } from '@trpc/client';
 
 import type { AppRouter } from '@/background/routers';
-import console from 'console';
-import { windowLink } from '../../../src/link/windowLink';
+import { windowLink } from '@/chromeTrpcAdditions/trpc-browser/link';
+import { createWebAIPolyfill } from "@local-first-web-ai-monorepo/web-ai-polyfill";
+
+// const session
 
 export default defineUnlistedScript(() => {
   console.log('Testing tRPC subscriptions and mutations');
 
-  const client = createTRPCProxyClient<AppRouter>({ links: [windowLink()] });
+  const trpc = createTRPCProxyClient<AppRouter>({ links: [windowLink({ window: window })] });
+
+  const polyfill = createWebAIPolyfill({
+    partialPolyfill: {
+      languageModel: {
+        create: async (options) => {
+          const { success } = await trpc.mlc.reload.mutate({
+            modelId: 'SmolLM2-360M-Instruct-q4f16_1-MLC',
+            chatOpts: options
+          })
+          if (!success) throw new Error('Failed to create Session')
+
+          return {
+            prompt: async (input, options) => {
+              const res = trpc.mlc.chat.query({})
+            }
+          } as AILanguageModel
+        },
+        capabilities: async () => ({
+          available: 'readily',
+          defaultTemperature: 0.7,
+          defaultTopK: 10,
+          maxTopK: 10,
+          languageAvailable: (language) => 'no',
+        } as AILanguageModelCapabilities)
+      }
+    },
+    info: {
+      description: 'The OG chrome AI polyfill extension',
+      icon: 'data:image/svg+xml;base64,REPLACEME',
+      name: 'POLY FILL',
+      "uuid": "0000-0000-0000-0000-0000"
+    },
+    options: {
+      onProviderSelect: () => console.warn("[WebAI Polyfill] Provider selected - initialization logic needs to be implemented"),
+      onProviderDeselect: () => console.warn("[WebAI Polyfill] Provider deselected - cleanup logic needs to be implemented"),
+    }
+  })
 
   // Set up subscription first
   // const subscription = client.onPostAdd.subscribe(
