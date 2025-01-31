@@ -1,6 +1,43 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@config '../tailwind.config.js';
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@utility gradient-violet {
+  @apply bg-linear-to-br from-violet-600/10 to-violet-600/30;
+}
+
+@utility gradient-violet-hover {
+  /* Common variations you might want */
+  @apply hover:bg-linear-to-br hover:from-violet-600/20 hover:to-violet-600/40;
+}
+
+@utility gradient-violet-intense {
+  @apply bg-linear-to-br from-violet-600/20 to-violet-600/40;
+}
+
+@utility gradient-violet-message {
+  /* If you want the rounded corner variant */
+  @apply bg-linear-to-br from-violet-600/10 to-violet-600/30 rounded-tl-none;
+}
+
 @layer base {
   :root {
     --radius: 0.5rem;
@@ -75,25 +112,5 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-}
-
-@layer components {
-  .gradient-violet {
-    @apply bg-gradient-to-br from-violet-600/10 to-violet-600/30;
-  }
-
-  /* Common variations you might want */
-  .gradient-violet-hover {
-    @apply hover:bg-gradient-to-br hover:from-violet-600/20 hover:to-violet-600/40;
-  }
-
-  .gradient-violet-intense {
-    @apply bg-gradient-to-br from-violet-600/20 to-violet-600/40;
-  }
-
-  /* If you want the rounded corner variant */
-  .gradient-violet-message {
-    @apply bg-gradient-to-br from-violet-600/10 to-violet-600/30 rounded-tl-none;
   }
 }

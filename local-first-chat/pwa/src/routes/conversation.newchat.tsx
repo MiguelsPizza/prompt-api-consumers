@@ -42,7 +42,7 @@ function NewConversation() {
     <div className="flex-1 flex items-center justify-center p-4 rounded-lg">
       <Card className="w-[600px] bg-card text-card-foreground gradient-violet">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-violet-600 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold bg-linear-to-r from-violet-400 to-violet-600 bg-clip-text text-transparent">
             Create a New Conversation
           </CardTitle>
           <CardDescription className="text-muted-foreground">
@@ -137,7 +137,7 @@ function NewConversation() {
               </TooltipProvider>
             </label>
             <textarea
-              className="w-full min-h-[80px] rounded-md border border-violet-600/20 bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+              className="w-full min-h-[80px] rounded-md border border-violet-600/20 bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
               value={system_prompt}
               onChange={(e) => {
                 setsystem_prompt(e.target.value);
