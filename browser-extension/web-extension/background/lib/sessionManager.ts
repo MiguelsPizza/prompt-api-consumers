@@ -1,19 +1,18 @@
 import { ZAILanguageModelCreateOptionsWithSystemPrompt } from '@local-first-web-ai-monorepo/web-ai-polyfill';
-import { storage } from 'wxt/storage';
 import { z } from 'zod';
 import { db } from './sessionArchiveDB';
-import { BaseSession, createSessionMessage, Session, SessionSchema } from './sessionSchema';
+import { BaseSession, createSessionMessage, SessionSchema } from './sessionSchema';
 import { SupportedLLMModel } from './supportedModels';
 
-/**
- * Helper to define an active session item in local (WXT) storage.
- */
-export function activeSessionItem(sessionId: string) {
-  return storage.defineItem<Session | null>(
-    `local:activeSession:${sessionId}`,
-    { fallback: null }
-  );
-}
+// /**
+//  * Helper to define an active session item in local (WXT) storage.
+//  */
+// export function activeSessionItem(sessionId: string) {
+//   return storage.defineItem<Session | null>(
+//     `local:activeSession:${sessionId}`,
+//     { fallback: null }
+//   );
+// }
 
 /**
  * A) Start a new session in WXT storage (active usage).
@@ -26,7 +25,7 @@ export async function startSession({
   hostURL,
   llm_id,
   systemPrompt,
-  initialPrompts,
+  initialPrompts = [],
   temperature = 0.7,
   topK = 40,
 }: z.infer<typeof ZAILanguageModelCreateOptionsWithSystemPrompt> & {
@@ -55,7 +54,8 @@ export async function startSession({
     top_k: topK
   };
 
-  const parse_initial_prompts = (initialPrompts ?? []).map(({ content, role }, index) => createSessionMessage(content, role, newSessionBase, index))
+  const parse_initial_prompts = initialPrompts.map(({ content, role }, index) => createSessionMessage(content, role, newSessionBase, index))
+
 
 
   const session = SessionSchema.parse({
@@ -63,10 +63,21 @@ export async function startSession({
     initial_prompts: parse_initial_prompts
   })
 
-  // Validate with Zod and store in WXT
-  await activeSessionItem(finalSessionId).setValue(session);
+  const transRes = await db.transaction('rw', db.sessions, db.session_messages, async () => {
 
-  return session;
+    //
+    // Transaction Scope
+    //
+
+    const newSession = await db.sessions.add(newSessionBase);
+    const newSessionMessages = await db.session_messages.bulkAdd(parse_initial_prompts)
+    return { newSession, newSessionMessages }
+  })
+
+  // Validate with Zod and store in WXT
+  // await activeSessionItem(finalSessionId).setValue(session);
+
+  return transRes;
 }
 
 /**
@@ -75,50 +86,55 @@ export async function startSession({
  *    2) Move session + messages to Dexie (long-term storage)
  *    3) Remove from WXT
  */
-export async function endSession(sessionId: string) {
-  // Grab the active session (type "Session") from WXT
-  const activeSession = await activeSessionItem(sessionId).getValue();
-  if (!activeSession) {
-    throw new Error(`No active session found in WXT for id ${sessionId}`);
-  }
+// export async function endSession(sessionId: string) {
+//   // Grab the active session (type "Session") from WXT
+//   const activeSession = await activeSessionItem(sessionId).getValue();
+//   if (!activeSession) {
+//     throw new Error(`No active session found in WXT for id ${sessionId}`);
+//   }
 
-  // 1) Upsert the session itself into Dexie (db.sessions)
-  await db.sessions.put(activeSession);
+//   // 1) Upsert the session itself into Dexie (db.sessions)
+//   await db.sessions.put(activeSession);
 
-  // 2) Upsert all messages (whether "initial_prompts" or otherwise).
-  //    Currently, your "SessionSchema" only tracks initial_prompts. If you
-  //    later accumulate more messages, remember to store them there as well.
-  const allMessages = activeSession.initial_prompts ?? [];
-  if (allMessages.length > 0) {
-    await db.session_messages.bulkPut(allMessages);
-  }
-  await storage.removeItem(`local:${sessionId}`)
-}
+//   // 2) Upsert all messages (whether "initial_prompts" or otherwise).
+//   //    Currently, your "SessionSchema" only tracks initial_prompts. If you
+//   //    later accumulate more messages, remember to store them there as well.
+//   const allMessages = activeSession.initial_prompts ?? [];
+//   if (allMessages.length > 0) {
+//     await db.session_messages.bulkPut(allMessages);
+//   }
+//   await storage.removeItem(`local:${sessionId}`)
+// }
 
 /**
  * C) Restore a session from Dexie into WXT:
  *    1) Fetch session + messages from Dexie
  *    2) Write them to WXT as an active session
  */
-export async function restoreSessionFromDexie(sessionId: string) {
+export async function getSessionFromDexie(sessionId: string): Promise<BaseSession> {
   // 1) Fetch the session (BaseSession) from Dexie
   const session = await db.sessions.get(sessionId);
   if (!session) {
     throw new Error(`Session with id ${sessionId} not found in Dexie.`);
   }
 
+
+  return session
+}
+
+
+/**
+ * C) Restore a session from Dexie into WXT:
+ *    1) Fetch session + messages from Dexie
+ *    2) Write them to WXT as an active session
+ */
+export async function getSessionFromDexieWMessages(sessionId: string) {
+  // 1) Fetch the session (BaseSession) from Dexie
+  const session = await getSessionFromDexie(sessionId)
+
   // 2) Get all messages that belong to this session
   const messages = await db.session_messages.where('session_id').equals(sessionId).toArray();
 
-  // 3) Place the messages into session.initial_prompts
-  (session as Session).initial_prompts = messages;
 
-  // 4) Validate (optional) using SessionSchema
-  const validatedSession = SessionSchema.parse(session);
-
-  // 5) Write the newly reconstructed Session (with messages) into WXT
-  await activeSessionItem(sessionId).setValue(validatedSession);
-
-  // Return it for usage
-  return validatedSession;
+  return { session, messages };
 }

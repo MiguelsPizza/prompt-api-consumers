@@ -1,8 +1,10 @@
-import { mlcRouter } from "./mlcRouter";
+import { languageModelRouter } from "./languageModelRouter";
+import { sessionRouter } from "./sessionRouter";
 import { t } from "./trpcBase";
 
 export const appRouter = t.router({
-  mlc: mlcRouter,
+  languageModel: languageModelRouter,
+  sessions: sessionRouter,
   // test: testRouter
 });
 

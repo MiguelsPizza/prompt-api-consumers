@@ -1,6 +1,19 @@
 import { z } from 'zod';
 import { ZSupportedLLMModel } from './supportedModels';
 
+
+/**
+ * Host URL (e.g., a website or environment) where the conversation took place.
+ * Can be either 'popup', 'content-script', or a valid webpage URL.
+ */
+export const hostURLSchema = z.union([
+  z.literal('popup'),
+  z.literal('content-script'),
+  z.string().url()
+])
+
+export type HostURL = 'popup' | 'content-script' | `https://${string}` | `http://${string}`
+
 /**
  * SessionMessageSchema:
  * Stores all messages (system, user, assistant), including any historically "initial" prompts.
@@ -25,7 +38,7 @@ export const SessionMessageSchema = z.object({
   /**
    * The role of this message (user input, assistant reply, or system directive).
    */
-  role: z.enum(['user', 'assistant']),
+  role: z.enum(['user', 'assistant', 'system']),
 
   /**
    * The textual content of this message.
@@ -50,7 +63,7 @@ export const SessionMessageSchema = z.object({
   /**
    * Host URL (e.g., a website or environment) where the conversation took place.
    */
-  hostURL: z.string(),
+  hostURL: hostURLSchema,
 
   /**
    * Timestamp for when this message was created, if recorded.
@@ -85,7 +98,7 @@ export const BaseSessionSchema = z.object({
   /**
    * URL where the session is hosted or initiated.
    */
-  hostURL: z.string(),
+  hostURL: hostURLSchema,
 
   /**
    * The chosen LLM (Large Language Model) or extension used in this session.
@@ -144,6 +157,14 @@ export const SessionSchema = BaseSessionSchema.extend({
   initial_prompts: z.array(SessionMessageSchema).optional().default([]),
 });
 
+
+export const ActiveSessionsSchema = z.array(z.object({
+  sessionId: z.string().uuid(),
+  hostURL: hostURLSchema
+}))
+
+export type ActiveSessions = z.infer<typeof ActiveSessionsSchema>
+
 /** The TypeScript type inferred from the CombinedSessionSchema. */
 export type CombinedSession = z.infer<typeof SessionSchema>;
 
@@ -153,11 +174,16 @@ export type BaseSession = z.infer<typeof BaseSessionSchema>;
 
 export type SessionMessage = z.infer<typeof SessionMessageSchema>;
 
+
+export type RegularMessage = Omit<SessionMessage, 'role'> & { role: 'user' | 'assistant' }
+
+
+
 /**
  * Helper function to create a valid SessionMessage from user input
  */
-export function createSessionMessage(content: string, role: 'user' | 'assistant', session: Session | BaseSession, position: number): SessionMessage {
-  return {
+export function createSessionMessage(content: string, role: 'user' | 'assistant', session: BaseSession, position: number) {
+  return SessionMessageSchema.parse({
     id: crypto.randomUUID(),
     session_id: session.id,
     position,
@@ -169,14 +195,15 @@ export function createSessionMessage(content: string, role: 'user' | 'assistant'
     hostURL: session.hostURL,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-  };
+  }) as RegularMessage;
 }
 
+export type SystemPromptMessage = Omit<SessionMessage, 'role'> & { role: 'system' }
 /**
  * Helper function to create a valid SessionMessage for system prompts
  */
-export function createSystemMessage(content: string, session: Session | BaseSession): Omit<SessionMessage, 'role'> & { role: 'system' } {
-  return {
+export function createSystemMessage(content: string, session: BaseSession) {
+  return SessionMessageSchema.parse({
     id: crypto.randomUUID(),
     session_id: session.id,
     role: 'system',
@@ -188,5 +215,5 @@ export function createSystemMessage(content: string, session: Session | BaseSess
     hostURL: session.hostURL,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-  };
+  }) as SystemPromptMessage;
 }
