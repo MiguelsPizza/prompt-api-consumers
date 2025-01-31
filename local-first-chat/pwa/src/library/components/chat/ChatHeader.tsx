@@ -1,15 +1,15 @@
-import { Button } from '@/components/ui/button';
+import { useDrizzleLiveIncremental, useDrizzlePGlite } from '@/dataLayer';
+import { useToast } from '@/hooks/use-toast';
+import { useConversation } from '@/utils/Contexts';
+import { Button } from '@local-first-web-ai-monorepo/react-ui/components/button';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { Slider } from '@/components/ui/slider';
-import { useDrizzleLiveIncremental, useDrizzlePGlite } from '@/dataLayer';
-import { useToast } from '@/hooks/use-toast';
-import { useConversation } from '@/utils/Contexts';
+} from '@local-first-web-ai-monorepo/react-ui/components/sheet';
+import { Slider } from '@local-first-web-ai-monorepo/react-ui/components/slider';
 import {
   conversations
 } from '@local-first-web-ai-monorepo/schema/cloud';

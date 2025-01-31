@@ -2,11 +2,11 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 
 import { SystemProvider } from '@/components/providers/SystemProvider';
-import { Toaster } from '@/components/ui/toaster';
 import PWABadge from '@/components/widgets/PWABadge';
 import { WorkerErrorListener } from '@/components/widgets/WorkerErrorListener';
 import { GlobalDrizzleDB } from '@/dataLayer';
 import { ClerkProvider } from '@clerk/clerk-react';
+import { Toaster } from '@local-first-web-ai-monorepo/react-ui/components/toaster';
 import * as schema from '@local-first-web-ai-monorepo/schema/cloud';
 import { AICapabilitiesProvider } from '@local-first-web-ai-monorepo/use-prompt-api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

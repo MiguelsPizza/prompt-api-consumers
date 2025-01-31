@@ -1,19 +1,19 @@
-import { Button } from '@/components/ui/button';
+import { useConversation } from '@/utils/Contexts';
+import { Button } from '@local-first-web-ai-monorepo/react-ui/components/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
+} from '@local-first-web-ai-monorepo/react-ui/components/card';
+import { Slider } from '@local-first-web-ai-monorepo/react-ui/components/slider';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useConversation } from '@/utils/Contexts';
+} from '@local-first-web-ai-monorepo/react-ui/components/tooltip';
 import { createFileRoute } from '@tanstack/react-router';
 import { HelpCircle, PlusCircle } from 'lucide-react';
 import { useState } from 'react';
@@ -39,7 +39,7 @@ function NewConversation() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4">
+    <div className="flex-1 flex items-center justify-center p-4 rounded-lg">
       <Card className="w-[600px] bg-card text-card-foreground gradient-violet">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-violet-600 bg-clip-text text-transparent">

@@ -11,7 +11,7 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./.tsup/declaration/index.d.ts"
     }
   },
   "scripts": {

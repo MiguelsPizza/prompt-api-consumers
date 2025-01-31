@@ -1,4 +1,3 @@
-import { ToastAction } from '@/components/ui/toast';
 import { useDrizzleLiveIncremental, useDrizzlePGlite } from '@/dataLayer';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -6,6 +5,8 @@ import {
   AssistantRuntimeProvider,
   useExternalStoreRuntime,
 } from '@assistant-ui/react';
+import { MyThread } from '@local-first-web-ai-monorepo/react-ui/components/thread';
+import { ToastAction } from '@local-first-web-ai-monorepo/react-ui/components/toast';
 import {
   conversation_messages,
   ConversationMessage,
@@ -16,7 +17,6 @@ import { getRouteApi } from '@tanstack/react-router';
 import { and, count, eq, gt, gte } from 'drizzle-orm';
 import 'highlight.js/styles/github-dark.css';
 import { useMemo } from 'react';
-import { MyThread } from '../ui/thread';
 
 export const ChatMessages = () => {
   const { toast } = useToast();

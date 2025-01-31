@@ -1,4 +1,21 @@
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from "@local-first-web-ai-monorepo/react-ui/components/alert";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@local-first-web-ai-monorepo/react-ui/components/alert-dialog';
+import { Button } from '@local-first-web-ai-monorepo/react-ui/components/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@local-first-web-ai-monorepo/react-ui/components/card';
+import { Progress } from '@local-first-web-ai-monorepo/react-ui/components/progress';
 import { useAICapabilities } from '@local-first-web-ai-monorepo/use-prompt-api';
 import {
   AlertCircle,
@@ -13,23 +30,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../ui/alert-dialog';
-import { Button } from '../ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../ui/card';
-import { Progress } from '../ui/progress';
 
 export function AIStatusCard() {
   const [showSetup, setShowSetup] = useState(false);

@@ -23,9 +23,6 @@ export default function SessionDetail() {
       },
       enabled: Boolean(sessionId),
       onError: console.error
-      // queryKey: ['sessions.getSessionWithMessages', { sessionId: sessionId as UUID }],
-      // initialData: [] as any
-      // onError: (err) => console.error('Query error:', err),
     }
   );
 

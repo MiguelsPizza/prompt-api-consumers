@@ -1,12 +1,12 @@
+import { AuthSchema } from '@/utils/paramValidators';
+import { SignIn, SignUp } from '@clerk/clerk-react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { AuthSchema } from '@/utils/paramValidators';
-import { SignIn, SignUp } from '@clerk/clerk-react';
+} from '@local-first-web-ai-monorepo/react-ui/components/card';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/conversation/auth')({

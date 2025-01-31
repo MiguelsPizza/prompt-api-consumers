@@ -1,11 +1,12 @@
-import wasm from 'vite-plugin-wasm';
-import topLevelAwait from 'vite-plugin-top-level-await';
 import { fileURLToPath, URL } from 'url';
+import topLevelAwait from 'vite-plugin-top-level-await';
+import wasm from 'vite-plugin-wasm';
 
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { VitePWA } from 'vite-plugin-pwa';
+import tailwindcss from '@tailwindcss/vite';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -36,9 +37,12 @@ export default defineConfig({
     // include: ['@powersync/web > js-logger'], // <-- Include `js-logger` when it isn't installed and imported.
   },
   plugins: [
+
     TanStackRouterVite(),
+
     wasm(),
     topLevelAwait(),
+    tailwindcss(),
     react({
       babel: {
         plugins: ['babel-plugin-react-compiler'],

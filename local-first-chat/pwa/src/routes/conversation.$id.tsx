@@ -1,7 +1,7 @@
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatMessages } from '@/components/chat/ChatMessages';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ChatInterfaceSchema } from '@/utils/paramValidators';
+import { Alert, AlertDescription, AlertTitle } from '@local-first-web-ai-monorepo/react-ui/components/alert';
 import { createFileRoute } from '@tanstack/react-router';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import React from 'react';

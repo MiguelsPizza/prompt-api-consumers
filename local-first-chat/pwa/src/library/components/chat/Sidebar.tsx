@@ -1,11 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import {
   useDrizzleLiveIncremental,
   useDrizzlePGlite,
@@ -14,6 +6,14 @@ import { useToast } from '@/hooks/use-toast';
 import { SidebarProps } from '@/types/chat';
 import { useConversation } from '@/utils/Contexts';
 import { UserButton } from '@clerk/clerk-react';
+import { Button } from '@local-first-web-ai-monorepo/react-ui/components/button';
+import { ScrollArea } from '@local-first-web-ai-monorepo/react-ui/components/scroll-area';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@local-first-web-ai-monorepo/react-ui/components/tooltip';
 import {
   conversations as conversationsSchema
 } from '@local-first-web-ai-monorepo/schema/cloud';
@@ -125,7 +125,7 @@ export const Sidebar = ({ setSidebarCollapsed }: SidebarProps) => {
           </Tooltip>
         </TooltipProvider>
 
-        {user?.isSignedIn ? (
+        {(user as any)?.isSignedIn ? (
           <TooltipProvider>
             <Tooltip delayDuration={200}>
               <TooltipTrigger asChild>

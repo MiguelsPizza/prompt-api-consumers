@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@local-first-web-ai-monorepo/web-ai-polyfill": "workspace:*",
+    "@local-first-web-ai-monorepo/react-ui": "workspace:*",
     "@mlc-ai/web-llm": "^0.2.78",
     "@mlc-ai/web-runtime": "0.18.0-dev2",
     "@tailwindcss/vite": "^4.0.1",

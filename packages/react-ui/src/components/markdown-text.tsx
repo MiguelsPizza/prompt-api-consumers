@@ -5,13 +5,13 @@ import {
   MarkdownTextPrimitive,
   useIsMarkdownCodeBlock,
 } from '@assistant-ui/react-markdown';
-import remarkGfm from 'remark-gfm';
-import { FC, memo, useState } from 'react';
 import { CheckIcon, CopyIcon } from 'lucide-react';
+import { FC, memo, useState } from 'react';
+import remarkGfm from 'remark-gfm';
 
-import { TooltipIconButton } from './tooltip-icon-button';
+import { cn } from '../utils/utils';
 import { SyntaxHighlighter } from './syntax-highlighter';
-import { cn } from '@/utils/utils';
+import { TooltipIconButton } from './tooltip-icon-button';
 
 const MarkdownTextImpl = () => {
   return (

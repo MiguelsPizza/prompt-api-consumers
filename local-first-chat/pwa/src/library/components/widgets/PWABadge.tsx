@@ -1,10 +1,10 @@
 // import "./PWABadge.css";
 
-import { useRegisterSW } from 'virtual:pwa-register/react';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+import { Button } from '@local-first-web-ai-monorepo/react-ui/components/button';
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useEffect } from 'react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 
 function PWABadge() {
   const period = 60 * 60;

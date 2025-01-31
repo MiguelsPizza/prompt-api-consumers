@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button';
 import ReplWDb from '@/dataLayer/repl';
+import { Button } from '@local-first-web-ai-monorepo/react-ui/components/button';
 import {
   Link,
   Outlet,
