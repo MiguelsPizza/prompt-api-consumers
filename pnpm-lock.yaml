@@ -141,6 +141,9 @@ importers:
       dexie-react-hooks:
         specifier: ^1.1.7
         version: 1.1.7(@types/react@19.0.8)(dexie@4.0.11)(react@19.0.0)
+      emittery:
+        specifier: ^1.1.0
+        version: 1.1.0
       react:
         specifier: 'catalog:'
         version: 19.0.0
@@ -5442,6 +5445,10 @@ packages:
 
   electron-to-chromium@1.5.88:
     resolution: {integrity: sha512-K3C2qf1o+bGzbilTDCTBhTQcMS9KW60yTAaTeeXsfvQuTDDwlokLam/AdqlqcSy9u4UainDgsHV23ksXAOgamw==}
+
+  emittery@1.1.0:
+    resolution: {integrity: sha512-rsX7ktqARv/6UQDgMaLfIqUWAEzzbCQiVh7V9rhDXp6c37yoJcks12NVD+XPkgl4AEavmNhVfrhGoqYwIsMYYA==}
+    engines: {node: '>=14.16'}
 
   emoji-regex@10.4.0:
     resolution: {integrity: sha512-EC+0oUMY1Rqm4O6LLrgjtYDvcVYTy7chDnM4Q7030tP4Kwj3u/pR6gP9ygnp2CJMK5Gq+9Q2oqmrFJAz01DXjw==}
@@ -14343,6 +14350,8 @@ snapshots:
       jake: 10.9.2
 
   electron-to-chromium@1.5.88: {}
+
+  emittery@1.1.0: {}
 
   emoji-regex@10.4.0: {}
 

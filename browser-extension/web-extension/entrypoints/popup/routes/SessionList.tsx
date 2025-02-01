@@ -1,4 +1,8 @@
 import type { BaseSession } from "@/background/lib/sessionSchema";
+import { Button } from "@local-first-web-ai-monorepo/react-ui/components/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
+import { ScrollArea } from "@local-first-web-ai-monorepo/react-ui/components/scroll-area";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { trpc } from "../trpcClient";
 
@@ -35,31 +39,41 @@ export default function SessionList() {
   };
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">Sessions</h1>
-      <button
-        onClick={handleCreateSession}
-        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        Create New Session
-      </button>
-      {sessions?.length ? (
-        <ul className="space-y-2">
-          {sessions.map((session) => (
-            <li key={session.id}>
-              <Link
-                to={`/sessions/${session.id}`}
-                className="block p-2 bg-white shadow rounded hover:bg-gray-200"
-              >
-                <span className="font-medium">{session.name || '(Unnamed)'}</span>
-                <span className="ml-2 text-sm text-gray-600">ID: {session.id}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-600">No sessions yet.</p>
-      )}
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Sessions</h1>
+        <Button onClick={handleCreateSession}>
+          Create New Session
+        </Button>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Sessions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[400px]">
+            {sessions?.length ? (
+              <div className="space-y-2">
+                {sessions.map((session) => (
+                  <Card key={session.id} className="hover:bg-accent transition-colors">
+                    <CardContent className="p-4">
+                      <Link
+                        to={`/sessions/${session.id}`}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="font-medium">{session.name || '(Unnamed)'}</span>
+                        <span className="text-sm text-muted-foreground">ID: {session.id}</span>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center">No sessions yet.</p>
+            )}
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 }

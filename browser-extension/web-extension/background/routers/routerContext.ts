@@ -1,5 +1,11 @@
 import { CreateChromeContextOptions } from '@/chromeTrpcAdditions/trpc-browser/adapter';
-import { ExtensionServiceWorkerMLCEngine, ExtensionServiceWorkerMLCEngineHandler, MLCEngine, modelLibURLPrefix, modelVersion } from '@mlc-ai/web-llm';
+import { ExtensionServiceWorkerMLCEngine, ExtensionServiceWorkerMLCEngineHandler, InitProgressReport, MLCEngine, modelLibURLPrefix, modelVersion } from '@mlc-ai/web-llm';
+import { storage } from 'wxt/storage';
+// import EventEmitter from 'emittery';
+
+// export interface EEeventTypes {
+//   progress: InitProgressReport
+// }
 
 export const createEngine = (opts: CreateChromeContextOptions) => {
   try {
@@ -25,7 +31,7 @@ export const createEngine = (opts: CreateChromeContextOptions) => {
       logLevel: 'DEBUG',
       initProgressCallback: (progress) => {
         console.log('[Background/createEngine] Init progress:', progress);
-        opts.req.postMessage(progress)
+        storage.setItem<InitProgressReport>('session:progress', progress)
       }
     });
     console.log('[Background/createEngine] MLCEngine instance created successfully');
@@ -58,16 +64,16 @@ export const createHandler = (port: chrome.runtime.Port, engine: ExtensionServic
   }
 };
 
+let engine: MLCEngine
+
 export const createContext = async (opts: CreateChromeContextOptions) => {
   // console.log(EventEmitter)
-  // const eventEmitter = new EventEmitter();
-
-  const engine = createEngine(opts);
+  // const ee = new EventEmitter<EEeventTypes>({ debug: { name: 'EE', enabled: true } });
+  engine = engine ?? createEngine(opts);
 
   console.log('[Background] Context creation completed successfully');
   return {
     chatEngine: engine,
-    // eventEmitter
   };
 };
 

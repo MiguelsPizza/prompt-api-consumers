@@ -8,8 +8,6 @@ import { createChromeHandler } from "@/chromeTrpcAdditions/trpc-browser/adapter"
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
-console.log('[Background] Creating event emitter...');
-
 export default defineBackground({
   persistent: true,
   type: "module",

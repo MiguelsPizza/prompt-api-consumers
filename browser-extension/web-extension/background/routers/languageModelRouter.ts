@@ -1,4 +1,4 @@
-import { ChatCompletionMessageParam } from '@mlc-ai/web-llm';
+import { ChatCompletionMessageParam, InitProgressReport } from '@mlc-ai/web-llm';
 import { observable } from '@trpc/server/observable';
 import { z } from 'zod';
 import { ChatMessage } from '../../../lib/src/index';
@@ -40,9 +40,10 @@ export const languageModelRouter = t.router({
 
       // Reload the model engine with updated parameters
       const { temperature, topK, systemPrompt, initialPrompts } = chatOpts || {};
+
       await ctx.chatEngine.reload(modelId, {
         temperature: temperature ?? 0.7,
-        top_p: topK ?? 40,
+        // top_p: topK ?? 40,
       });
 
       // Create a new session in Dexie
@@ -90,11 +91,11 @@ export const languageModelRouter = t.router({
       if (!session) {
         throw new Error(`Session ${sessionId} not found in Dexie.`);
       }
-
       // Reload the model with session's current temperature/top_k
       await ctx.chatEngine.reload(session.llm_id, {
         temperature: session.temperature,
-        top_p: session.top_k,
+
+        // top_p: session.top_k,
       });
 
       // Get current message count to place the new user message at next position
@@ -206,7 +207,7 @@ export const languageModelRouter = t.router({
             // Reload model with session config
             await ctx.chatEngine.reload(session.llm_id, {
               temperature: session.temperature,
-              top_p: session.top_k,
+              // top_p: session.top_k,
             });
 
             // Start streaming
@@ -246,6 +247,24 @@ export const languageModelRouter = t.router({
           if (!isDone && ctx.chatEngine) {
             console.log('[mlcRouter/promptStreaming] Unsubscribing early...');
           }
+        };
+      });
+    }),
+  downloadProgress: t.procedure
+    .subscription(({ ctx }) => {
+      // We return an observable that listens for "progress" events
+      // emitted by the 'ee' and then emits them to the subscriber
+      return observable<InitProgressReport>((emit) => {
+        function handleProgress(progressEvent: InitProgressReport) {
+          emit.next(progressEvent);
+        }
+
+        // Attach the listener
+        const unsub = storage.watch<InitProgressReport>("session:progress", (newProgress) => handleProgress(newProgress!))
+
+        // Cleanup when unsubscribed
+        return () => {
+          unsub()
         };
       });
     }),
