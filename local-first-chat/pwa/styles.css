@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-@config '../tailwind.config.js';
-
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
@@ -80,8 +78,8 @@
     --chart-5: 250 29.4% 15.3%;
   }
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 240 10% 3.9%;  // Dark background
+    --foreground: 240 0% 98%;
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
@@ -108,9 +106,10 @@
 }
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }

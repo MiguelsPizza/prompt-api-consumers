@@ -1,5 +1,5 @@
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import '../styles.css';
 
 import { SystemProvider } from '@/components/providers/SystemProvider';
 import PWABadge from '@/components/widgets/PWABadge';
