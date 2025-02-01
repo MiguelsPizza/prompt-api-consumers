@@ -1,5 +1,5 @@
+import "@local-first-web-ai-monorepo/react-ui/css";
 import ReactDOM from 'react-dom/client';
-import '../styles.css';
 
 import { SystemProvider } from '@/components/providers/SystemProvider';
 import PWABadge from '@/components/widgets/PWABadge';

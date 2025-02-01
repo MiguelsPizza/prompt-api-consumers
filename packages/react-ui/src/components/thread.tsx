@@ -40,7 +40,7 @@ export const MyThread: FC = () => {
           }}
         />
 
-        <div className="min-h-8 w-full flex-grow" />
+        <div className="min-h-8 w-full grow" />
 
         <div className="sticky bottom-0 mt-3 flex w-full flex-col items-center justify-end rounded-t-lg bg-inherit pb-4">
           <MyThreadScrollToBottom />
@@ -74,7 +74,7 @@ const MyThreadScrollToBottom: FC = () => {
 const MyThreadWelcome: FC = () => {
   return (
     <ThreadPrimitive.Empty>
-      <div className="flex w-full flex-grow flex-col items-center justify-center">
+      <div className="flex w-full grow flex-col items-center justify-center">
         <Avatar>
           <AvatarFallback>C</AvatarFallback>
         </Avatar>
@@ -91,9 +91,9 @@ const MyComposer: FC = () => {
         autoFocus
         placeholder="Write a message..."
         rows={1}
-        className="placeholder:text-muted-foreground max-h-40 w-full flex-grow resize-none border-none bg-transparent px-2 py-4 text-sm outline-none focus:ring-0 disabled:cursor-not-allowed"
+        className="placeholder:text-muted-foreground max-h-40 w-full grow resize-none border-none bg-transparent px-2 py-4 text-sm outline-hidden focus:ring-0 disabled:cursor-not-allowed"
       />
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <ThreadPrimitive.If running={false}>
           <ComposerPrimitive.Send asChild>
             <TooltipIconButton
@@ -146,7 +146,7 @@ const MyUserActionBar: FC = () => {
 const MyEditComposer: FC = () => {
   return (
     <ComposerPrimitive.Root className="bg-muted my-4 flex w-[80%] max-w-4xl mx-auto flex-col gap-2 rounded-xl border border-border/50">
-      <ComposerPrimitive.Input className="text-foreground flex min-h-[40px] w-full resize-none border-none bg-transparent px-4 py-3 outline-none focus:ring-0" />
+      <ComposerPrimitive.Input className="text-foreground flex min-h-[40px] w-full resize-none border-none bg-transparent px-4 py-3 outline-hidden focus:ring-0" />
 
       <div className="flex w-full items-center justify-end gap-2 px-4 pb-3">
         <ComposerPrimitive.Cancel asChild>
@@ -188,7 +188,7 @@ const MyAssistantActionBar: FC = () => {
       hideWhenRunning
       autohide="not-last"
       autohideFloat="single-branch"
-      className="text-muted-foreground data-[floating]:bg-background col-start-3 row-start-2 -ml-1 flex w-full gap-1 data-[floating]:absolute data-[floating]:rounded-md data-[floating]:border data-[floating]:p-1 data-[floating]:shadow-sm"
+      className="text-muted-foreground data-floating:bg-background col-start-3 row-start-2 -ml-1 flex w-full gap-1 data-floating:absolute data-floating:rounded-md data-floating:border data-floating:p-1 data-floating:shadow-xs"
     >
       <ActionBarPrimitive.Copy asChild>
         <TooltipIconButton tooltip="Copy">

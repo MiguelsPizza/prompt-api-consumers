@@ -4,7 +4,6 @@ import { ConversationProvider } from '@/hooks/useConversationManager';
 import { RootSchema } from '@/utils/paramValidators';
 import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
 import { useCallback } from 'react';
-import "../../styles.css";
 
 export const Route = createFileRoute('/conversation')({
   component: RootLayout,
