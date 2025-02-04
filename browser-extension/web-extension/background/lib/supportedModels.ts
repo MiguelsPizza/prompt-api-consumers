@@ -1,3 +1,4 @@
+import { prebuiltAppConfig } from '@mlc-ai/web-llm'
 import { z } from 'zod'
 
 /**
@@ -8,7 +9,7 @@ import { z } from 'zod'
 // Language Models (LLMs)
 const supportedLLMs = {
   // MLC-powered models
-  mlc: ["SmolLM2-360M-Instruct-q4f16_1-MLC"],
+  mlc: prebuiltAppConfig.model_list.map(model => model.model_id),
   // TransformersJS-powered models
   transformersJS: ['test'],
 } as const
@@ -26,9 +27,10 @@ export const supportedModels = {
 
 // Create union types directly from the supported models
 export const ZSupportedLLMModel = z.enum([
+  'chromeAI',
   ...supportedModels.llms.mlc,
   ...supportedModels.llms.transformersJS,
-])
+]);
 
 export const ZSupportedEmbeddingModel = z.enum([
   ...supportedModels.embeddings.transformersJS,

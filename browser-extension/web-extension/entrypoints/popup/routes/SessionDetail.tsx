@@ -8,7 +8,6 @@ import { ScrollArea } from "@local-first-web-ai-monorepo/react-ui/components/scr
 import { UUID } from "crypto";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { DownloadProgressPopup } from "../components/DownloadProgressPopup";
 import { trpc } from "../trpcClient";
 /**
  * SessionDetail: Show a single session with messages.
@@ -68,7 +67,6 @@ export default function SessionDetail() {
 
   return (
     <div className="p-4 space-y-4">
-      <DownloadProgressPopup />
 
       <h1 className="text-2xl font-bold">Session Detail</h1>
       {session ? (

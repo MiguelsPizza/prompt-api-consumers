@@ -3,7 +3,6 @@ import { useState } from "react";
 import { trpc } from "../trpcClient";
 
 // shadcn components (assuming these are exposed by your shared react-ui library)
-import { Button } from "@local-first-web-ai-monorepo/react-ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
 import { Progress } from "@local-first-web-ai-monorepo/react-ui/components/progress";
 
@@ -14,42 +13,36 @@ export function DownloadProgressPopup() {
     text: "",
   });
 
-  // We'll optionally allow the user to close/hide the popup in local state
-  const [visible, setVisible] = useState(true);
-
-  // Listen to the subscription from our languageModelRouter.downloadProgress procedure
+  // Remove the visible state since we'll show based on download progress
   trpc.languageModel.downloadProgress.useSubscription(undefined, {
     onData(progressEvent) {
       setProgressState(progressEvent);
     },
   });
 
-  if (!visible) {
-    return null; // If closed, don't render
+  // Show when there's an active download (progress > 0 and < 1) or when starting to fetch params
+  if ((progressState.progress === 0 && progressState.text !== "Start to fetch params") || progressState.progress >= 1) {
+    return null;
   }
 
   return (
-    <Card className="w-full sm:w-80 p-4 shadow">
-      <CardHeader className="flex items-center justify-between">
-        <CardTitle>Download Progress</CardTitle>
-        <Button variant="outline" onClick={() => setVisible(false)}>
-          Close
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <p className="text-sm">{progressState.text}</p>
-          <p className="text-sm">Time Elapsed: {progressState.timeElapsed.toFixed(2)} sec</p>
-          {/*
-            shadcn/ui standard progress bar typically expects a value from 0-100.
-            If progress is a fraction between 0 and 1, multiply by 100.
-          */}
-          <Progress value={Math.min(Math.max(progressState.progress * 100, 0), 100)} />
-          <p className="text-xs text-muted-foreground">
-            {(progressState.progress * 100).toFixed(1)}% complete
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    // Add overlay wrapper
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="flex items-center justify-center">
+          <CardTitle>Downloading Language Model</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-center">{progressState.text}</p>
+            <p className="text-center">Time Elapsed: {progressState.timeElapsed.toFixed(2)} sec</p>
+            <Progress value={Math.min(Math.max(progressState.progress * 100, 0), 100)} />
+            <p className="text-center text-sm text-muted-foreground">
+              {(progressState.progress * 100).toFixed(1)}% complete
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
