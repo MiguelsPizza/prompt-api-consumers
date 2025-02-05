@@ -1,17 +1,22 @@
 import { CreateChromeContextOptions } from '@/chromeTrpcAdditions/trpc-browser/adapter';
 import { MLCEngine } from '@mlc-ai/web-llm';
+import EventEmitter from "emittery";
 import { createEngine } from '../modelEngines/mlcEngine';
 
 let engine: MLCEngine
 
+interface EEeventTypes {
+  downloading: boolean
+}
 export const createContext = async (opts: CreateChromeContextOptions) => {
   // console.log(EventEmitter)
-  // const ee = new EventEmitter<EEeventTypes>({ debug: { name: 'EE', enabled: true } });
-  engine = engine ?? createEngine(opts);
+  const ee = new EventEmitter<EEeventTypes>({ debug: { name: 'EE', enabled: true } });
+  engine ??= createEngine(opts);
 
   console.log('[Background] Context creation completed successfully');
   return {
     chatEngine: engine,
+    ee
   };
 };
 

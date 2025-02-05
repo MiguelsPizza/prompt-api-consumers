@@ -1,15 +1,18 @@
 import type { CachedModel } from "@/background/lib/modelUtils";
 import { Button } from "@local-first-web-ai-monorepo/react-ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
+import { Input } from "@local-first-web-ai-monorepo/react-ui/components/input";
 import { ScrollArea } from "@local-first-web-ai-monorepo/react-ui/components/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@local-first-web-ai-monorepo/react-ui/components/select";
 import { ModelRecord } from "@mlc-ai/web-llm";
+import { useMemo, useState } from "react";
 import { trpc } from "../trpcClient";
 import { AVAILABLE_MODELS } from "../utils/clientHardwareUtils";
 
 interface AvailableModelsListProps {
   models: CachedModel[];
   storageInfo: { used: number; available: number } | null;
-  setHoveredModel: (prev: ModelRecord) => void
+  setHoveredModel: (prev: ModelRecord | null) => void
 }
 
 
@@ -17,21 +20,67 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
 
   const downloadModel = trpc.models.downloadModel.useMutation()
 
+  // New state for search and sorting
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "size">("name");
+
   const handleDownloadModel = async (model: ModelRecord) => {
     const test = await downloadModel.mutateAsync({
       modelId: model.model_id
     })
     console.log({ test })
   }
+
+  // Memoized filtering and sorting
+  const filteredAndSortedModels = useMemo(() => {
+    const lowerQuery = searchQuery.toLowerCase();
+    return AVAILABLE_MODELS
+      .filter((model) => {
+        // Filter by user's search
+        return model.model_id.toLowerCase().includes(lowerQuery);
+      })
+      .sort((a, b) => {
+        // Sort by "name" or by "size" (vram_required_MB)
+        if (sortBy === "name") {
+          return a.model_id.localeCompare(b.model_id);
+        } else if (sortBy === "size") {
+          const sizeA = a.vram_required_MB || 0;
+          const sizeB = b.vram_required_MB || 0;
+          return sizeA - sizeB;
+        }
+        return 0;
+      });
+  }, [searchQuery, sortBy]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Available Models</CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Search and Sort Controls */}
+        <div className="flex gap-2 mb-4">
+          <Input
+            placeholder="Search models..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <div className="flex items-center">
+            <Select value={sortBy} onValueChange={(value: "name" | "size") => setSortBy(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort By" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Model Name</SelectItem>
+                <SelectItem value="size">Model Size (VRAM)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <ScrollArea className="h-[400px]">
           <div className="space-y-2">
-            {AVAILABLE_MODELS.map((model) => {
+            {filteredAndSortedModels.map((model) => {
               const isModelCached = models.map(a => a.manifestUrl).includes(model.model);
               const modelSizeMB = model.vram_required_MB || 0;
 
@@ -40,7 +89,7 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
                   key={model.model_id}
                   className="hover:bg-accent transition-colors relative group"
                   onMouseEnter={() => setHoveredModel(model)}
-                  onMouseLeave={() => setHoveredModel(model)}
+                  onMouseLeave={() => setHoveredModel(null)}
                 >
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex-1">

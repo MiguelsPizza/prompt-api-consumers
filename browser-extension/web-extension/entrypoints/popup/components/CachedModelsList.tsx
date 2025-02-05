@@ -2,7 +2,8 @@ import type { CachedModel } from "@/background/lib/modelUtils";
 import { Button } from "@local-first-web-ai-monorepo/react-ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
 import { ScrollArea } from "@local-first-web-ai-monorepo/react-ui/components/scroll-area";
-import { Link } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
+import { filesize } from "filesize";
 import { trpc } from "../trpcClient";
 import { extractModelId } from "../utils/modelUtils";
 
@@ -38,12 +39,13 @@ export function CachedModelsList({ models }: CachedModelsListProps) {
                   <Card key={model.manifestUrl} className="hover:bg-accent transition-colors">
                     <CardContent className="p-4 flex items-center justify-between">
                       <Link
-                        to={`/models/${encodeURIComponent(modelId)}`}
+                        to={`/models/$modelId`}
+                        params={{ modelId }}
                         className="flex-1"
                       >
                         <div className="font-medium">{modelId}</div>
                         <div className="text-sm text-muted-foreground">
-                          Total Size: {model.totalSize} bytes
+                          Total Size: {filesize(model.totalSize)}
                         </div>
                       </Link>
                       <Button

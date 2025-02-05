@@ -1,5 +1,7 @@
 import { ZAILanguageModelCreateOptionsWithSystemPrompt } from '@local-first-web-ai-monorepo/web-ai-polyfill';
+import { MLCEngine } from '@mlc-ai/web-llm';
 import { z } from 'zod';
+import { ChatMessage } from '../../../lib/src';
 import { db } from './sessionArchiveDB';
 import { BaseSession, createSessionMessage, SessionSchema } from './sessionSchema';
 import { SupportedLLMModel } from './supportedModels';
@@ -137,4 +139,59 @@ export async function getSessionFromDexieWMessages(sessionId: string) {
 
 
   return { session, messages };
+}
+
+
+/**
+ * Helper Function:
+ * Processes the incoming user message by ensuring the session exists, reloading the model,
+ * recording the user message into Dexie, and gathering the full conversation history.
+ */
+export async function addUserMessageAndGetHistory(
+  chatEngine: MLCEngine,
+  sessionId: string,
+  messages: { role: 'user' | 'assistant'; content: string }[]
+) {
+  // Ensure the session exists
+  const session = await getSessionFromDexie(sessionId);
+  if (!session) {
+    throw new Error(`Session ${sessionId} not found in Dexie.`);
+  }
+
+
+  // Get current message count to determine the new position
+  const messageCount = await db.session_messages
+    .where('session_id')
+    .equals(sessionId)
+    .count();
+  const nextIndex = messageCount + 1;
+
+  // Add the user message to Dexie
+  const newMessages = messages.map((message, i) => createSessionMessage(
+    message.content,
+    message.role,
+    session,
+    nextIndex + i,
+  ));
+  await db.session_messages.bulkAdd(newMessages);
+
+  // Gather conversation history from Dexie
+  const allMessages = await db.session_messages
+    .where('session_id')
+    .equals(sessionId)
+    .sortBy('position');
+
+  // Convert session messages to ChatMessage array for LLM
+  const conversationHistory: ChatMessage[] = allMessages.map((msg) => ({
+    role: msg.role,
+    content: msg.content,
+  }));
+
+  // Reload the model with session's current temperature/top_k settings
+  await chatEngine.reload(session.llm_id, {
+    temperature: session.temperature,
+    // top_p: session.top_k,
+  });
+
+  return { session, conversationHistory, insertIndex: nextIndex + newMessages.length };
 }

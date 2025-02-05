@@ -2,11 +2,9 @@
 import { CachedModel } from "@/background/lib/modelUtils";
 import { Alert, AlertDescription, AlertTitle } from "@local-first-web-ai-monorepo/react-ui/components/alert";
 import { Button } from "@local-first-web-ai-monorepo/react-ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
-import { filesize } from 'filesize';
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { trpc } from "../trpcClient";
+import { trpc } from "../entrypoints/popup/trpcClient";
 
 /**
  * Extracts the model ID from a manifest URL.
@@ -82,29 +80,7 @@ export default function ModelDetail() {
 
   return (
     <div className="p-4 space-y-4">
-      <h1 className="text-2xl font-bold">Model Detail</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>{modelId}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div>
-            <strong>Manifest URL:</strong> {modelDetail.manifestUrl}
-          </div>
-          <div>
-            <strong>Total Size:</strong> {filesize(modelDetail.totalSize)}
-          </div>
-          {/* Additional details about the model can be displayed here */}
-          <div className="flex space-x-2 mt-4">
-            <Button variant="destructive" onClick={handleDeleteModel}>
-              Delete Model
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/models">Back</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+
     </div>
   );
 }

@@ -9,9 +9,9 @@ import { CheckIcon, CopyIcon } from 'lucide-react';
 import { FC, memo, useState } from 'react';
 import remarkGfm from 'remark-gfm';
 
-import { cn } from '../utils/utils';
 import { SyntaxHighlighter } from './syntax-highlighter';
 import { TooltipIconButton } from './tooltip-icon-button';
+import { cn } from './utils';
 
 const MarkdownTextImpl = () => {
   return (

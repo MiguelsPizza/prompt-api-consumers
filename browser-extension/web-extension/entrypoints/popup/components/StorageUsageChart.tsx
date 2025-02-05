@@ -13,42 +13,72 @@ interface StorageUsageChartProps {
   hoveredModel: ModelRecord | null;
 }
 
+const getColorFromString = (str: string) => {
+  // Use a predefined color palette instead of random colors
+  const palette = [
+    'hsl(210, 70%, 55%)',  // Blue
+    'hsl(280, 70%, 55%)',  // Purple
+    'hsl(150, 70%, 55%)',  // Green
+    'hsl(340, 70%, 55%)',  // Pink
+    'hsl(30, 70%, 55%)',   // Orange
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return palette[Math.abs(hash) % palette.length];
+};
+
 export function StorageUsageChart({ models, storageInfo, hoveredModel }: StorageUsageChartProps) {
-  const { data: modelDetails } = useQuery({
+  let { data: modelDetails } = useQuery({
     queryKey: ['modelRecord', hoveredModel?.model_id],
     queryFn: () => processModelRecord(hoveredModel!),
     enabled: !!hoveredModel,
     staleTime: 1000 * 60 * 60, // 1 hour
+    // gcTime: 0, // Immediately garbage collect when query becomes inactive
     cacheTime: 1000 * 60 * 60 * 24, // 24 hours
   });
-  const chartData = models.map(model => ({
-    name: extractModelId(model.manifestUrl),
-    size: Number(model.totalSize),
-    fill: `hsl(${Math.random() * 360}, 70%, 50%)`,
-  }));
+
+  const totalStorage = storageInfo ? storageInfo.available : 0;
+  const usedStorage = models.reduce((acc, model) => acc + Number(model.totalSize), 0);
+  const percentageUsed = totalStorage ? ((usedStorage / totalStorage) * 100).toFixed(1) : '0';
+
+  let chartData = models.map(model => {
+    const size = Number(model.totalSize);
+    return {
+      name: extractModelId(model.manifestUrl),
+      size,
+      percentage: totalStorage ? ((size / totalStorage) * 100).toFixed(1) : '0',
+      fill: getColorFromString(extractModelId(model.manifestUrl)),
+      fromHovered: false
+    };
+  });
 
   if (storageInfo) {
+    const availableSize = storageInfo.available - storageInfo.used;
     chartData.push({
       name: 'Available',
-      size: storageInfo.available - storageInfo.used,
-      fill: 'hsl(200, 20%, 80%)',
+      size: availableSize,
+      percentage: ((availableSize / totalStorage) * 100).toFixed(1),
+      fill: 'hsl(200, 20%, 90%)',
+      fromHovered: false
+    });
+  }
+
+  if (modelDetails && hoveredModel) {
+    chartData.push({
+      name: hoveredModel.model_id,
+      size: Number(modelDetails.data?.usedStorage ?? 0),
+      percentage: ((Number(modelDetails.data?.usedStorage ?? 0) / totalStorage) * 100).toFixed(1),
+      fill: getColorFromString(hoveredModel.model_id),
+      fromHovered: true
     });
   }
 
   const StorageUsageLabel = (props: PieLabelRenderProps) => {
     const { viewBox } = props;
     if (!viewBox || typeof viewBox.cx !== 'number' || typeof viewBox.cy !== 'number') return null;
-
-    let labelValue: number;
-    let labelText: string;
-
-    if (modelDetails) {
-      labelValue = modelDetails.diskSpaceBytes;
-      labelText = "Model Size";
-    } else {
-      labelValue = models.reduce((acc, model) => acc + Number(model.totalSize), 0);
-      labelText = "MB Used";
-    }
 
     return (
       <text
@@ -59,17 +89,24 @@ export function StorageUsageChart({ models, storageInfo, hoveredModel }: Storage
       >
         <tspan
           x={viewBox.cx}
-          y={viewBox.cy}
+          y={viewBox.cy - 10}
           className="fill-foreground text-xl font-bold"
         >
-          {(labelValue / 1024 / 1024).toFixed(2)}
+          {percentageUsed}%
         </tspan>
         <tspan
           x={viewBox.cx}
-          y={viewBox.cy + 20}
+          y={viewBox.cy + 10}
           className="fill-muted-foreground text-sm"
         >
-          {labelText}
+          Used
+        </tspan>
+        <tspan
+          x={viewBox.cx}
+          y={viewBox.cy + 30}
+          className="fill-muted-foreground text-xs"
+        >
+          {(usedStorage / 1024 / 1024).toFixed(1)} MB of {(totalStorage / 1024 / 1024).toFixed(1)} MB
         </tspan>
       </text>
     );
@@ -95,7 +132,7 @@ export function StorageUsageChart({ models, storageInfo, hoveredModel }: Storage
                       <div className="bg-background p-2 rounded-lg shadow">
                         <div className="font-medium">{data.name}</div>
                         <div className="text-sm text-muted-foreground">
-                          {(data.size / 1024 / 1024).toFixed(2)} MB
+                          {data.percentage}% ({(data.size / 1024 / 1024).toFixed(1)} MB)
                         </div>
                       </div>
                     );
@@ -107,8 +144,11 @@ export function StorageUsageChart({ models, storageInfo, hoveredModel }: Storage
                 data={chartData}
                 dataKey="size"
                 nameKey="name"
+                animationDuration={300}
                 innerRadius={60}
-                strokeWidth={5}
+                outerRadius={100}
+                strokeWidth={2}
+                stroke="hsl(var(--background))"
               >
                 {/* @ts-expect-error too lazy to type this atm */}
                 <Label content={StorageUsageLabel} />

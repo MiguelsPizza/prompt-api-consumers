@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import { defineConfig } from 'wxt';
 
 // See https://wxt.dev/api/config.html
@@ -6,7 +7,9 @@ export default defineConfig({
   extensionApi: 'chrome',
   modules: ['@wxt-dev/module-react'],
   vite: (env) => ({
-    plugins: [tailwindcss()] as any
+    plugins: [TanStackRouterVite({
+      routesDirectory: './entrypoints/popup/routes'
+    }), tailwindcss()] as any
   }),
   manifestVersion: 3,
   manifest: {

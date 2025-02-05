@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../components/tooltip';
-import { cn } from '../utils/utils';
+import { cn } from './utils';
 
 export type TooltipIconButtonProps = ButtonProps & {
   tooltip: string;

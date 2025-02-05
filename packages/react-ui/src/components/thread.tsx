@@ -20,9 +20,9 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '../components/avatar';
 import { Button } from '../components/button';
-import { cn } from '../utils/utils';
 import { MarkdownText } from './markdown-text';
 import { TooltipIconButton } from './tooltip-icon-button';
+import { cn } from './utils';
 
 export const MyThread: FC = () => {
   return (

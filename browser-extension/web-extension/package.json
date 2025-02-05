@@ -15,12 +15,15 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@assistant-ui/react": "^0.7.38",
     "@local-first-web-ai-monorepo/react-ui": "workspace:*",
     "@local-first-web-ai-monorepo/web-ai-polyfill": "workspace:*",
     "@mlc-ai/web-llm": "^0.2.78",
     "@mlc-ai/web-runtime": "0.18.0-dev2",
     "@tailwindcss/vite": "^4.0.1",
     "@tanstack/react-query": "^4.35.3",
+    "@tanstack/react-router": "^1.92.11",
+    "@tanstack/zod-adapter": "^1.92.11",
     "@trpc/client": "^10.45.2",
     "@trpc/react-query": "^10.45.2",
     "@trpc/server": "^10.45.2",
@@ -33,13 +36,13 @@
     "lucide-react": "^0.469.0",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-router-dom": "^7.1.4",
     "recharts": "^2.15.1",
     "tailwindcss": "^4.0.1",
     "trpc-browser": "^1.4.2",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@tanstack/router-plugin": "^1.97.3",
     "@types/chrome": "^0.0.280",
     "@types/dom-chromium-ai": "catalog:",
     "@types/react": "catalog:",

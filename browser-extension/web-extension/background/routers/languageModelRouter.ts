@@ -1,14 +1,13 @@
-import { ChatCompletionMessageParam, InitProgressReport } from '@mlc-ai/web-llm';
+import { InitProgressReport } from '@mlc-ai/web-llm';
 import { observable } from '@trpc/server/observable';
 import { z } from 'zod';
-import { ChatMessage } from '../../../lib/src/index';
 import { t } from './trpcBase';
 
 import { ZAILanguageModelCreateOptions } from '@local-first-web-ai-monorepo/web-ai-polyfill';
 import { db } from '../lib/sessionArchiveDB';
 import {
-  getSessionFromDexie,
-  startSession,
+  addUserMessageAndGetHistory,
+  startSession
 } from '../lib/sessionManager';
 import {
   createSessionMessage
@@ -76,57 +75,20 @@ export const languageModelRouter = t.router({
     .input(
       z.object({
         sessionId: z.string().uuid(),
-        message: z.object({
-          role: z.enum(['user']),
+        messages: z.array(z.object({
+          role: z.enum(['user', 'assistant']),
           content: z.string(),
-        }),
+        })),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { sessionId, message } = input;
-      console.log('[mlcRouter/prompt] SessionID:', sessionId, 'User message:', message);
+      const { sessionId, messages } = input;
+      console.log('[mlcRouter/prompt] SessionID:', sessionId, 'User message:', messages);
 
-      // Ensure the session exists
-      const session = await getSessionFromDexie(sessionId);
-      if (!session) {
-        throw new Error(`Session ${sessionId} not found in Dexie.`);
-      }
-      // Reload the model with session's current temperature/top_k
-      await ctx.chatEngine.reload(session.llm_id, {
-        temperature: session.temperature,
+      // Use the helper function to process the incoming user message
+      const { session, conversationHistory, insertIndex } = await addUserMessageAndGetHistory(ctx.chatEngine, sessionId, messages);
 
-        // top_p: session.top_k,
-      });
-
-      // Get current message count to place the new user message at next position
-      const messageCount = await db.session_messages
-        .where('session_id')
-        .equals(sessionId)
-        .count();
-      const userPosition = messageCount + 1;
-
-      // Add user message to Dexie
-      const userMessage = createSessionMessage(
-        message.content,
-        'user',
-        session,
-        userPosition
-      );
-      await db.session_messages.add(userMessage);
-
-      // Gather history from Dexie
-      const allMessages = await db.session_messages
-        .where('session_id')
-        .equals(sessionId)
-        .sortBy('position');
-
-      // Convert sessionMessages to ChatMessage array for LLM
-      const conversationHistory: ChatMessage[] = allMessages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-      }));
-
-      // Get the model's response
+      // Invoke the LLM for a non-streaming response
       const result = await ctx.chatEngine.chat.completions.create({
         stream: false,
         messages: conversationHistory,
@@ -138,7 +100,7 @@ export const languageModelRouter = t.router({
       }
 
       // Add assistant reply to Dexie
-      const assistantPosition = userPosition + 1;
+      const assistantPosition = insertIndex + 1;
       const assistantMessage = createSessionMessage(
         result.choices[0].message.content,
         'assistant',
@@ -147,7 +109,7 @@ export const languageModelRouter = t.router({
       );
       await db.session_messages.add(assistantMessage);
 
-      // Update the session updated timestamp
+      // Update the session's updated timestamp
       await db.sessions.update(session.id, { updated_at: new Date().toISOString() });
 
       return { result, error: null };
@@ -182,59 +144,46 @@ export const languageModelRouter = t.router({
     .input(
       z.object({
         sessionId: z.string().uuid(),
-        messages: z.array(
-          z.object({
-            role: z.enum(['user', 'assistant']),
-            content: z.string(),
-          }),
-        ),
+        messages: z.array(z.object({
+          role: z.enum(['user', 'assistant']),
+          content: z.string(),
+        })),
       }),
     )
     .subscription(({ input, ctx }) => {
       const { sessionId, messages } = input;
-      console.log('[mlcRouter/promptStreaming] SessionID:', sessionId);
+      console.log('[mlcRouter/promptStreaming] SessionID:', sessionId, 'User message:', messages);
 
       return observable<string>((emit) => {
         let isDone = false;
         (async () => {
           try {
-            // Ensure the session exists
-            const session = await getSessionFromDexie(sessionId);
-            if (!session) {
-              throw new Error(`Session ${sessionId} not found in Dexie.`);
-            }
+            // Use the helper function to process the incoming user message
+            const { session, conversationHistory, insertIndex } = await addUserMessageAndGetHistory(ctx.chatEngine, sessionId, messages);
 
-            // Reload model with session config
-            await ctx.chatEngine.reload(session.llm_id, {
-              temperature: session.temperature,
-              // top_p: session.top_k,
-            });
-
-            // Start streaming
+            // Start streaming the response from the model
             const completion = await ctx.chatEngine.chat.completions.create({
               stream: true,
-              messages: messages as ChatCompletionMessageParam[],
+              messages: conversationHistory,
             });
-
             let buffer = '';
+            // weird design choice for the prompt api TODO: Consider moving this accumulation to the
             for await (const chunk of completion) {
               const piece = chunk?.choices?.[0]?.delta?.content ?? '';
               buffer += piece;
+              // update the stream indexed db
               emit.next(buffer);
             }
 
-            isDone = true;
-            emit.complete();
+            const assistantPosition = insertIndex + 1;
+            const assistantMessage = createSessionMessage(buffer, 'assistant', session, assistantPosition);
+            const streamMessageId = await db.session_messages.add(assistantMessage);
 
-            // Optionally, after stream ends, store the final assistant message in Dexie
-            // ------------------------------------------------
-            // const finalPosition = await db.session_messages
-            //   .where('session_id').equals(session.id)
-            //   .count() + 1;
-            // const assistantMessage = createSessionMessage(buffer, 'assistant', session, finalPosition);
-            // await db.session_messages.add(assistantMessage);
-            // await db.sessions.update(session.id, { updated_at: new Date().toISOString() });
-            // ------------------------------------------------
+            isDone = true;
+            // After stream completes, store the final assistant message in Dexie
+            await db.sessions.update(session.id, { updated_at: new Date().toISOString() });
+
+            emit.complete();
           } catch (err) {
             console.error('[mlcRouter/promptStreaming] Error:', err);
             emit.error(err);
@@ -243,12 +192,53 @@ export const languageModelRouter = t.router({
 
         // Graceful cleanup if unsubscribed early
         return () => {
-          // If your MLC engine supports a force-cancel, do that here
           if (!isDone && ctx.chatEngine) {
             console.log('[mlcRouter/promptStreaming] Unsubscribing early...');
           }
         };
       });
+    }),
+  //This will not emit events and will instead expect you to listen to updates from one of the session wide subscriptions
+  _promptStreamingInternal: t.procedure
+    .input(
+      z.object({
+        sessionId: z.string().uuid(),
+        messages: z.array(z.object({
+          role: z.enum(['user', 'assistant']),
+          content: z.string(),
+        })),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { sessionId, messages } = input;
+      console.log('[mlcRouter/promptStreaming] SessionID:', sessionId, 'User message:', messages);
+
+      let isDone = false;
+      // Use the helper function to process the incoming user message
+      const { session, conversationHistory, insertIndex } = await addUserMessageAndGetHistory(ctx.chatEngine, sessionId, messages);
+      let buffer = '';
+      const assistantPosition = insertIndex + 1;
+      const assistantMessage = createSessionMessage(buffer, 'assistant', session, assistantPosition);
+      const streamMessageId = await db.session_messages.add(assistantMessage);
+      // Start streaming the response from the model
+      const completion = await ctx.chatEngine.chat.completions.create({
+        stream: true,
+        messages: conversationHistory,
+      });
+
+
+      // weird design choice for the prompt api TODO: Consider moving this accumulation to the
+      for await (const chunk of completion) {
+        const piece = chunk?.choices?.[0]?.delta?.content ?? '';
+        buffer += piece;
+        // update the stream indexed db
+        await db.session_messages.update(streamMessageId, { ...assistantMessage, content: buffer });
+      }
+
+      isDone = true;
+      // After stream completes, store the final assistant message in Dexie
+      await db.sessions.update(session.id, { updated_at: new Date().toISOString() });
+
     }),
   downloadProgress: t.procedure
     .subscription(({ ctx }) => {
