@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1735615956904,
+      "tag": "0000_tricky_franklin_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1735695206557,
+      "tag": "0001_remarkable_iron_patriot",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1735781137239,
+      "tag": "0002_striped_iron_patriot",
+      "breakpoints": true
+    }
+  ]
+}

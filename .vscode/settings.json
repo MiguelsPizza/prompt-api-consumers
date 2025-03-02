@@ -1,14 +1,30 @@
 {
-  // "editor.formatOnSave": true,
   // "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "search.exclude": {
-    // Avoid polluting search results with lockfile content
     "pnpm-lock.yaml": true
   },
-  // Ensure VSCode uses pnpm instead of npm
   "npm.packageManager": "pnpm",
-  // For those using file-nesting, nest the new files. E.g.:
   "explorer.fileNesting.patterns": {
     "package.json": "pnpm-workspace.yaml, pnpm-lock.yaml"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[typescript,typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.formatOnSave": true,
+  "eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }],
+  "eslint.runtime": "node",
+  "eslint.workingDirectories": [{ "pattern": "local-first-chat/*/" }, { "pattern": "packages/*/" }, { "pattern": "tooling/*/" }, { "pattern": "browser-extension/*/" }],
+  "prettier.ignorePath": ".gitignore",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "cSpell.words": [],
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
   }
 }

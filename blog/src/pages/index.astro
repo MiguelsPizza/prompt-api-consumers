@@ -1,0 +1,124 @@
+---
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Content from '~/components/widgets/Content.astro';
+import Features from '~/components/widgets/Features.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Layout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'LocalFirst Chat - Private, secure messaging that puts you in control',
+  ignoreTitleTemplate: false
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Widget ******************* -->
+
+  <Hero
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Download App',
+        href: '#',
+        target: '_blank',
+        icon: 'tabler:download',
+      },
+      { text: 'Learn more', href: '#features' },
+    ]}
+    image={{ src: '~/assets/images/hero-image.png', alt: 'LocalFirst Chat App Screenshot' }}
+  >
+    <Fragment slot="title">
+      Private messaging that puts <span class="text-accent dark:text-white highlight">you in control</span>
+    </Fragment>
+
+    <Fragment slot="subtitle">
+      LocalFirst Chat is a secure messaging app that stores your data locally first, giving you complete control over your conversations and data. No central servers, no tracking, just private communication.
+    </Fragment>
+  </Hero>
+
+  <!-- Features Widget *************** -->
+
+  <Features
+    id="features"
+    tagline="Features"
+    title="Why Choose LocalFirst Chat?"
+    subtitle="Built with privacy and security as core principles, not afterthoughts."
+    items={[
+      {
+        title: 'True Data Ownership',
+        description:
+          'Your messages and data are stored locally on your device first, not on central servers. You maintain complete control.',
+        icon: 'tabler:lock',
+      },
+      {
+        title: 'End-to-End Encryption',
+        description:
+          'All messages are encrypted end-to-end by default. Only you and your intended recipients can read them.',
+        icon: 'tabler:shield',
+      },
+      {
+        title: 'Works Offline',
+        description:
+          'Access your messages anytime, even without an internet connection. Sync when you"re back online.',
+        icon: 'tabler:wifi-off',
+      },
+      {
+        title: 'No Phone Number Required',
+        description:
+          'Create an account without sharing your phone number. Your privacy is protected from the start.',
+        icon: 'tabler:user-plus',
+      }
+    ]}
+  />
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    isReversed
+    tagline="How It Works"
+    title="Secure By Design"
+    items={[
+      {
+        title: 'Local-First Architecture',
+        description:
+          'Your data lives on your device first, synchronized peer-to-peer when needed.',
+      },
+      {
+        title: 'Strong Encryption',
+        description:
+          'Industry-standard encryption protects your messages at rest and in transit.',
+      },
+      {
+        title: 'No Central Servers',
+        description:
+          'Peer-to-peer networking eliminates the need for central servers that could be compromised.',
+      },
+    ]}
+    image={{
+      src: 'https://images.unsplash.com/photo-1580927752452-89d86da3fa0a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80',
+      alt: 'Security First Design',
+    }}
+  />
+
+  <!-- CallToAction Widget *********** -->
+
+  <CallToAction
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Get Started',
+        href: '#',
+        target: '_blank',
+        icon: 'tabler:download',
+      },
+    ]}
+  >
+    <Fragment slot="title">
+      Ready to take control of your conversations?
+    </Fragment>
+
+    <Fragment slot="subtitle">
+      Download LocalFirst Chat today and experience truly private messaging.
+    </Fragment>
+  </CallToAction>
+</Layout>

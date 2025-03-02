@@ -1,0 +1,59 @@
+{
+  "name": "@local-first-web-ai-monorepo/chrome-ai",
+  "description": "Vercel AI provider for Chrome built-in model (Gemini Nano)",
+  "version": "1.11.1",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./polyfill": {
+      "import": "./dist/polyfill.mjs",
+      "require": "./dist/polyfill.js",
+      "types": "./dist/polyfill.d.ts"
+    }
+  },
+  "sideEffects": [
+    "./dist/polyfill.global.js",
+    "./dist/polyfill.js",
+    "./dist/polyfill.mjs"
+  ],
+  "scripts": {
+    "dev": "tsup --tsconfig=tsconfig.tsup.json --watch",
+    "build": "tsup --tsconfig=tsconfig.tsup.json --clean",
+    "test": "nx vite:test",
+    "test:coverage": "nx vite:test --coverage",
+    "test:ci": "nx vite:test --run",
+    "changeset": "changeset",
+    "release:prepare": "npm run lint && npm run test:ci && npm run build",
+    "release": "npm run release:prepare && changeset version && changeset publish"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "jeasonstudio <me@cowpoke.cc>",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "dependencies": {
+    "@ai-sdk/provider": "^0.0.21",
+    "debug": "^4.3.6"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.7",
+    "@types/debug": "^4.1.12",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "^2.0.5",
+    "ai": "^3.3.16",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "^2.0.5",
+    "zod": "catalog:"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@local-first-web-ai-monorepo/{{ name }}",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".":{
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc --watch",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@local-first-web-ai-monorepo/eslint-config": "workspace:*",
+    "@local-first-web-ai-monorepo/prettier-config": "workspace:*",
+    "@local-first-web-ai-monorepo/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "@types/node": "catalog:",
+  },
+  "prettier": "@local-first-web-ai-monorepo/prettier-config"
+}

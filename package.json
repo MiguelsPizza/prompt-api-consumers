@@ -1,41 +1,35 @@
 {
-  "name": "pnpm-monorepo",
+  "name": "local-first-web-ai-monorepo",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": "^23",
+    "pnpm": "^10.0.0"
+  },
   "description": "",
-  "type": "module",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "prepare": "husky install",
-    "grok": "pnpm  use prompt-api",
-    "dev": "pnpm --filter use-prompt-api run build --watch & pnpm --filter local-first-chat run dev",
-    "deploy:web": "pnpm --filter use-prompt-api run build && pnpm -filter local-first-chat run build && wrangler pages deploy ./local-first-chat/dist",
-    "deploy:local": "pnpm --filter use-prompt-api run build && pnpm -filter local-first-chat run build && pnpm --filter local-first-chat run preview"
+    "dev": "turbo run dev --filter=@local-first-web-ai-monorepo/pwa --filter=@local-first-web-ai-monorepo/web-extension",
+    "deploy:web": "turbo run build --filter=use-prompt-api --filter=local-first-chat && turbo run deploy:web --filter=local-first-chat",
+    "deploy:local": "turbo run build --filter=use-prompt-api --filter=local-first-chat && turbo run preview --filter=local-first-chat"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "engines": {
-    "node": ">=18.16.1"
-  },
   "devDependencies": {
-    "@commitlint/cli": "^17.7.1",
-    "@commitlint/config-conventional": "^17.7.0",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
-    "@typescript-eslint/parser": "^6.4.0",
-    "eslint": "^8.47.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^14.0.0",
-    "prettier": "^3.0.1"
+    "@local-first-web-ai-monorepo/prettier-config": "workspace:*",
+    "@turbo/gen": "^2.3.3",
+    "prettier": "catalog:",
+    "eslint": "catalog:",
+    "tsx": "^4.19.2",
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
   },
-  "lint-staged": {
-    "**/*.{js,ts,tsx}": [
-      "eslint --fix"
-    ],
-    "**/*": "prettier --write --ignore-unknown"
+  "dependencies": {
+    "turbo": "^2.3.3",
+    "dotenv": "^16.4.7",
+    "pnpm": "10.0.0"
   }
 }
