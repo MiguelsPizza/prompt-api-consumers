@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "api",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/local-first-chat/local-first-chat-api/server.ts",
+      "cwd": "${workspaceFolder}/local-first-chat/local-first-chat-api",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true
+    }
+  ]
+}

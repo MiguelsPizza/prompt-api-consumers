@@ -1,1 +1,0 @@
-ALTER TABLE "conversations" ALTER COLUMN "system_prompt" DROP NOT NULL;

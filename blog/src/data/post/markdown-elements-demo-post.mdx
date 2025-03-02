@@ -1,0 +1,249 @@
+---
+publishDate: 2023-05-15T00:00:00Z
+title: Empowering Browsers with ML Primitives
+excerpt: Why the future of AI agents depends on in-browser LLMs, and a proposed solution using browser extensions to solve current implementation challenges.
+tags:
+  - AI
+  - WebDevelopment
+  - ChromeExtension
+  - MachineLearning
+  - OpenSource
+---
+import { Tweet, Vimeo, YouTube } from 'astro-embed';
+import Logo from '~/components/Logo.astro';
+
+# Empowering Browsers with ML Primitives
+
+## The Current State of Browser AI
+
+The browser needs better AI primitives. At this point, saying things like "AI agents and LLMs are the future" is preaching to the choir. If you charted model size against capabilities, you'd see a clear trend toward smaller models that are increasingly capable.
+
+![Model Size vs. Capabilities](https://placehold.co/600x400/000000/FFFFFF/png)
+
+The issue with the current AI space is that if you're using an LLM or any pre-trained model in your production workflow or for personal use, you probably want to use the best model currently available. That's an understandable request when any workflow involving an LLM has to:
+- Cross multiple network boundaries
+- Implement checkpoint and retry logic
+- Set up real-time connections with clients for human-in-the-loop guidance
+
+We pick the best model available because there's just so much that can go wrong from slightly lower model reliability.
+
+## Why In-Browser LLMs Matter
+
+That's why the age of agentic AI is incomplete without in-browser LLMs.
+
+Not only is it private, but it opens the front end up to automations that can be directly supervised by the user. Running models locally eliminates latency, connectivity issues, and privacy concerns associated with remote inference.
+
+### Current Challenges
+
+There are several major issues that make this unrealistic at the moment:
+
+1. **Storage Redundancy**: If a website wants to use a local LLM, they need to download and cache it themselves. This means three websites using their own instance of Llama 7B would take up 90GB of client storage.
+
+2. **Model Churn**: Let's say you've cached Llama for your site but now want to use the smaller and better Mistral model. You'd need to clear the cache and download the new model—a major lift to code reliably.
+
+3. **Implementation Complexity**: Running the model off the main thread is necessary for good UX, but introduces workers and additional complexity.
+
+```js
+// Current approach (simplified)
+async function loadModel() {
+  // Each site implements its own model loading, caching, and execution
+  const model = await downloadLargeModel(); // 7-30GB download
+  const worker = new Worker('model-worker.js');
+  worker.postMessage({ model, operation: 'initialize' });
+  // ...more complex setup
+}
+```
+
+## Chrome's Prompt API: A Step Forward, But Limited
+
+When the Chrome team announced the Prompt API, many of us were excited to try it out. It bakes Gemini Nano into the browser and introduces new methods under the `window.ai` primitive.
+
+```js
+// Chrome's Prompt API example
+const result = await window.ai.generateText({
+  text: "Explain quantum computing in simple terms"
+});
+console.log(result.text);
+```
+
+This is a great start, but it quickly became clear they were building products, not primitives. They introduced more APIs like the rewriter, summarization, and translation APIs—complete packages, not building blocks to build libraries on. There's also no way to choose your own model for a task.
+
+## The Solution: A Browser Extension for Shared Model Access
+
+There are several technologies converging that make the browser one of the most appealing places to run deep learning models:
+
+1. **WebGPU**: A far more powerful API than WebGL, giving access to modern GPU capabilities for compute tasks.
+2. **WebNN**: Hardware acceleration for ML models wherever browsers run.
+3. **WASM**: Near-native performance for complex computational tasks in the browser.
+
+But this still doesn't solve the issues of download times and storage bloat.
+
+### A Window.ai Polyfill Approach
+
+My proposal for in-browser AI is essentially as follows: create an extension that injects and replaces the `.ai` window property defined by Chrome. I don't want to fight against Google here—at the very worst, I want this to be "window.ai++".
+
+The Chrome team has done a really nice job with type definitions, and I've put significant effort into making sure any polyfill is type-safe and compliant with the spec:
+
+```typescript
+// Extension polyfill implementation
+import { createWebAIPolyfill } from './createWebAIPolyfill';
+
+// Create a compliant window.ai implementation
+const polyfill = createWebAIPolyfill({
+  info: {
+    name: "Browser ML Extension",
+    description: "An extensible AI model provider for the browser",
+    version: "1.0.0"
+  },
+  options: {
+    onSelected: () => console.log("Extension selected as AI provider"),
+    onDeselected: () => console.log("Extension deselected as AI provider")
+  },
+  partialPolyfill: {
+    // Override only the methods we want to enhance
+    languageModel: myCustomLanguageModelFactory
+  }
+});
+```
+
+From there, we can extend the Chrome spec with our own additional primitives. I raised [this issue](https://github.com/webmachinelearning/prompt-api/issues/3#issuecomment-2211308599) back when the explainer was first released, and I honestly still stand by most of it now:
+
+> For the sake of adoption, it might make the most sense to have the window.ai provider be as high level as possible and abstract away model selection. I don't think users will be super jazzed about multiple models being added to their browser because different websites request different models. Providing a few model agnostic APIs like the current prompt and prompt streaming APIs, plus maybe a feature extraction and classification API makes the most sense to me. This leaves room for a browser extension to overwrite and match the window.ai API so users can opt in to different local/cloud provided models via the extension popup.
+
+### Building on Existing Ecosystem
+
+I want to acknowledge the great work other WebAI libraries have done, specifically WebLLM and Transformers.js. Ideally, we can combine the web.ai spec into a unified API that leverages these existing libraries.
+
+Once we do, we need to make an adapter for the Vercel SDK. There was one for the old spec of the Chrome AI API, but it's not maintained. I've rolled it into this monorepo and will maintain it for as long as needed.
+
+### Architecture Overview
+
+The extension acts as the model engine. The window calls on the Background Service Worker (BGSW) to run inference and store models:
+
+```js
+// High-level architecture flow
+1. Website calls window.ai API
+2. Polyfill intercepts and routes to extension
+3. Extension background worker manages model loading/inference
+4. Results returned to website via message passing
+```
+
+![Extension Architecture](https://placehold.co/800x500/000000/FFFFFF/png)
+
+The key innovation is that once a model is downloaded by the extension, it can be used by any website if the user has the extension installed. This solves our earlier problems of storage redundancy and model management.
+
+### User Controls and Privacy
+
+The extension popup keeps a log of sessions and gives users nice observability into model space requirements, allowing them to delete and download models as needed.
+
+```js
+// Extension UI example (simplified)
+function ModelManager() {
+  const [models, setModels] = useState([]);
+  const [sessions, setSessions] = useState([]);
+
+  useEffect(() => {
+    // Load models and sessions data
+    chrome.runtime.sendMessage({ type: 'GET_MODELS' }, setModels);
+    chrome.runtime.sendMessage({ type: 'GET_SESSIONS' }, setSessions);
+  }, []);
+
+  return (
+    <div className="model-manager">
+      <h2>Installed Models</h2>
+      {models.map(model => (
+        <ModelCard
+          key={model.id}
+          model={model}
+          onDelete={() => deleteModel(model.id)}
+        />
+      ))}
+
+      <h2>Recent Usage</h2>
+      <SessionHistory sessions={sessions} />
+    </div>
+  );
+}
+```
+
+This user interface provides transparency about which sites are using ML capabilities and how much storage each model is consuming.
+
+## Implementation and Future Work
+
+<YouTube id="y9n6HkftavM" />
+
+I've created a proof-of-concept extension that demonstrates this approach. The extension:
+
+1. Downloads and caches models on first use
+2. Exposes a simple API for websites to use
+3. Manages model execution in a background worker
+4. Provides user controls for privacy and performance
+
+You can find the source code on [GitHub](https://github.com/yourusername/browser-ml-extension).
+
+## Conclusion
+
+By leveraging browser extensions as a shared model provider, we can unlock the potential of in-browser ML without the current limitations of storage, updates, and complexity. This approach brings us closer to a future where AI can enhance our browsing experience while respecting privacy and providing responsive, reliable experiences.
+
+What do you think about this approach? I'd love to hear your feedback and suggestions!
+
+## Acknowledging the Ecosystem: Current Browser ML Libraries
+
+Before diving into my proposed solution, it's important to recognize the groundbreaking work already happening in this space. Several open-source projects are pushing the boundaries of what's possible with ML in the browser:
+
+### WebLLM
+
+[WebLLM](https://github.com/mlc-ai/web-llm) by the MLC AI team is a high-performance in-browser LLM inference engine using WebGPU acceleration. It brings language model inference directly to web browsers with features including:
+
+- Full OpenAI API compatibility for easy integration
+- Structured JSON generation for complex outputs
+- Support for a wide range of models (Llama 3, Phi 3, Gemma, Mistral, Qwen)
+- Web Worker and Service Worker support for background processing
+
+WebLLM demonstrates that the technical capabilities for running substantial models in-browser already exist, making it an essential foundation for the browser ML ecosystem.
+
+### Transformers.js
+
+[Transformers.js](https://github.com/xenova/transformers.js) brings Hugging Face's popular transformers library to the browser. It supports:
+
+- Multiple modalities: NLP, Computer Vision, Audio, and Multimodal tasks
+- A pipeline API that mirrors the Python library for easy migration
+- ONNX Runtime integration for efficient execution
+- Compatibility with pretrained PyTorch, TensorFlow, or JAX models
+
+By making the familiar transformers API available in JavaScript, this library significantly lowers the barrier to entry for web developers.
+
+### BrowserAI
+
+[BrowserAI](https://github.com/Cloud-Code-AI/BrowserAI) offers a simple, production-ready solution for running LLMs directly in the browser. Key features include:
+
+- WebGPU acceleration for near-native performance
+- Multiple engine support (MLC and Transformers)
+- Built-in speech recognition and text-to-speech capabilities
+- Structured output generation with JSON schemas
+- Web Worker support for non-blocking UI performance
+
+BrowserAI exemplifies how browser-based ML can be packaged for developer-friendly implementation.
+
+### Web AI Toolkit
+
+[Web AI Toolkit](https://github.com/jgw96/web-ai-toolkit) simplifies the integration of AI features into web applications with a focus on privacy and offline capability. It provides:
+
+- OCR, speech-to-text, and text summarization functionality
+- RAG (Retrieval-Augmented Generation) capabilities
+- Local processing using WebNN with WebGPU fallback
+- Hardware-optimized execution paths for different devices
+
+This toolkit highlights how specific AI tasks can be effectively implemented client-side with current web technologies.
+
+## Why We Need More Than Individual Libraries
+
+While these libraries represent tremendous progress, they still operate largely as isolated solutions. The challenge remains that websites using these tools must individually handle model downloading, caching, and lifecycle management.
+
+This leads us back to the core problems I outlined earlier:
+- Storage redundancy when multiple sites use the same models
+- Complex model update workflows
+- Duplicated implementation efforts
+
+My proposed browser extension approach builds upon these innovations by creating a shared layer that enables cross-site model reuse while maintaining the privacy benefits of local execution.
+

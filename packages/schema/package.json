@@ -1,0 +1,39 @@
+{
+  "name": "@local-first-web-ai-monorepo/schema",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./browser": {
+      "default": "./src/localSchema.ts"
+    },
+    "./cloud": {
+      "default": "./src/schema.ts"
+    }
+  },
+  "scripts": {
+    "build": "echo 'nada for now'",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "echo 'nada for now'",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@local-first-web-ai-monorepo/eslint-config": "workspace:*",
+    "@local-first-web-ai-monorepo/prettier-config": "workspace:*",
+    "@local-first-web-ai-monorepo/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "drizzle-kit": "^0.30.2",
+    "drizzle-seed": "^0.2.1",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@local-first-web-ai-monorepo/prettier-config",
+  "dependencies": {
+    "drizzle-orm": "catalog:",
+    "postgres": "^3.4.5",
+    "tslib": "catalog:"
+  }
+}

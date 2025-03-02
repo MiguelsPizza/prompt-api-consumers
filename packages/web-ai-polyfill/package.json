@@ -1,0 +1,48 @@
+{
+  "name": "@local-first-web-ai-monorepo/web-ai-polyfill",
+  "private": true,
+  "version": "0.1.0",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "types": "./dist/index.d.ts"
+  },
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsup --watch",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@local-first-web-ai-monorepo/eslint-config": "workspace:*",
+    "@local-first-web-ai-monorepo/prettier-config": "workspace:*",
+    "@local-first-web-ai-monorepo/tsconfig": "workspace:*",
+    "@types/dom-chromium-ai": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "@types/dom-chromium-ai": "catalog:"
+  },
+  "prettier": "@local-first-web-ai-monorepo/prettier-config",
+  "dependencies": {
+    "zod": "catalog:"
+  }
+}

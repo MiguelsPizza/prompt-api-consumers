@@ -8,3 +8,65 @@ use-prompt-api/miguelspizza-use-prompt-api-1.0.1.tgz
 .nx/workspace-data
 vite.config.*.timestamp*
 .wrangler
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+package-lock.json
+
+# Environment
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist
+build
+dev-dist
+.next
+out
+.nitro
+.output
+.cache
+.turbo
+distTypes
+
+# Testing
+coverage
+test-results
+playwright-report
+blob-report
+playwright/.cache
+
+# Debug logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Mobile (Expo)
+.expo
+expo-env.d.ts
+apps/expo/ios
+apps/expo/android
+
+# IDE and OS
+.DS_Store
+.tool-versions
+*.pem
+.eslintcache
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+packages/schema/.dev.vars
+extension
+_depricate-for-reference
+local-first-chat/api/cloud/fly.toml
+packages/web-ai-polyfill/.tsup

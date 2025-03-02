@@ -1,4 +1,0 @@
-name = "local-first-chat"
-main = "./web-app/dist"
-
-workers_dev = false
