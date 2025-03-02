@@ -1,4 +1,4 @@
-import { ModelRecord } from "@mlc-ai/web-llm";
+import { ValidatedModelRecord } from "@mlc-ai/web-llm";
 import { fetchHuggingFaceModelInfo, parseHuggingFaceModelUrl } from "./hugginfaceAPIClient";
 
 /**
@@ -29,7 +29,7 @@ export function extractModelId(manifestUrl: string): string {
  *  - `apiResponse`: the raw API response from Hugging Face.
  * @example
  * ```ts
- * const record: ModelRecord = {
+ * const record: ValidatedModelRecord = {
  *   model: "https://huggingface.co/username/model/resolve/main",
  *   model_id: "my-model",
  *   model_lib: "https://example.com/model.wasm",
@@ -44,7 +44,7 @@ export function extractModelId(manifestUrl: string): string {
  * ```
  */
 export async function processModelRecord(
-  record: ModelRecord
+  record: ValidatedModelRecord
 ) {
   // Parse the model URL to extract the necessary parts.
   const { username, modelName, branch } = parseHuggingFaceModelUrl(record.model);

@@ -37,9 +37,7 @@ export default defineConfig({
     // include: ['@powersync/web > js-logger'], // <-- Include `js-logger` when it isn't installed and imported.
   },
   plugins: [
-
     TanStackRouterVite(),
-
     wasm(),
     topLevelAwait(),
     tailwindcss(),

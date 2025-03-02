@@ -1,19 +1,19 @@
-import type { CachedModel } from "@/background/lib/modelUtils";
+import { ValidatedModelRecord } from "@/entrypoints/background/lib/modelUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
 import { ChartContainer, ChartTooltip } from "@local-first-web-ai-monorepo/react-ui/ui/chart";
-import { ModelRecord } from "@mlc-ai/web-llm";
 import { useQuery } from "@tanstack/react-query";
+import { filesize } from "filesize";
 import type { PieLabelRenderProps } from "recharts";
 import { Label, Pie, PieChart } from "recharts";
-import { extractModelId, processModelRecord } from "../utils/modelUtils";
+import { processModelRecord } from "../utils/modelUtils";
 
 interface StorageUsageChartProps {
-  models: CachedModel[];
+  models: ValidatedModelRecord[];
   storageInfo: { used: number; available: number } | null;
-  hoveredModel: ModelRecord | null;
+  hoveredModel: ValidatedModelRecord | null;
 }
 
-const getColorFromString = (str: string) => {
+const getColorFromString = (str: string = '') => {
   // Use a predefined color palette instead of random colors
   const palette = [
     'hsl(210, 70%, 55%)',  // Blue
@@ -30,7 +30,7 @@ const getColorFromString = (str: string) => {
   return palette[Math.abs(hash) % palette.length];
 };
 
-export function StorageUsageChart({ models, storageInfo, hoveredModel }: StorageUsageChartProps) {
+export function StorageUsageChart({ models = [], storageInfo, hoveredModel }: StorageUsageChartProps) {
   let { data: modelDetails } = useQuery({
     queryKey: ['modelRecord', hoveredModel?.model_id],
     queryFn: () => processModelRecord(hoveredModel!),
@@ -39,18 +39,18 @@ export function StorageUsageChart({ models, storageInfo, hoveredModel }: Storage
     // gcTime: 0, // Immediately garbage collect when query becomes inactive
     cacheTime: 1000 * 60 * 60 * 24, // 24 hours
   });
-
+  console.log({ models })
   const totalStorage = storageInfo ? storageInfo.available : 0;
-  const usedStorage = models.reduce((acc, model) => acc + Number(model.totalSize), 0);
+  const usedStorage = models.reduce((acc, model) => acc + Number(model.vram_required_MB), 0);
   const percentageUsed = totalStorage ? ((usedStorage / totalStorage) * 100).toFixed(1) : '0';
 
   let chartData = models.map(model => {
-    const size = Number(model.totalSize);
+    const size = Number(model.vram_required_MB);
     return {
-      name: extractModelId(model.manifestUrl),
+      name: model.model_id,
       size,
       percentage: totalStorage ? ((size / totalStorage) * 100).toFixed(1) : '0',
-      fill: getColorFromString(extractModelId(model.manifestUrl)),
+      fill: getColorFromString(model.model_id),
       fromHovered: false
     };
   });
@@ -58,6 +58,7 @@ export function StorageUsageChart({ models, storageInfo, hoveredModel }: Storage
   if (storageInfo) {
     const availableSize = storageInfo.available - storageInfo.used;
     chartData.push({
+      // @ts-expect-error too lazy to type this atm
       name: 'Available',
       size: availableSize,
       percentage: ((availableSize / totalStorage) * 100).toFixed(1),
@@ -106,7 +107,6 @@ export function StorageUsageChart({ models, storageInfo, hoveredModel }: Storage
           y={viewBox.cy + 30}
           className="fill-muted-foreground text-xs"
         >
-          {(usedStorage / 1024 / 1024).toFixed(1)} MB of {(totalStorage / 1024 / 1024).toFixed(1)} MB
         </tspan>
       </text>
     );
@@ -132,7 +132,9 @@ export function StorageUsageChart({ models, storageInfo, hoveredModel }: Storage
                       <div className="bg-background p-2 rounded-lg shadow">
                         <div className="font-medium">{data.name}</div>
                         <div className="text-sm text-muted-foreground">
-                          {data.percentage}% ({(data.size / 1024 / 1024).toFixed(1)} MB)
+                          {data.percentage}% ({filesize(data.size, {
+                            exponent: 2,
+                          })})
                         </div>
                       </div>
                     );
@@ -155,6 +157,8 @@ export function StorageUsageChart({ models, storageInfo, hoveredModel }: Storage
               </Pie>
             </PieChart>
           </ChartContainer>
+          {filesize(usedStorage, { exponent: 3 })} of {filesize(totalStorage, { exponent: 3 })}
+
         </div>
       </CardContent>
     </Card>

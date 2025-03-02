@@ -172,7 +172,7 @@ export async function getCompatibleLLMs(
     requiredVRAM: llm.vram_required_MB!,
     availableVRAM,
     canRun: availableVRAM >= llm.vram_required_MB!,
-    meetsRecommended: availableVRAM >= llm.buffer_size_required_bytes!,
+    meetsRecommended: availableVRAM >= llm.vram_required_MB!,
   }));
 
   return {

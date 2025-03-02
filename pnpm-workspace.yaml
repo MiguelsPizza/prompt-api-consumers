@@ -3,6 +3,7 @@ packages:
   - 'local-first-chat/*'
   - 'browser-extension/*'
   - 'tooling/*'
+  - 'blog'
 
 catalog:
   "@ianvs/prettier-plugin-sort-imports": ^4.4.0

@@ -4,11 +4,11 @@ import {
   Link,
   Outlet,
   createRootRouteWithContext,
-  useMatches,
+  useMatches
 } from '@tanstack/react-router';
 import { HomeIcon } from 'lucide-react';
 import * as React from 'react';
-import type { RouterContext } from '../main';
+import { RouterContext } from '../router';
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,

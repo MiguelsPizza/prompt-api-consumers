@@ -1,4 +1,4 @@
-import type { BaseSession } from '@/background/lib/sessionSchema'
+import type { BaseSession } from '@/entrypoints/background/lib/sessionSchema'
 import {
   Card,
   CardContent,

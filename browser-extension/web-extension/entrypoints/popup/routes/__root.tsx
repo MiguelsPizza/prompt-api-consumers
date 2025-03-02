@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader } from "@local-first-web
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router";
 import { AlertCircle, Loader2, XCircle } from "lucide-react";
 import { DownloadProgressPopup } from "../components/DownloadProgressPopup";
+import { CurrentModelProvider } from "../contexts/CurrentModelContext";
 import { DownloadingContext } from "../contexts/downloadingContext";
 import { RouterContext } from "../trpcClient";
 
@@ -78,8 +79,10 @@ function RootComponent() {
   const context = useState<Boolean>(false)
   return (
     <DownloadingContext.Provider value={context}>
-      <DownloadProgressPopup />
-      <Outlet />
+      <CurrentModelProvider>
+        <DownloadProgressPopup />
+        <Outlet />
+      </CurrentModelProvider>
     </DownloadingContext.Provider >
   );
 }

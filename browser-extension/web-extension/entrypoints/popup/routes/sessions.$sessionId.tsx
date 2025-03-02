@@ -1,4 +1,4 @@
-import { SessionMessage } from "@/background/lib/sessionSchema";
+import type { SessionMessage } from '@/entrypoints/background/lib/sessionSchema';
 import { AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui/react';
 import { Alert, AlertDescription, AlertTitle } from "@local-first-web-ai-monorepo/react-ui/components/alert";
 import { Button } from "@local-first-web-ai-monorepo/react-ui/components/button";

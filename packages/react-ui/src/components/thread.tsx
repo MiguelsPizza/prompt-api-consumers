@@ -170,6 +170,8 @@ const MyAssistantMessage: FC = () => {
       <Avatar className="col-start-1 row-span-full row-start-1 mr-4">
         <AvatarFallback>A</AvatarFallback>
       </Avatar>
+      {/*@ts-expect-error testing this out */}
+      <download-tracker style={{ zIndex: 1000 }} />
 
       <div className="text-foreground col-span-2 col-start-2 row-start-1 my-1.5 w-full break-words leading-7">
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />

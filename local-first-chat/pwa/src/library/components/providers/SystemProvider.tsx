@@ -12,9 +12,9 @@ import { PGliteWorker } from '@electric-sql/pglite/worker';
 import { RouterProvider } from '@tanstack/react-router';
 import { drizzle } from 'drizzle-orm/pglite';
 import { Loader2 } from 'lucide-react';
-import { RouterType } from '../../../main';
+import router from '../../../router';
 
-export function SystemProvider({ router }: { router: RouterType }) {
+export function SystemProvider() {
   // const { getToken } = useAuth();
 
   const [pgForProvider, setPgForProvider] = useState<

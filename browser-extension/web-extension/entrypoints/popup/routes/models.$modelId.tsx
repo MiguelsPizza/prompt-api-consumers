@@ -4,12 +4,11 @@ import { Button } from '@local-first-web-ai-monorepo/react-ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@local-first-web-ai-monorepo/react-ui/components/card'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { filesize } from 'filesize'
-import { extractModelId } from '../utils/modelUtils'
 
 export const Route = createFileRoute('/models/$modelId')({
   loader: async ({ params: { modelId }, context: { trpc } }) => {
     const models = await trpc.models.listModels.query()
-    const modelDetail = models.find((m) => extractModelId(m.manifestUrl) === modelId)
+    const modelDetail = models.find((m) => m.model_id === modelId)
 
     if (!modelDetail) {
       throw new Error(`Model ${modelId} not found`)
@@ -34,6 +33,8 @@ export const Route = createFileRoute('/models/$modelId')({
 function ModelDetail() {
   const { modelDetail } = Route.useLoaderData()
   const { modelId } = Route.useParams()
+  console.log({ modelDetail, modelId })
+
   const router = useRouter()
   const deleteModelMutation = trpc.models.deleteModel.useMutation()
 
@@ -57,10 +58,10 @@ function ModelDetail() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div>
-            <strong>Manifest URL:</strong> {modelDetail.manifestUrl}
+            <strong>Manifest URL:</strong> {modelDetail.model}
           </div>
           <div>
-            <strong>Total Size:</strong> {filesize(modelDetail.totalSize)}
+            <strong>Total Size:</strong> {filesize(modelDetail.vram_required_MB!, { exponent: 2 })}
           </div>
           {/* Additional details about the model can be displayed here */}
           <div className="flex space-x-2 mt-4">

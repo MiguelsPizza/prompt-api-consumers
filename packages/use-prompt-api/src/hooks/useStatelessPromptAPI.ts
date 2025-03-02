@@ -172,7 +172,6 @@ export function useStatelessPromptAPI(
               }
               returnVal = value || returnVal;
               if (done) {
-                console.log({ done, value });
                 return returnVal;
               }
               if (onToken && value) {

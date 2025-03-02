@@ -1,18 +1,18 @@
-import type { CachedModel } from "@/background/lib/modelUtils";
+import { ValidatedModelRecord } from "@/entrypoints/background/lib/modelUtils";
 import { Button } from "@local-first-web-ai-monorepo/react-ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
 import { Input } from "@local-first-web-ai-monorepo/react-ui/components/input";
 import { ScrollArea } from "@local-first-web-ai-monorepo/react-ui/components/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@local-first-web-ai-monorepo/react-ui/components/select";
-import { ModelRecord } from "@mlc-ai/web-llm";
 import { useMemo, useState } from "react";
+import { SupportedLLMModel } from '../../background/lib/supportedModels';
 import { trpc } from "../trpcClient";
 import { AVAILABLE_MODELS } from "../utils/clientHardwareUtils";
 
 interface AvailableModelsListProps {
-  models: CachedModel[];
+  models: ValidatedModelRecord[];
   storageInfo: { used: number; available: number } | null;
-  setHoveredModel: (prev: ModelRecord | null) => void
+  setHoveredModel: (prev: ValidatedModelRecord | null) => void
 }
 
 
@@ -24,9 +24,9 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "size">("name");
 
-  const handleDownloadModel = async (model: ModelRecord) => {
+  const handleDownloadModel = async (model: ValidatedModelRecord) => {
     const test = await downloadModel.mutateAsync({
-      modelId: model.model_id
+      modelId: model.model_id as SupportedLLMModel
     })
     console.log({ test })
   }
@@ -81,14 +81,14 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
         <ScrollArea className="h-[400px]">
           <div className="space-y-2">
             {filteredAndSortedModels.map((model) => {
-              const isModelCached = models.map(a => a.manifestUrl).includes(model.model);
+              const isModelCached = models.some(cachedModel => cachedModel.model_id === model.model_id)
               const modelSizeMB = model.vram_required_MB || 0;
 
               return (
                 <Card
                   key={model.model_id}
                   className="hover:bg-accent transition-colors relative group"
-                  onMouseEnter={() => setHoveredModel(model)}
+                  onMouseEnter={() => setHoveredModel(model as ValidatedModelRecord)}
                   onMouseLeave={() => setHoveredModel(null)}
                 >
                   <CardContent className="p-4 flex items-center justify-between">
@@ -111,7 +111,7 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
                     {!isModelCached && (
                       <Button
                         variant="outline"
-                        onClick={() => handleDownloadModel(model)}
+                        onClick={() => handleDownloadModel(model as ValidatedModelRecord)}
                       >
                         Download
                       </Button>

@@ -1,7 +1,7 @@
-import type { AppRouter } from "@/background/routers";
 import { chromeLink } from "@/chromeTrpcAdditions/trpc-browser/link";
 import { QueryClient } from "@tanstack/react-query";
 import { createTRPCProxyClient, createTRPCReact } from '@trpc/react-query';
+import type { AppRouter } from "../background/routers";
 
 /**
  * tRPC React client instance for making type-safe API calls to the background script

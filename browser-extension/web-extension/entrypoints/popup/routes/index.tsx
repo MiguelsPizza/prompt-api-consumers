@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
+import { CurrentModelInfo } from '../components/CurrentModelInfo';
 import { DownloadProgressPopup } from '../components/DownloadProgressPopup';
 
 export const Route = createFileRoute('/')({
@@ -18,6 +19,8 @@ export function RootComponent() {
           Models
         </Link>
       </div>
+      <CurrentModelInfo />
+
       <Outlet />
     </div>
   );

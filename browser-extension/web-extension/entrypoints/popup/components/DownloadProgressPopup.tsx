@@ -17,6 +17,9 @@ export function DownloadProgressPopup() {
     onData(progressEvent) {
       setProgressState(progressEvent);
     },
+    onError(err) {
+      console.error(err)
+    },
   });
 
   // Helper function to clean up and format the status text

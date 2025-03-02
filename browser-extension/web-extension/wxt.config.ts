@@ -19,7 +19,8 @@ export default defineConfig({
       "tabs",
       "webNavigation",
       "scripting",
-      "<all_urls>"
+      "<all_urls>",
+      "offscreen"
     ],
     "content_security_policy": {
         // Warning: This is not advisable in production
@@ -43,7 +44,7 @@ export default defineConfig({
     },
     web_accessible_resources: [
       {
-        resources: ['example-main-world.js'],
+        resources: ['injectPolyfill.js', 'injectDownloadTracker.js'],
         matches: ['*://*/*'],
       },
     ],

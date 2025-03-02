@@ -20,6 +20,8 @@
     "@local-first-web-ai-monorepo/web-ai-polyfill": "workspace:*",
     "@mlc-ai/web-llm": "^0.2.78",
     "@mlc-ai/web-runtime": "0.18.0-dev2",
+    "@shoelace-style/shoelace": "^2.20.0",
+    "@spectrum-web-components/progress-bar": "^1.1.2",
     "@tailwindcss/vite": "^4.0.1",
     "@tanstack/react-query": "^4.35.3",
     "@tanstack/react-router": "^1.92.11",
@@ -37,6 +39,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "recharts": "^2.15.1",
+    "sp-progress-bar.js": "link:@spectrum-web-components/progress-bar/sp-progress-bar.js",
     "tailwindcss": "^4.0.1",
     "trpc-browser": "^1.4.2",
     "zod": "catalog:"

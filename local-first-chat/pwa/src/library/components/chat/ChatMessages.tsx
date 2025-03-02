@@ -124,13 +124,15 @@ export const ChatMessages = () => {
       });
 
       // Start streaming, updating the message content as chunks arrive
+      let buffer = ''
       const res = await sendPrompt(input, {
         streaming: true,
         onToken: async (chunk: string) => {
           if (assistantMessageId) {
+            buffer += chunk
             await db
               .update(conversation_messages)
-              .set({ content: chunk })
+              .set({ content: buffer })
               .where(eq(conversation_messages.id, assistantMessageId));
           }
         },
@@ -228,15 +230,16 @@ export const ChatMessages = () => {
         });
 
         console.log('Starting streaming response');
+        let buffer = ''
         // Stream the new response
         const res = await sendPrompt(input, {
           streaming: true,
           onToken: async (chunk: string) => {
-            console.log('Received chunk:', chunk.slice(0, 50) + '...');
+            buffer += chunk
             await tx
               .update(conversation_messages)
               .set({
-                content: chunk,
+                content: buffer,
                 updated_at: new Date().toISOString(),
               })
               .where(eq(conversation_messages.id, assistantMessageId));
