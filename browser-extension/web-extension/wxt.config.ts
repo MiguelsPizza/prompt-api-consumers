@@ -8,7 +8,7 @@ export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   vite: (env) => ({
     plugins: [TanStackRouterVite({
-      routesDirectory: './entrypoints/popup/routes'
+      routesDirectory: './entrypoints/sidepanel/routes'
     }), tailwindcss()] as any
   }),
   manifestVersion: 3,
@@ -17,30 +17,13 @@ export default defineConfig({
       "storage",
       "unlimitedStorage",
       "tabs",
+      "sidePanel",
       "webNavigation",
       "scripting",
-      "<all_urls>",
       "offscreen"
     ],
     "content_security_policy": {
-        // Warning: This is not advisable in production
-        // It's usually safer to "just" add the specific hosts that you truly need
-      // "extension_pages": `
-      //   default-src 'self' blob: data: *;
-      //   script-src 'self' 'unsafe-eval' 'unsafe-inline' http://localhost:3000 *;
-      //   style-src-elem 'self' 'unsafe-inline' http://localhost:3000 https://cdnjs.cloudflare.com *;
-      //   font-src 'self' https://cdnjs.cloudflare.com *;
-      //   connect-src 'self' data: ws://localhost:3000 http://localhost:8000 https://huggingface.co https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.huggingface.co https://raw.githubusercontent.com https://cdn-lfs-us-1.hf.co *;
-      // `
-        "extension_pages": `
-            default-src 'self' blob: data:;
-            script-src 'self' 'wasm-unsafe-eval';
-            style-src 'self' 'unsafe-inline' https: http:;
-            font-src 'self' https: data:;
-            connect-src 'self' data: ws: wss: http: https:;
-            img-src 'self' data: https: http:;
-          `
-
+      "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; style-src 'self' 'unsafe-inline' https: http:; font-src 'self' https: data:; connect-src 'self' data: ws: wss: http: https:; img-src 'self' data: https: http:;"
     },
     web_accessible_resources: [
       {
@@ -48,6 +31,19 @@ export default defineConfig({
         matches: ['*://*/*'],
       },
     ],
+    action: {
+      default_title: "Open Side Panel",
+      default_icon: {
+        "16": "icon/16.png",
+        "24": "icon/48.png",
+        "32": "icon/32.png",
+        "48": "icon/48.png",
+        "128": "icon/128.png"
+      }
+    },
+    side_panel: {
+      default_path: "sidepanel.html"
+    }
   },
   runner: {
     openConsole: true,

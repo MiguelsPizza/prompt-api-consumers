@@ -10,13 +10,13 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './../entrypoints/popup/routes/__root'
-import { Route as SessionsImport } from './../entrypoints/popup/routes/sessions'
-import { Route as ModelsImport } from './../entrypoints/popup/routes/models'
-import { Route as IndexImport } from './../entrypoints/popup/routes/index'
-import { Route as SessionsListImport } from './../entrypoints/popup/routes/sessions.list'
-import { Route as SessionsSessionIdImport } from './../entrypoints/popup/routes/sessions.$sessionId'
-import { Route as ModelsModelIdImport } from './../entrypoints/popup/routes/models.$modelId'
+import { Route as rootRoute } from './../entrypoints/sidepanel/routes/__root'
+import { Route as SessionsImport } from './../entrypoints/sidepanel/routes/sessions'
+import { Route as ModelsImport } from './../entrypoints/sidepanel/routes/models'
+import { Route as IndexImport } from './../entrypoints/sidepanel/routes/index'
+import { Route as SessionsListImport } from './../entrypoints/sidepanel/routes/sessions.list'
+import { Route as SessionsSessionIdImport } from './../entrypoints/sidepanel/routes/sessions.$sessionId'
+import { Route as ModelsModelIdImport } from './../entrypoints/sidepanel/routes/models.$modelId'
 
 // Create/Update Routes
 
