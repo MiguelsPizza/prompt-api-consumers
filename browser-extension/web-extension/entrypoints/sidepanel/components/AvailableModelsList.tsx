@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-mo
 import { Input } from "@local-first-web-ai-monorepo/react-ui/components/input";
 import { ScrollArea } from "@local-first-web-ai-monorepo/react-ui/components/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@local-first-web-ai-monorepo/react-ui/components/select";
+import { filesize } from "filesize";
+import { Download, HardDriveIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SupportedLLMModel } from '../../background/lib/supportedModels';
 import { trpc } from "../trpcClient";
@@ -15,10 +17,9 @@ interface AvailableModelsListProps {
   setHoveredModel: (prev: ValidatedModelRecord | null) => void
 }
 
-
 export function AvailableModelsList({ models, storageInfo, setHoveredModel }: AvailableModelsListProps) {
-
   const downloadModel = trpc.models.downloadModel.useMutation()
+  const [hoveredModel, setHoveredModelInternal] = useState<ValidatedModelRecord | null>(null);
 
   // New state for search and sorting
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,6 +31,17 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
     })
     console.log({ test })
   }
+
+  // Handle hover with both local and parent state
+  const handleMouseEnter = (model: ValidatedModelRecord) => {
+    setHoveredModelInternal(model);
+    setHoveredModel(model);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredModelInternal(null);
+    setHoveredModel(null);
+  };
 
   // Memoized filtering and sorting
   const filteredAndSortedModels = useMemo(() => {
@@ -53,32 +65,34 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
   }, [searchQuery, sortBy]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Available Models</CardTitle>
+    <Card className="shadow-sm">
+      <CardHeader className="pb-2 pt-3 px-3">
+        <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+          <HardDriveIcon className="h-3.5 w-3.5" />
+          Available Models
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 space-y-3">
         {/* Search and Sort Controls */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col gap-2">
           <Input
             placeholder="Search models..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 text-xs"
           />
-          <div className="flex items-center">
-            <Select value={sortBy} onValueChange={(value: "name" | "size") => setSortBy(value)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort By" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Model Name</SelectItem>
-                <SelectItem value="size">Model Size (VRAM)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={sortBy} onValueChange={(value: "name" | "size") => setSortBy(value)}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="Sort By" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Model Name</SelectItem>
+              <SelectItem value="size">Model Size</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[220px] pr-2">
           <div className="space-y-2">
             {filteredAndSortedModels.map((model) => {
               const isModelCached = models.some(cachedModel => cachedModel.model_id === model.model_id)
@@ -87,40 +101,45 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
               return (
                 <Card
                   key={model.model_id}
-                  className="hover:bg-accent transition-colors relative group"
-                  onMouseEnter={() => setHoveredModel(model as ValidatedModelRecord)}
-                  onMouseLeave={() => setHoveredModel(null)}
+                  className={`transition-colors relative ${hoveredModel?.model_id === model.model_id ? 'bg-accent' : 'hover:bg-accent/50'}`}
+                  onMouseEnter={() => handleMouseEnter(model as ValidatedModelRecord)}
+                  onMouseLeave={handleMouseLeave}
                 >
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium flex items-center gap-2">
-                        {model.model_id}
-                        {isModelCached && (
-                          <span className="text-green-500">✓</span>
-                        )}
+                  <CardContent className="p-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium text-sm truncate">
+                            {model.model_id}
+                          </div>
+                          {isModelCached && (
+                            <span className="h-5 px-1 border border-gray-200 rounded-full">✓</span>
+                          )}
+                        </div>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <span className="truncate">
+                            {filesize(modelSizeMB * 1024 * 1024, { exponent: 2 })}
+                          </span>
+                          {model.low_resource_required && (
+                            <span className="ml-1 h-4 text-[10px] px-1 border border-green-500 text-green-600">
+                              Low Resource
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <div>Type: {model.model_type || 'LLM'}</div>
-                        {model.low_resource_required && (
-                          <div className="text-green-600">Low Resource Compatible</div>
-                        )}
-                        <div>VRAM Required: {modelSizeMB} MB</div>
-                      </div>
+
+                      {!isModelCached && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleDownloadModel(model as ValidatedModelRecord)}
+                          title="Download this model"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
-
-                    {!isModelCached && (
-                      <Button
-                        variant="outline"
-                        onClick={() => handleDownloadModel(model as ValidatedModelRecord)}
-                      >
-                        Download
-                      </Button>
-                    )}
-
-                    <StorageImpactTooltip
-                      modelSizeMB={modelSizeMB}
-                      storageInfo={storageInfo}
-                    />
                   </CardContent>
                 </Card>
               );
@@ -128,7 +147,7 @@ export function AvailableModelsList({ models, storageInfo, setHoveredModel }: Av
           </div>
         </ScrollArea>
       </CardContent>
-    </Card >
+    </Card>
   );
 }
 

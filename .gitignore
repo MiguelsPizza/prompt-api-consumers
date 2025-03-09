@@ -70,3 +70,4 @@ extension
 _depricate-for-reference
 local-first-chat/api/cloud/fly.toml
 packages/web-ai-polyfill/.tsup
+browser-extension/web-extension/assets/gpuDB.json

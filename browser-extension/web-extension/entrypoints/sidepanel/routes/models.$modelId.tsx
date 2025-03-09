@@ -7,14 +7,6 @@ import { filesize } from 'filesize'
 
 export const Route = createFileRoute('/models/$modelId')({
   loader: async ({ params: { modelId }, context: { trpc } }) => {
-    const models = await trpc.models.listModels.query()
-    const modelDetail = models.find((m) => m.model_id === modelId)
-
-    if (!modelDetail) {
-      throw new Error(`Model ${modelId} not found`)
-    }
-
-    return { modelDetail }
   },
   component: ModelDetail,
   errorComponent: ({ error }) => {
@@ -31,7 +23,7 @@ export const Route = createFileRoute('/models/$modelId')({
 })
 
 function ModelDetail() {
-  const { modelDetail } = Route.useLoaderData()
+  const { modelDetail } = Route.useLoaderData() ?? {} as any
   const { modelId } = Route.useParams()
   console.log({ modelDetail, modelId })
 

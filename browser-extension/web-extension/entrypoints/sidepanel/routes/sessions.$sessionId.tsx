@@ -3,11 +3,11 @@ import { AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui
 import { Alert, AlertDescription, AlertTitle } from "@local-first-web-ai-monorepo/react-ui/components/alert";
 import { Button } from "@local-first-web-ai-monorepo/react-ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
-import { MyThread } from '@local-first-web-ai-monorepo/react-ui/components/thread';
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { UUID } from "crypto";
 import { Info, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { MyThread } from '../../../../../packages/react-ui/src/components/thread';
 import { cn } from '../../../../../packages/react-ui/src/components/utils';
 import { trpc } from "../trpcClient";
 import { SessionDetailValidator } from "../utils/paramValidators";

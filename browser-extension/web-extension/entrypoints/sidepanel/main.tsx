@@ -33,12 +33,10 @@ declare module '@tanstack/react-router' {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <div className="h-[600px] w-[700px]">
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
         </QueryClientProvider>
-      </trpc.Provider>
-    </div>
+    </trpc.Provider>
   </React.StrictMode>,
 );

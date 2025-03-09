@@ -1,10 +1,9 @@
 import { ValidatedModelRecord } from "@/entrypoints/background/lib/modelUtils";
-import { Card, CardContent, CardHeader, CardTitle } from "@local-first-web-ai-monorepo/react-ui/components/card";
 import { ChartContainer, ChartTooltip } from "@local-first-web-ai-monorepo/react-ui/ui/chart";
 import { useQuery } from "@tanstack/react-query";
 import { filesize } from "filesize";
 import type { PieLabelRenderProps } from "recharts";
-import { Label, Pie, PieChart } from "recharts";
+import { Cell, Label, Pie, PieChart } from "recharts";
 import { processModelRecord } from "../utils/modelUtils";
 
 interface StorageUsageChartProps {
@@ -36,12 +35,12 @@ export function StorageUsageChart({ models = [], storageInfo, hoveredModel }: St
     queryFn: () => processModelRecord(hoveredModel!),
     enabled: !!hoveredModel,
     staleTime: 1000 * 60 * 60, // 1 hour
-    // gcTime: 0, // Immediately garbage collect when query becomes inactive
     cacheTime: 1000 * 60 * 60 * 24, // 24 hours
   });
-  console.log({ models })
+
   const totalStorage = storageInfo ? storageInfo.available : 0;
   const usedStorage = models.reduce((acc, model) => acc + Number(model.vram_required_MB), 0);
+  console.log({ usedStorage, models })
   const percentageUsed = totalStorage ? ((usedStorage / totalStorage) * 100).toFixed(1) : '0';
 
   let chartData = models.map(model => {
@@ -77,6 +76,11 @@ export function StorageUsageChart({ models = [], storageInfo, hoveredModel }: St
     });
   }
 
+  // Find the highlighted segment (if any)
+  const highlightedModel = hoveredModel ? chartData.find(item =>
+    item.name === hoveredModel.model_id && item.fromHovered
+  ) : null;
+
   const StorageUsageLabel = (props: PieLabelRenderProps) => {
     const { viewBox } = props;
     if (!viewBox || typeof viewBox.cx !== 'number' || typeof viewBox.cy !== 'number') return null;
@@ -90,77 +94,92 @@ export function StorageUsageChart({ models = [], storageInfo, hoveredModel }: St
       >
         <tspan
           x={viewBox.cx}
-          y={viewBox.cy - 10}
-          className="fill-foreground text-xl font-bold"
+          y={viewBox.cy - 8}
+          className="fill-foreground text-base font-bold"
         >
           {percentageUsed}%
         </tspan>
         <tspan
           x={viewBox.cx}
-          y={viewBox.cy + 10}
-          className="fill-muted-foreground text-sm"
-        >
-          Used
-        </tspan>
-        <tspan
-          x={viewBox.cx}
-          y={viewBox.cy + 30}
+          y={viewBox.cy + 8}
           className="fill-muted-foreground text-xs"
         >
+          Used
         </tspan>
       </text>
     );
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Storage Usage</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[300px]">
-          <ChartContainer
-            config={{}}
-            className="mx-auto aspect-square max-h-[250px]"
-          >
-            <PieChart>
-              <ChartTooltip
-                content={({ payload }) => {
-                  if (payload && payload[0]) {
-                    const data = payload[0].payload;
-                    return (
-                      <div className="bg-background p-2 rounded-lg shadow">
-                        <div className="font-medium">{data.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {data.percentage}% ({filesize(data.size, {
-                            exponent: 2,
-                          })})
-                        </div>
+    <div className="space-y-2">
+      {/* Compact chart */}
+      <div className="h-[160px] relative">
+        <ChartContainer
+          config={{}}
+          className="mx-auto aspect-square max-h-[160px]"
+        >
+          <PieChart>
+            <ChartTooltip
+              content={({ payload }) => {
+                if (payload && payload[0]) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="bg-background p-2 rounded-lg shadow">
+                      <div className="font-medium">{data.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {data.percentage}% ({filesize(data.size, {
+                          exponent: 2,
+                        })})
                       </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Pie
-                data={chartData}
-                dataKey="size"
-                nameKey="name"
-                animationDuration={300}
-                innerRadius={60}
-                outerRadius={100}
-                strokeWidth={2}
-                stroke="hsl(var(--background))"
-              >
-                {/* @ts-expect-error too lazy to type this atm */}
-                <Label content={StorageUsageLabel} />
-              </Pie>
-            </PieChart>
-          </ChartContainer>
-          {filesize(usedStorage, { exponent: 3 })} of {filesize(totalStorage, { exponent: 3 })}
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Pie
+              data={chartData}
+              dataKey="size"
+              nameKey="name"
+              animationDuration={300}
+              innerRadius={35}
+              outerRadius={60}
+              strokeWidth={2}
+              stroke="hsl(var(--background))"
+            >
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.fill}
+                  opacity={hoveredModel && entry.name === hoveredModel.model_id ? 1 : 0.8}
+                  strokeWidth={hoveredModel && entry.name === hoveredModel.model_id ? 4 : 2}
+                />
+              ))}
+              {/* @ts-expect-error too lazy to type this atm */}
+              <Label content={StorageUsageLabel} />
+            </Pie>
+          </PieChart>
+          {hoveredModel && highlightedModel && (
+            <div className="bg-accent/50 rounded-md p-2 text-xs text-center mt-1 w-full max-w-[220px] mx-auto">
+              <div className="font-medium">{hoveredModel.model_id}</div>
+              <div className="text-muted-foreground">
+                {highlightedModel.percentage}% of storage
+                ({filesize(Number(highlightedModel.size), { exponent: 3 })})
+              </div>
+            </div>
+          )}
+        </ChartContainer>
+      </div>
 
-        </div>
-      </CardContent>
-    </Card>
+      {/* Storage info */}
+      <div className="flex justify-between items-center text-xs px-1">
+        <span className="text-muted-foreground">
+          {filesize(usedStorage, { exponent: 2 })} used
+        </span>
+        <span className="text-muted-foreground">
+          {filesize(totalStorage, { exponent: 2 })} total
+        </span>
+      </div>
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 import { ChatOptions, MLCEngine, prebuiltAppConfig } from "@mlc-ai/web-llm";
-import { storage } from 'wxt/storage';
 import { z } from "zod";
-import { ExtensionModelStore, makeModelStore } from "./mlcIndexeddbUtils";
+import { modelStore } from "./mlcIndexeddbUtils";
 import { SupportedLLMModel, ZSupportedLLMModel } from "./supportedModels";
 
 // Regex to validate Hugging Face model URLs
@@ -84,19 +83,6 @@ export interface NDArrayCacheJSON {
 //   totalSize: number;
 // }
 
-/**
- * Lists cached models stored in the "webllm/model" cache.
- *
- * This function scans the underlying IndexedDB store for entries whose URL ends with "ndarray-cache.json".
- * It then parses each manifest (assumed to conform to NDArrayCacheJSON) and computes the total space
- * used by summing the `nbytes` fields from each shard.
- *
- * @returns A promise that resolves to an array of CachedModel objects.
- */
-export async function listCachedModels() {
-  const store = await storage.snapshot('local') as ExtensionModelStore
-  return Object.values(store) as ValidatedModelRecord[]
-}
 
 /**
  * Initializes and reloads the specified model within the MLCEngine.
@@ -125,7 +111,6 @@ export async function initModel(
   chatOpts?: ChatOptions | ChatOptions[]
 ) {
   // Retrieve the dedicated model store for this model.
-  const modelStore = makeModelStore(modelId);
 
   // Locate the model configuration within the prebuilt application config.
   const modelMatch = prebuiltAppConfig.model_list.find(
@@ -139,9 +124,9 @@ export async function initModel(
 
   // Validate the located model configuration asynchronously.
   const validatedModelMatch = await ModelRecordValidator.parseAsync(modelMatch);
-
+  const curr = await modelStore.getValue()
   // Store the validated model configuration.
-  await modelStore.setValue(validatedModelMatch);
+  await modelStore.setValue({ ...curr, [validatedModelMatch.model_id]: validatedModelMatch });
 
   // Reload the model engine with the updated configuration and optional chat options.
   await modelEngine.reload(modelId, chatOpts);

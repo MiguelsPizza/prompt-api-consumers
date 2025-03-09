@@ -1,5 +1,6 @@
 import { prebuiltAppConfig } from "@mlc-ai/web-llm";
 import { GPUDeviceDetectOutput } from "@mlc-ai/web-runtime";
+import { gpuDBFallback } from "./gpuDB";
 
 interface LLMRequirement {
   name: string;
@@ -40,7 +41,7 @@ export interface GPUEntry {
   /** Memory size with unit (GB/MiB) */
   "Memory Size"?: string;
   /** Memory bandwidth in GB/s */
-  "Memory Bandwidth (GB/s)"?: number;
+  "Memory Bandwidth (GB/s)"?: string | number;
   /** Type of memory (GDDR3, DDR, etc) */
   "Memory Bus type"?: string;
   /** Memory bus width in bits */
@@ -76,11 +77,13 @@ type DeviceRequirements = {
   hardwareInfo?: GPUDeviceDetectOutput;
 };
 
+const gpuDB = storage.defineItem<GPUDB>('local:gpuDB');
+
 
 /**
  * Database structure mapping GPU codenames to their specifications
  */
-type GPUDB = Record<string, GPUEntry>;
+export type GPUDB = Record<string, GPUEntry>;
 
 /**
  * Fetches GPU database from remote source
@@ -91,7 +94,6 @@ type GPUDB = Record<string, GPUEntry>;
  * const gpuDB = await fetchGPUDB();
  * console.log(gpuDB['NV40']?.Model); // "GeForce 6800 Ultra"
  */
-
 export async function fetchGPUDB(): Promise<GPUDB> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
@@ -106,18 +108,20 @@ export async function fetchGPUDB(): Promise<GPUDB> {
     }
 
     const data: GPUDB = await response.json();
+    await gpuDB.setValue(data)
     return data;
   } catch (error) {
     console.error(error);
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
-        throw new Error('Fetch request timed out');
+        console.error('Fetch request timed out');
       }
-      throw error;
+      console.error(error);
     }
-    throw new Error('An unknown error occurred');
+    console.error('An unknown error occurred');
   } finally {
     clearTimeout(timeoutId);
+    return await gpuDB.getValue() ?? gpuDBFallback as GPUDB
   }
 }
 
