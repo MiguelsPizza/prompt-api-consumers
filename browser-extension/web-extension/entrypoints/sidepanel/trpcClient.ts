@@ -34,6 +34,6 @@ export const trpcClient =
   })
 
 export interface RouterContext {
-  queryClient: typeof queryClient
+  queryClient: QueryClient;
   trpc: typeof trpc_api
 }

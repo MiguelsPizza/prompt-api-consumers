@@ -8,12 +8,14 @@ import { CurrentModelProvider } from "../contexts/CurrentModelContext";
 import { DownloadingContext } from "../contexts/downloadingContext";
 import { RouterContext } from "../trpcClient";
 
-
-
-// Use createRootRouteWithContext instead of createRootRoute
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
-
+  beforeLoad: ({ context }) => {
+    // Validate context and perform any necessary setup
+    if (!context.queryClient) {
+      throw new Error("QueryClient not found in router context");
+    }
+  },
   errorComponent: ({ error }) => (
     <div className="flex h-screen items-center justify-center p-3">
       <Card className="w-full max-w-full">
@@ -43,7 +45,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       </Card>
     </div>
   ),
-
   notFoundComponent: () => (
     <div className="flex h-screen items-center justify-center p-3">
       <Card className="w-full">
@@ -77,7 +78,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
-  const context = useState<Boolean>(false)
+  const context = useState<Boolean>(false);
   return (
     <DownloadingContext.Provider value={context}>
       <CurrentModelProvider>
@@ -88,6 +89,6 @@ function RootComponent() {
           </div>
         </div>
       </CurrentModelProvider>
-    </DownloadingContext.Provider >
+    </DownloadingContext.Provider>
   );
 }

@@ -1,39 +1,60 @@
+import { SupportedLLMModel } from '@/entrypoints/background/lib/supportedModels'
 import { trpc } from '@/entrypoints/sidepanel/trpcClient'
 import { Alert, AlertDescription, AlertTitle } from '@local-first-web-ai-monorepo/react-ui/components/alert'
 import { Button } from '@local-first-web-ai-monorepo/react-ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@local-first-web-ai-monorepo/react-ui/components/card'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { zodValidator } from '@tanstack/zod-adapter'
 import { filesize } from 'filesize'
+import { Loader2 } from 'lucide-react'
+import { z } from 'zod'
+import { useModels } from '../hooks/useModels'
+
+// Define search params schema
+const ModelDetailSearchSchema = z.object({
+  view: z.enum(['info', 'settings']).optional(),
+})
 
 export const Route = createFileRoute('/models/$modelId')({
-  loader: async ({ params: { modelId }, context: { trpc } }) => {
-  },
+  validateSearch: zodValidator(ModelDetailSearchSchema),
   component: ModelDetail,
-  errorComponent: ({ error }) => {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>Model Not Found</AlertTitle>
-        <AlertDescription>{error.message}</AlertDescription>
-        <Link to="/models">
-          <Button variant="outline">Back to Models</Button>
-        </Link>
-      </Alert>
-    )
-  }
+  errorComponent: ({ error }) => (
+    <Alert variant="destructive">
+      <AlertTitle>Model Not Found</AlertTitle>
+      <AlertDescription>{error.message}</AlertDescription>
+      <Link to="/models">
+        <Button variant="outline" className="mt-4">Back to Models</Button>
+      </Link>
+    </Alert>
+  ),
 })
 
 function ModelDetail() {
-  const { modelDetail } = Route.useLoaderData() ?? {} as any
   const { modelId } = Route.useParams()
-  console.log({ modelDetail, modelId })
-
   const router = useRouter()
   const deleteModelMutation = trpc.models.deleteModel.useMutation()
+  const { models, isLoading } = useModels()
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground">Loading model details...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const modelDetail = models[modelId as SupportedLLMModel]
+  if (!modelDetail) {
+    throw new Error(`Model ${modelId} not found`)
+  }
 
   const handleDeleteModel = async () => {
     if (confirm(`Are you sure you want to delete model "${modelId}" from the cache?`)) {
       try {
-        await deleteModelMutation.mutateAsync({ modelId: modelId })
+        await deleteModelMutation.mutateAsync({ modelId: modelId as SupportedLLMModel })
         router.navigate({ to: '/models' })
       } catch (err) {
         console.error("Error deleting model:", err)
