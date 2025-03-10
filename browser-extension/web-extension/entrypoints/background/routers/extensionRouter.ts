@@ -66,57 +66,39 @@ export const extensionRouter = t.router({
   /**
    * Toggle the side panel for the current tab.
    * 
-   * This procedure opens or closes the side panel specifically for the currently active tab.
-   * When opening, it ensures the panel is only enabled and visible for this particular tab.
-   * When closing, it disables the panel for the current tab.
+   * This procedure toggles the side panel specifically for the currently active tab.
+   * If the panel is currently closed, it will open it.
+   * If the panel is currently open, it will close it.
    *
    * @input {Object} options - Panel toggle options
-   * @input {boolean} options.open - Whether to open (true) or close (false) the panel
    * @input {string} options.path - Optional path to use when opening the panel
    * @returns {Promise<{success: boolean, tabId: number | null}>} Object indicating success status and the tab ID.
    */
   toggleSidePanel: t.procedure
     .input(z.object({
-      open: z.boolean(),
       path: ZSidePanelPath.optional()
     }))
-    .mutation(async ({ input }): Promise<{ success: boolean, tabId: number | null }> => {
+    .mutation(async ({ input, ctx }): Promise<{ success: boolean, tabId: number | null }> => {
       try {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        const currentTab = tabs[0];
+        console.log("toggleSidePanel", ctx.tabId)
+        if (!ctx.tabId) return { success: false, tabId: null }
+        // Get current panel state
+        // Set up the panel path
 
-        if (!currentTab || !currentTab.id) {
-          console.error("Cannot toggle side panel: No active tab found");
-          return { success: false, tabId: null };
+        // If panel is currently enabled, disable it
+
+        // Panel is disabled, so enable and open it
+        try {
+          chrome.sidePanel.open({ tabId: ctx.tabId });
+
+
+          return { success: true, tabId: ctx.tabId };
+        } catch (error) {
+          console.error("[Background] Error while opening side panel:", error);
+          return { success: false, tabId: ctx.tabId };
         }
-
-        if (input.open) {
-          // Configure which panel to show when opening
-          const panelPath = input.path || 'sidepanel.html';
-
-          // Only enable the side panel for the current tab
-          await chrome.sidePanel.setOptions({
-            tabId: currentTab.id,
-            path: panelPath,
-            enabled: true
-          });
-
-          // Open the side panel specifically for this tab
-          await chrome.sidePanel.open({ tabId: currentTab.id });
-
-          // Store the last used panel path in storage
-          await storage.setItem('sync:lastSidePanelPath', panelPath);
-        } else {
-          // Disable the side panel for the current tab when closing
-          await chrome.sidePanel.setOptions({
-            tabId: currentTab.id,
-            enabled: false
-          });
-        }
-
-        return { success: true, tabId: currentTab.id };
       } catch (error) {
-        console.error("Error toggling side panel:", error);
+        console.error("[Background] Error in toggleSidePanel:", error);
         return { success: false, tabId: null };
       }
     }),

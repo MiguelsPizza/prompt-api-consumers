@@ -454,17 +454,6 @@ export default defineUnlistedScript(() => {
             font-family: system-ui, -apple-system, sans-serif;
           }
 
-          .controls-container {
-            background: var(--sp-background, #ffffff);
-            border: 1px solid var(--sp-border-color, #e0e0e0);
-            border-radius: 8px;
-            padding: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-          }
-
           .button {
             all: unset;
             cursor: pointer;
@@ -477,30 +466,17 @@ export default defineUnlistedScript(() => {
             align-items: center;
             gap: 8px;
             transition: background 0.2s;
+            user-select: none;
           }
 
           .button:hover {
             background: var(--sp-button-hover-bg, #e5e5e5);
           }
-
-          .button.active {
-            background: var(--sp-button-active-bg, #4a6cf7);
-            color: white;
-          }
-
-          .status-text {
-            font-size: 12px;
-            color: var(--sp-status-color, #666);
-            text-align: center;
-          }
         </style>
 
-        <div class="controls-container" part="container">
-          <button class="button toggle-panel" part="toggle-button">
-            <span class="button-text">Toggle Side Panel</span>
-          </button>
-          <div class="status-text" part="status"></div>
-        </div>
+        <button class="button toggle-panel" part="toggle-button">
+          <span class="button-text">Toggle Side Panel</span>
+        </button>
       `;
       return template;
     }
@@ -508,30 +484,20 @@ export default defineUnlistedScript(() => {
     isOpen: boolean = false;
     trpcClient: ReturnType<typeof createTRPCProxyClient<AppRouter>> | null = null;
     subscription: Unsubscribable | null = null;
-
     private toggleButton: HTMLButtonElement | null = null;
-    private statusText: HTMLElement | null = null;
 
     constructor() {
       super();
       this.attachShadow({ mode: 'open' });
       if (this.shadowRoot) {
         this.shadowRoot.appendChild(SidePanelControls.template.content.cloneNode(true));
-
         this.toggleButton = this.shadowRoot.querySelector('.toggle-panel');
-        this.statusText = this.shadowRoot.querySelector('.status-text');
       }
-
       this.initClient();
     }
 
     connectedCallback() {
       this.setupEventListeners();
-      this.updateInitialState();
-    }
-
-    disconnectedCallback() {
-      this.stopListening();
     }
 
     private initClient() {
@@ -544,69 +510,50 @@ export default defineUnlistedScript(() => {
       }
     }
 
-    private async updateInitialState() {
-      if (!this.trpcClient) return;
-
-      try {
-        const config = await this.trpcClient.extension.getSidePanelConfig.query();
-        this.updateState(config.isEnabled, config.currentPath);
-      } catch (error) {
-        console.error('[SidePanelControls] Failed to get initial state:', error);
-      }
-    }
-
     private setupEventListeners() {
-      this.toggleButton?.addEventListener('click', async () => {
-        if (!this.trpcClient) return;
+      // Use mousedown instead of click for more reliable gesture handling
+      this.toggleButton?.addEventListener('mousedown', (event) => {
+        event.preventDefault(); // Prevent text selection
+        this.handleToggle();
+      });
 
-        try {
-          if (this.isOpen) {
-            await this.trpcClient.extension.toggleSidePanel.mutate({ open: false });
-          } else {
-            await this.trpcClient.extension.toggleSidePanel.mutate({ open: true });
-          }
-        } catch (error) {
-          console.error('[SidePanelControls] Failed to toggle panel:', error);
+      // Add keyboard support
+      this.toggleButton?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          this.handleToggle();
         }
       });
     }
 
-    private stopListening() {
-      if (this.subscription) {
-        this.subscription.unsubscribe();
-        this.subscription = null;
-      }
-    }
-
-    private updateState(isOpen: boolean, currentPath: string | null) {
-      this.isOpen = isOpen;
-
-      if (this.toggleButton) {
-        this.toggleButton.classList.toggle('active', this.isOpen);
-        this.toggleButton.querySelector('.button-text')!.textContent = 
-          this.isOpen ? 'Close Side Panel' : 'Open Side Panel';
+    private handleToggle() {
+      if (!this.trpcClient) {
+        console.error('[SidePanelControls] TRPC client not initialized');
+        return;
       }
 
+      try {
+        // Synchronously set options and open panel to maintain gesture context
+        this.trpcClient.extension.toggleSidePanel.mutate({
+          path: 'sidepanel.html'
+        });
+      } catch (error) {
+        console.error('[SidePanelControls] Error toggling panel:', error);
+      }
     }
 
     // Public method to set a theme
     public setTheme(theme: 'light' | 'dark' | 'colorful' = 'light') {
       switch (theme) {
         case 'dark':
-          this.style.setProperty('--sp-background', '#222');
-          this.style.setProperty('--sp-border-color', '#444');
-          this.style.setProperty('--sp-text-color', '#eee');
-          this.style.setProperty('--sp-status-color', '#bbb');
           this.style.setProperty('--sp-button-bg', '#333');
           this.style.setProperty('--sp-button-hover-bg', '#444');
-          this.style.setProperty('--sp-button-active-bg', '#6c8dff');
+          this.style.setProperty('--sp-text-color', '#eee');
           break;
         case 'colorful':
-          this.style.setProperty('--sp-background', '#f5f0ff');
-          this.style.setProperty('--sp-border-color', '#d0c5f0');
           this.style.setProperty('--sp-button-bg', '#e5e0ff');
           this.style.setProperty('--sp-button-hover-bg', '#d5d0ff');
-          this.style.setProperty('--sp-button-active-bg', '#8a4fff');
+          this.style.setProperty('--sp-text-color', '#333');
           break;
         default: // light theme
           this.style.cssText = '';

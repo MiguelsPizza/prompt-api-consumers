@@ -14,14 +14,11 @@ export default defineBackground({
   type: "module",
   main() {
 
-    chrome.runtime.onInstalled.addListener(() => {
-      chrome.contextMenus.create({
-        id: 'openSidePanel',
-        title: 'Open side panel',
-        contexts: ['all']
-      });
+    chrome.runtime.onMessage.addListener(message => {
+      // open a global side panel
+      chrome.windows.getCurrent(window => chrome.sidePanel.open({ windowId: window.id }))
     });
-    // Set up the side panel to open when the action icon is clicked
+
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
       .catch((error) => {
         console.error('[Background] Failed to set side panel behavior:', error);

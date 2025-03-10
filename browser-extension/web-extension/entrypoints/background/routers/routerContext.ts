@@ -12,6 +12,7 @@ interface EEeventTypes {
   destroy: UUID
 }
 export const createContext = async (opts: CreateChromeContextOptions) => {
+  console.log("createContext", opts.req.sender?.id)
   // console.log(EventEmitter)
   const ee = new EventEmitter<EEeventTypes>({ debug: { name: 'EE', enabled: true } });
   engine = engine || createEngine(opts);
@@ -19,7 +20,8 @@ export const createContext = async (opts: CreateChromeContextOptions) => {
   return {
     chatEngine: engine,
     ee,
-    keeper
+    keeper,
+    tabId: opts.req.sender?.tab?.id
   };
 };
 
