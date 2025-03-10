@@ -173,5 +173,4 @@ export default defineUnlistedScript(() => {
   })
   console.log(polyfill)
   attachAIObjectToWindow(polyfill)
-  console.log('Window.ai Attached')
 });

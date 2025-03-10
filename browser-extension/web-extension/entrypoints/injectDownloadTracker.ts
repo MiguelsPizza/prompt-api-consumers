@@ -5,6 +5,13 @@ import { Unsubscribable } from '@trpc/server/observable';
 import type { AppRouter } from './background/routers';
 
 // Define the properties of our custom element
+export interface SidePanelControlsElement extends HTMLElement {
+  isOpen: boolean;
+  trpcClient: ReturnType<typeof createTRPCProxyClient<AppRouter>> | null;
+  subscription: Unsubscribable | null;
+}
+
+// Define the properties of our custom element
 export interface DownloadTrackerElement extends HTMLElement {
   downloadProgress: number;
   downloadStatusText: string;
@@ -417,33 +424,6 @@ export default defineUnlistedScript(() => {
     }
   }
 
-  // Function to start listening for downloads
-  function startListeningForDownloads() {
-    if (!globalTrpcClient || globalSubscription) return;
-
-    try {
-      globalSubscription = globalTrpcClient.languageModel.downloadProgress.subscribe(undefined, {
-        onData: (data) => {
-          console.log('[DownloadTrackerInjector] Download detected:', data);
-        },
-        onError: (error) => {
-          console.error('[DownloadTrackerInjector] Global subscription error:', error);
-          cleanupGlobalSubscription();
-        }
-      });
-    } catch (error) {
-      console.error('[DownloadTrackerInjector] Failed to start global subscription:', error);
-    }
-  }
-
-  // Function to clean up the global subscription
-  function cleanupGlobalSubscription() {
-    if (globalSubscription) {
-      globalSubscription.unsubscribe();
-      globalSubscription = null;
-    }
-  }
-
   try {
     console.log('[DownloadTrackerInjector] Registering custom element...');
 
@@ -453,10 +433,196 @@ export default defineUnlistedScript(() => {
 
       // Initialize the global client and start listening for downloads
       initGlobalClient();
-      startListeningForDownloads();
+      // startListeningForDownloads();
     }
 
   } catch (error) {
     console.error('[DownloadTrackerInjector] Failed to register custom element:', error);
+  }
+
+
+  class SidePanelControls extends HTMLElement implements SidePanelControlsElement {
+    static get template() {
+      const template = document.createElement('template');
+      template.innerHTML = `
+        <style>
+          :host {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            z-index: 10000;
+            font-family: system-ui, -apple-system, sans-serif;
+          }
+
+          .controls-container {
+            background: var(--sp-background, #ffffff);
+            border: 1px solid var(--sp-border-color, #e0e0e0);
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+
+          .button {
+            all: unset;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: var(--sp-button-bg, #f5f5f5);
+            color: var(--sp-text-color, #333);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+          }
+
+          .button:hover {
+            background: var(--sp-button-hover-bg, #e5e5e5);
+          }
+
+          .button.active {
+            background: var(--sp-button-active-bg, #4a6cf7);
+            color: white;
+          }
+
+          .status-text {
+            font-size: 12px;
+            color: var(--sp-status-color, #666);
+            text-align: center;
+          }
+        </style>
+
+        <div class="controls-container" part="container">
+          <button class="button toggle-panel" part="toggle-button">
+            <span class="button-text">Toggle Side Panel</span>
+          </button>
+          <div class="status-text" part="status"></div>
+        </div>
+      `;
+      return template;
+    }
+
+    isOpen: boolean = false;
+    trpcClient: ReturnType<typeof createTRPCProxyClient<AppRouter>> | null = null;
+    subscription: Unsubscribable | null = null;
+
+    private toggleButton: HTMLButtonElement | null = null;
+    private statusText: HTMLElement | null = null;
+
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      if (this.shadowRoot) {
+        this.shadowRoot.appendChild(SidePanelControls.template.content.cloneNode(true));
+
+        this.toggleButton = this.shadowRoot.querySelector('.toggle-panel');
+        this.statusText = this.shadowRoot.querySelector('.status-text');
+      }
+
+      this.initClient();
+    }
+
+    connectedCallback() {
+      this.setupEventListeners();
+      this.updateInitialState();
+    }
+
+    disconnectedCallback() {
+      this.stopListening();
+    }
+
+    private initClient() {
+      try {
+        this.trpcClient = createTRPCProxyClient<AppRouter>({
+          links: [windowLink({ window })],
+        });
+      } catch (error) {
+        console.error('[SidePanelControls] Failed to initialize TRPC client:', error);
+      }
+    }
+
+    private async updateInitialState() {
+      if (!this.trpcClient) return;
+
+      try {
+        const config = await this.trpcClient.extension.getSidePanelConfig.query();
+        this.updateState(config.isEnabled, config.currentPath);
+      } catch (error) {
+        console.error('[SidePanelControls] Failed to get initial state:', error);
+      }
+    }
+
+    private setupEventListeners() {
+      this.toggleButton?.addEventListener('click', async () => {
+        if (!this.trpcClient) return;
+
+        try {
+          if (this.isOpen) {
+            await this.trpcClient.extension.toggleSidePanel.mutate({ open: false });
+          } else {
+            await this.trpcClient.extension.toggleSidePanel.mutate({ open: true });
+          }
+        } catch (error) {
+          console.error('[SidePanelControls] Failed to toggle panel:', error);
+        }
+      });
+    }
+
+    private stopListening() {
+      if (this.subscription) {
+        this.subscription.unsubscribe();
+        this.subscription = null;
+      }
+    }
+
+    private updateState(isOpen: boolean, currentPath: string | null) {
+      this.isOpen = isOpen;
+
+      if (this.toggleButton) {
+        this.toggleButton.classList.toggle('active', this.isOpen);
+        this.toggleButton.querySelector('.button-text')!.textContent = 
+          this.isOpen ? 'Close Side Panel' : 'Open Side Panel';
+      }
+
+    }
+
+    // Public method to set a theme
+    public setTheme(theme: 'light' | 'dark' | 'colorful' = 'light') {
+      switch (theme) {
+        case 'dark':
+          this.style.setProperty('--sp-background', '#222');
+          this.style.setProperty('--sp-border-color', '#444');
+          this.style.setProperty('--sp-text-color', '#eee');
+          this.style.setProperty('--sp-status-color', '#bbb');
+          this.style.setProperty('--sp-button-bg', '#333');
+          this.style.setProperty('--sp-button-hover-bg', '#444');
+          this.style.setProperty('--sp-button-active-bg', '#6c8dff');
+          break;
+        case 'colorful':
+          this.style.setProperty('--sp-background', '#f5f0ff');
+          this.style.setProperty('--sp-border-color', '#d0c5f0');
+          this.style.setProperty('--sp-button-bg', '#e5e0ff');
+          this.style.setProperty('--sp-button-hover-bg', '#d5d0ff');
+          this.style.setProperty('--sp-button-active-bg', '#8a4fff');
+          break;
+        default: // light theme
+          this.style.cssText = '';
+          break;
+      }
+    }
+  }
+
+  try {
+    console.log('[SidePanelControlsInjector] Registering custom element...');
+
+    if (!customElements.get('side-panel-controls')) {
+      customElements.define('side-panel-controls', SidePanelControls);
+      console.log('[SidePanelControls] Custom element registered');
+    }
+  } catch (error) {
+    console.error('[SidePanelControlsInjector] Failed to register custom element:', error);
   }
 })

@@ -64,77 +64,59 @@ export const extensionRouter = t.router({
     }),
 
   /**
-   * Open the side panel for the current tab.
+   * Toggle the side panel for the current tab.
+   * 
+   * This procedure opens or closes the side panel specifically for the currently active tab.
+   * When opening, it ensures the panel is only enabled and visible for this particular tab.
+   * When closing, it disables the panel for the current tab.
    *
-   * This procedure opens the side panel specifically for the currently active tab.
-   * It ensures the panel is only enabled and visible for this particular tab.
-   *
+   * @input {Object} options - Panel toggle options
+   * @input {boolean} options.open - Whether to open (true) or close (false) the panel
+   * @input {string} options.path - Optional path to use when opening the panel
    * @returns {Promise<{success: boolean, tabId: number | null}>} Object indicating success status and the tab ID.
    */
-  openSidePanel: t.procedure
+  toggleSidePanel: t.procedure
     .input(z.object({
+      open: z.boolean(),
       path: ZSidePanelPath.optional()
-    }).optional())
+    }))
     .mutation(async ({ input }): Promise<{ success: boolean, tabId: number | null }> => {
       try {
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         const currentTab = tabs[0];
 
         if (!currentTab || !currentTab.id) {
-          console.error("Cannot open side panel: No active tab found");
+          console.error("Cannot toggle side panel: No active tab found");
           return { success: false, tabId: null };
         }
 
-        // Configure which panel to show
-        const panelPath = input?.path || 'sidepanel.html';
+        if (input.open) {
+          // Configure which panel to show when opening
+          const panelPath = input.path || 'sidepanel.html';
 
-        // Only enable the side panel for the current tab
-        await chrome.sidePanel.setOptions({
-          tabId: currentTab.id,
-          path: panelPath,
-          enabled: true
-        });
+          // Only enable the side panel for the current tab
+          await chrome.sidePanel.setOptions({
+            tabId: currentTab.id,
+            path: panelPath,
+            enabled: true
+          });
 
-        // Open the side panel specifically for this tab
-        await chrome.sidePanel.open({ tabId: currentTab.id });
+          // Open the side panel specifically for this tab
+          await chrome.sidePanel.open({ tabId: currentTab.id });
 
-        // Store the last used panel path in storage
-        await storage.setItem('sync:lastSidePanelPath', panelPath);
-
-        return { success: true, tabId: currentTab.id };
-      } catch (error) {
-        console.error("Error opening side panel:", error);
-        return { success: false, tabId: null };
-      }
-    }),
-
-  /**
-   * Close the side panel for the current tab.
-   *
-   * This procedure disables the side panel for the currently active tab.
-   *
-   * @returns {Promise<{success: boolean, tabId: number | null}>} Object indicating success status and the tab ID.
-   */
-  closeSidePanel: t.procedure
-    .mutation(async (): Promise<{ success: boolean, tabId: number | null }> => {
-      try {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        const currentTab = tabs[0];
-
-        if (!currentTab || !currentTab.id) {
-          console.error("Cannot close side panel: No active tab found");
-          return { success: false, tabId: null };
+          // Store the last used panel path in storage
+          await storage.setItem('sync:lastSidePanelPath', panelPath);
+        } else {
+          // Disable the side panel for the current tab when closing
+          await chrome.sidePanel.setOptions({
+            tabId: currentTab.id,
+            enabled: false
+          });
         }
 
-        // Disable the side panel for the current tab
-        await chrome.sidePanel.setOptions({
-          tabId: currentTab.id,
-          enabled: false
-        });
-
         return { success: true, tabId: currentTab.id };
       } catch (error) {
-        console.error("Error closing side panel:", error);
+        console.error("Error toggling side panel:", error);
         return { success: false, tabId: null };
       }
     }),
@@ -440,68 +422,6 @@ export const extensionRouter = t.router({
         }
       };
     }),
-
-  /**
-   * Subscribe to changes in the side panel state.
-   *
-   * This subscription emits updates whenever the side panel configuration changes,
-   * including when it's enabled/disabled or when its content changes.
-   *
-   * @returns {Observable<Object>} An observable of side panel state
-   */
-  liveSidePanelState: t.procedure.subscription(() => {
-    return observable<{ isEnabled: boolean, currentPath: SidePanelPath | null, tabId: number | null }>((emit) => {
-      // Function to emit current panel state
-      const emitCurrentState = async () => {
-        try {
-          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-          const currentTab = tabs[0];
-
-          if (!currentTab || !currentTab.id) {
-            emit.next({
-              isEnabled: false,
-              currentPath: null,
-              tabId: null
-            });
-            return;
-          }
-
-          // Get the options for the current tab
-          const options = await chrome.sidePanel.getOptions({ tabId: currentTab.id });
-
-          emit.next({
-            isEnabled: options.enabled ?? false,
-            currentPath: options.path as SidePanelPath || null,
-            tabId: currentTab.id
-          });
-        } catch (error) {
-          console.error("Error getting side panel state:", error);
-        }
-      };
-
-      // Emit initial state
-      emitCurrentState();
-
-      // Create a timer to poll for changes
-      // Note: Chrome doesn't provide direct events for side panel changes,
-      // so we need to poll periodically
-      const intervalId = setInterval(emitCurrentState, 1000);
-
-      // Listen for tab changes as well
-      const onActivated = () => emitCurrentState();
-      const onUpdated = () => emitCurrentState();
-
-      chrome.tabs.onActivated.addListener(onActivated);
-      chrome.tabs.onUpdated.addListener(onUpdated);
-
-      // Clean up
-      return () => {
-        clearInterval(intervalId);
-        chrome.tabs.onActivated.removeListener(onActivated);
-        chrome.tabs.onUpdated.removeListener(onUpdated);
-      };
-    });
-  }),
 
   /**
    * Execute a script in the current tab.
