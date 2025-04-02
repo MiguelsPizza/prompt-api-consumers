@@ -19,7 +19,7 @@ export default defineUnlistedScript(() => {
   const polyfill = createWebAIPolyfill({
     partialPolyfill: {
       languageModel: {
-        create: async (options, model: SupportedLLMModel = 'Llama-3.2-1B-Instruct-q4f16_1-MLC') => {
+        create: async (options, model: SupportedLLMModel = 'snowflake-arctic-embed-m-q0f32-MLC-b32') => {
           const { newSession, newSessionMessages } = await trpc.languageModel.create.mutate({
             modelId: model,
             chatOpts: options,

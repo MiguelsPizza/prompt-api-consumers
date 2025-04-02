@@ -33,20 +33,7 @@ export default defineContentScript({
   async main(ctx) {
     let removeProxy: (() => void) | undefined;
 
-    let button = document.createElement('button');
-    button.textContent = "test";
-    button.addEventListener('click', e => {
-      chrome.runtime.sendMessage('open');
-    });
-    document.body.appendChild(button);
-
     try {
-      const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      chrome.sidePanel.setOptions({
-        tabId: currentTab.id,
-        path: 'sidepanel.html',
-        enabled: true
-      });
       // 1. Initialize communication with background service worker
       const port = chrome.runtime.connect({ name: "web_llm_service_worker" });
       removeProxy = createWindowProxy(port, {

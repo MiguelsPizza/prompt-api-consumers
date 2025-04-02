@@ -15,6 +15,7 @@ import {
   createSessionMessage
 } from '../lib/sessionSchema';
 import { ZSupportedLLMModel } from '../lib/supportedModels';
+import { ee } from '../EventEmmiter';
 
 /**
  * mlcRouter:
@@ -126,7 +127,7 @@ export const languageModelRouter = t.router({
     .input(z.object({ sessionId: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
       console.log('[mlcRouter/destroy] Archiving session:', input.sessionId);
-      ctx.ee.emit('destroy', input.sessionId as UUID)
+      ee.emit('destroy', input.sessionId as UUID)
       // Example Dexie removal (hard delete)
       await db.session_messages.where('session_id').equals(input.sessionId).delete();
       await db.sessions.delete(input.sessionId);
@@ -158,13 +159,12 @@ export const languageModelRouter = t.router({
       return observable<string>((emit) => {
         let isDone = false;
         (async () => {
-          ctx.ee.on('destroy', (id) => {
+          ee.on('destroy', (id) => {
             if (id === sessionId) isDone = true
           })
           try {
             // Use the helper function to process the incoming user message
             const { session, conversationHistory, insertIndex } = await addUserMessageAndGetHistory(ctx.chatEngine, sessionId, messages, ctx.keeper);
-
             // Start streaming the response from the model
             const completion = await ctx.chatEngine.chat.completions.create({
               stream: true,
