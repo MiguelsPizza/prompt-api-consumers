@@ -608,8 +608,8 @@ importers:
         specifier: ^1.97.3
         version: 1.98.0(@tanstack/react-router@1.109.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(vite@6.0.11(@types/node@22.12.0)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.0))(webpack@5.97.1(@swc/core@1.10.11))
       '@types/dom-chromium-ai':
-        specifier: ^0.0.4
-        version: 0.0.4
+        specifier: ^0.0.9
+        version: 0.0.9
       '@types/dompurify':
         specifier: ^3.2.0
         version: 3.2.0
@@ -914,8 +914,8 @@ importers:
   packages/use-prompt-api:
     dependencies:
       '@types/dom-chromium-ai':
-        specifier: ^0.0.4
-        version: 0.0.4
+        specifier: ^0.0.9
+        version: 0.0.9
       react:
         specifier: '>=16.8.0'
         version: 19.0.0
@@ -4633,6 +4633,9 @@ packages:
 
   '@types/dom-chromium-ai@0.0.4':
     resolution: {integrity: sha512-zEJAmJcrszLhklp+UsEwn81Y65zUoGqZex80hMIvRiOKHhiC35wjtPpih7BBq9wkhCAra66TAgAmmwb7jXO3UA==}
+
+  '@types/dom-chromium-ai@0.0.9':
+    resolution: {integrity: sha512-wZNak+04m29hwXqtnDqNUl3TGcU9pvWhemtBpVtN2TKnWQKprJ8KQjaldbMVfdL44UHnUfv9V51rRh7tV8HY7w==}
 
   '@types/dompurify@3.2.0':
     resolution: {integrity: sha512-Fgg31wv9QbLDA0SpTOXO3MaxySc4DKGLi8sna4/Utjo4r3ZRPdCt4UQee8BWr+Q5z21yifghREPJGYaEOEIACg==}
@@ -15281,6 +15284,8 @@ snapshots:
   '@types/diff@6.0.0': {}
 
   '@types/dom-chromium-ai@0.0.4': {}
+
+  '@types/dom-chromium-ai@0.0.9': {}
 
   '@types/dompurify@3.2.0':
     dependencies:

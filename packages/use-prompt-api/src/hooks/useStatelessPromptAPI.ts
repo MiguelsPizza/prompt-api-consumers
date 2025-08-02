@@ -36,19 +36,19 @@ export type UseStatelessPromptAPIError = PromptAPIError<
   | 'EMPTY_PROMPT'
 >;
 
-interface StatelessPromptAPIResult {
+export interface StatelessPromptAPIResult {
   loading: boolean;
   error: UseStatelessPromptAPIError | null;
   abortController: AbortController | null;
   sendPrompt: (
     input: string,
-    options?: AILanguageModelPromptOptions & {
+    options?: LanguageModelPromptOptions & {
       streaming?: boolean;
       onToken?: (response: string) => void | Promise<void>;
     },
   ) => Promise<void | string | null>;
   abort: () => void;
-  session: AILanguageModel | null;
+  session: LanguageModel | null;
   isResponding: boolean;
   isThinking: boolean;
 }
@@ -62,13 +62,13 @@ export function useStatelessPromptAPI(
     systemPrompt,
     temperature,
     topK,
-  }: AILanguageModelCreateOptionsWithSystemPrompt,
+  }: LanguageModelCreateOptions & { systemPrompt?: string },
 ): StatelessPromptAPIResult {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<UseStatelessPromptAPIError | null>(null);
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
-  const [session, setSession] = useState<AILanguageModel | null>(null);
+  const [session, setSession] = useState<LanguageModel | null>(null);
   const [isResponding, setIsResponding] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
 
@@ -79,8 +79,14 @@ export function useStatelessPromptAPI(
       setSession(null);
     }
 
-    if (!window.ai.languageModel.create) {
-      console.warn('no .ai on the window');
+    if (typeof LanguageModel === 'undefined') {
+      console.warn('LanguageModel not available');
+      setError(
+        new PromptAPIError(
+          'LanguageModel not available',
+          'SESSION_UNAVAILABLE',
+        ),
+      );
       return;
     }
 
@@ -88,20 +94,20 @@ export function useStatelessPromptAPI(
       ? [{ role: 'system', content: systemPrompt }, ...initialPrompts]
       : initialPrompts;
     console.log('creating new session');
-    window.ai.languageModel
+    LanguageModel
       .create({
         monitor,
         temperature,
         topK,
         initialPrompts: initialPromptsWithSystem,
         signal,
-      } as AILanguageModelCreateOptionsWithSystemPrompt)
+      } as LanguageModelCreateOptions)
       .then((newSession) => {
         console.log('creating session');
         setSession(newSession);
       })
       .catch((err) => {
-        console.error(error);
+        console.error(err);
         setError(
           new PromptAPIError(
             err instanceof Error ? err.message : 'Failed to create session',
@@ -124,7 +130,7 @@ export function useStatelessPromptAPI(
   const sendPrompt = useCallback(
     async (
       input: string,
-      promptOptions: AILanguageModelPromptOptions & {
+      promptOptions: LanguageModelPromptOptions & {
         streaming?: boolean;
         onToken?: (response: string) => void | Promise<void>;
       } = {},
