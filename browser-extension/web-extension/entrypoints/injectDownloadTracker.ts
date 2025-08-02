@@ -5,6 +5,13 @@ import { Unsubscribable } from '@trpc/server/observable';
 import type { AppRouter } from './background/routers';
 
 // Define the properties of our custom element
+export interface SidePanelControlsElement extends HTMLElement {
+  isOpen: boolean;
+  trpcClient: ReturnType<typeof createTRPCProxyClient<AppRouter>> | null;
+  subscription: Unsubscribable | null;
+}
+
+// Define the properties of our custom element
 export interface DownloadTrackerElement extends HTMLElement {
   downloadProgress: number;
   downloadStatusText: string;
@@ -417,33 +424,6 @@ export default defineUnlistedScript(() => {
     }
   }
 
-  // Function to start listening for downloads
-  function startListeningForDownloads() {
-    if (!globalTrpcClient || globalSubscription) return;
-
-    try {
-      globalSubscription = globalTrpcClient.languageModel.downloadProgress.subscribe(undefined, {
-        onData: (data) => {
-          console.log('[DownloadTrackerInjector] Download detected:', data);
-        },
-        onError: (error) => {
-          console.error('[DownloadTrackerInjector] Global subscription error:', error);
-          cleanupGlobalSubscription();
-        }
-      });
-    } catch (error) {
-      console.error('[DownloadTrackerInjector] Failed to start global subscription:', error);
-    }
-  }
-
-  // Function to clean up the global subscription
-  function cleanupGlobalSubscription() {
-    if (globalSubscription) {
-      globalSubscription.unsubscribe();
-      globalSubscription = null;
-    }
-  }
-
   try {
     console.log('[DownloadTrackerInjector] Registering custom element...');
 
@@ -453,10 +433,143 @@ export default defineUnlistedScript(() => {
 
       // Initialize the global client and start listening for downloads
       initGlobalClient();
-      startListeningForDownloads();
+      // startListeningForDownloads();
     }
 
   } catch (error) {
     console.error('[DownloadTrackerInjector] Failed to register custom element:', error);
+  }
+
+
+  class SidePanelControls extends HTMLElement implements SidePanelControlsElement {
+    static get template() {
+      const template = document.createElement('template');
+      template.innerHTML = `
+        <style>
+          :host {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            z-index: 10000;
+            font-family: system-ui, -apple-system, sans-serif;
+          }
+
+          .button {
+            all: unset;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: var(--sp-button-bg, #f5f5f5);
+            color: var(--sp-text-color, #333);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+            user-select: none;
+          }
+
+          .button:hover {
+            background: var(--sp-button-hover-bg, #e5e5e5);
+          }
+        </style>
+
+        <button class="button toggle-panel" part="toggle-button">
+          <span class="button-text">Toggle Side Panel</span>
+        </button>
+      `;
+      return template;
+    }
+
+    isOpen: boolean = false;
+    trpcClient: ReturnType<typeof createTRPCProxyClient<AppRouter>> | null = null;
+    subscription: Unsubscribable | null = null;
+    private toggleButton: HTMLButtonElement | null = null;
+
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      if (this.shadowRoot) {
+        this.shadowRoot.appendChild(SidePanelControls.template.content.cloneNode(true));
+        this.toggleButton = this.shadowRoot.querySelector('.toggle-panel');
+      }
+      this.initClient();
+    }
+
+    connectedCallback() {
+      this.setupEventListeners();
+    }
+
+    private initClient() {
+      try {
+        this.trpcClient = createTRPCProxyClient<AppRouter>({
+          links: [windowLink({ window })],
+        });
+      } catch (error) {
+        console.error('[SidePanelControls] Failed to initialize TRPC client:', error);
+      }
+    }
+
+    private setupEventListeners() {
+      // Use mousedown instead of click for more reliable gesture handling
+      this.toggleButton?.addEventListener('mousedown', (event) => {
+        event.preventDefault(); // Prevent text selection
+        this.handleToggle();
+      });
+
+      // Add keyboard support
+      this.toggleButton?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          this.handleToggle();
+        }
+      });
+    }
+
+    private handleToggle() {
+      if (!this.trpcClient) {
+        console.error('[SidePanelControls] TRPC client not initialized');
+        return;
+      }
+
+      try {
+        // Synchronously set options and open panel to maintain gesture context
+        this.trpcClient.extension.toggleSidePanel.mutate({
+          path: 'sidepanel.html'
+        });
+      } catch (error) {
+        console.error('[SidePanelControls] Error toggling panel:', error);
+      }
+    }
+
+    // Public method to set a theme
+    public setTheme(theme: 'light' | 'dark' | 'colorful' = 'light') {
+      switch (theme) {
+        case 'dark':
+          this.style.setProperty('--sp-button-bg', '#333');
+          this.style.setProperty('--sp-button-hover-bg', '#444');
+          this.style.setProperty('--sp-text-color', '#eee');
+          break;
+        case 'colorful':
+          this.style.setProperty('--sp-button-bg', '#e5e0ff');
+          this.style.setProperty('--sp-button-hover-bg', '#d5d0ff');
+          this.style.setProperty('--sp-text-color', '#333');
+          break;
+        default: // light theme
+          this.style.cssText = '';
+          break;
+      }
+    }
+  }
+
+  try {
+    console.log('[SidePanelControlsInjector] Registering custom element...');
+
+    if (!customElements.get('side-panel-controls')) {
+      customElements.define('side-panel-controls', SidePanelControls);
+      console.log('[SidePanelControls] Custom element registered');
+    }
+  } catch (error) {
+    console.error('[SidePanelControlsInjector] Failed to register custom element:', error);
   }
 })

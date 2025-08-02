@@ -1,13 +1,14 @@
 // modelRouter.ts
 import { deleteModelAllInfoInCache, hasModelInCache, prebuiltAppConfig } from '@mlc-ai/web-llm';
 import { z } from 'zod';
-import { initModel, listCachedModels } from '../lib/modelUtils';
+import { initModel } from '../lib/modelUtils';
 import { t } from './trpcBase';
 
 // Import the WXT storage API.
 import { storage } from 'wxt/storage';
 // Import observable helper for subscriptions.
 import { observable } from '@trpc/server/observable';
+import { ExtensionModelStore, modelStore } from '../lib/mlcIndexeddbUtils';
 import { SupportedLLMModel, ZSupportedLLMModel } from '../lib/supportedModels';
 
 /**
@@ -26,10 +27,23 @@ export const modelRouter = t.router({
    *
    * @returns {Promise<CachedModel[]>} An array of cached model objects.
    */
-  listModels: t.procedure.query(async () => {
-    const models = await listCachedModels();
-    console.log('getting models from sW', { models })
-    return models;
+  listModels: t.procedure.subscription(() => {
+    return observable<ExtensionModelStore>((emit) => {
+      // Immediately fetch and emit the initial state
+      modelStore.getValue().then(initialModels => {
+        emit.next(initialModels);
+      });
+
+      // Set up subscription for future updates
+      const unwatch = modelStore.watch((updatedStore) => {
+        emit.next(updatedStore);
+      });
+
+      // Return cleanup function
+      return () => {
+        unwatch();
+      };
+    });
   }),
 
   /**

@@ -13,6 +13,13 @@ export default defineBackground({
   persistent: true,
   type: "module",
   main() {
+
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+      .catch((error) => {
+        console.error('[Background] Failed to set side panel behavior:', error);
+      });
+
+    // Initialize TRPC handler
     createChromeHandler({
       router: appRouter,
       onError: (err: unknown) => {

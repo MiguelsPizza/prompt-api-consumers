@@ -1,18 +1,16 @@
-export type ModelConversation =
-  | [AILanguageModelSystemPrompt, ...AILanguageModelPrompt[]]
-  | AILanguageModelPrompt[];
+export type ModelConversation = LanguageModelMessage[];
 
 export interface BasePromptAPIResult {
-  available: AICapabilityAvailability;
-  capabilities: AILanguageModelCapabilities | null;
+  available: Availability;
+  capabilities: LanguageModelParams | null;
   history: ModelConversation;
   response: string | null;
   loading: boolean;
   error: Error | null;
   abortController: AbortController | null;
   sendPrompt: (
-    input: string,
-    options?: AILanguageModelPromptOptions,
+    input: LanguageModelPrompt,
+    options?: LanguageModelPromptOptions,
   ) => Promise<void | string>;
   clearHistory: () => void;
   abort: () => void;

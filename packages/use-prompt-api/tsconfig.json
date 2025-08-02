@@ -23,7 +23,7 @@
     "paths": {
       "dom-chromium-ai": ["node_modules/dom-chromium-ai"]
     },
-    "types": ["dom-chromium-ai", "react", "react-dom"]
+    "types": ["react", "react-dom", "./src/vite-env.d.ts"]
   },
   "include": ["src/**/*"]
 }

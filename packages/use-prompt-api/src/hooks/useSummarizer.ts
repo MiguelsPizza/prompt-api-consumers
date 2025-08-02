@@ -43,7 +43,7 @@ interface UseSummarizerResult {
   abortController: AbortController | null;
   summarize: (
     input: string,
-    options?: AISummarizerSummarizeOptions & {
+    options?: SummarizerSummarizeOptions & {
       streaming?: boolean;
     },
   ) => Promise<void | string | null>;
@@ -51,13 +51,13 @@ interface UseSummarizerResult {
 }
 
 export function useSummarizer({
-  type = 'tl;dr',
+  type = 'tldr',
   format = 'plain-text',
   length = 'medium',
   monitor,
   signal,
   sharedContext,
-}: AISummarizerCreateOptions = {}): UseSummarizerResult {
+}: SummarizerCreateOptions = {}): UseSummarizerResult {
   const [streamingResponse, setStreamingResponse] = useState<string | null>(
     null,
   );
@@ -66,7 +66,7 @@ export function useSummarizer({
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
 
-  const session = useRef<AISummarizer | null>(null);
+  const session = useRef<Summarizer | null>(null);
 
   useEffect(() => {
     if (session.current) {
@@ -74,14 +74,14 @@ export function useSummarizer({
       session.current = null;
     }
 
-    if (!window.ai.summarizer) {
+    if (typeof Summarizer === 'undefined' || !Summarizer.create) {
       setError(
         new SummarizerError('Summarizer not Ready', 'SESSION_UNAVAILABLE'),
       );
       return;
     }
 
-    window.ai.summarizer
+    Summarizer
       .create({
         type,
         format,
@@ -92,6 +92,7 @@ export function useSummarizer({
       })
       .then((newSession) => {
         session.current = newSession;
+        setError(null);
       })
       .catch((err) => {
         setError(
@@ -115,7 +116,7 @@ export function useSummarizer({
   const summarize = useCallback(
     async (
       input: string,
-      options: AISummarizerSummarizeOptions & {
+      options: SummarizerSummarizeOptions & {
         streaming?: boolean;
       } = {},
     ): Promise<void | string | null> => {

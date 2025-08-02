@@ -1,10 +1,10 @@
 import {
-  useState,
-  useEffect,
-  useCallback,
   createContext,
   PropsWithChildren,
+  useCallback,
   useContext,
+  useEffect,
+  useState,
 } from 'react';
 
 // Add interfaces before the class implementations
@@ -52,8 +52,8 @@ export type UseAICapabilitiesError =
 
 interface AICapabilitiesResult {
   // Availability status
-  available: AICapabilityAvailability;
-  capabilities: AILanguageModelCapabilities | null;
+  available: Availability;
+  params: LanguageModelParams | null;
   error: UseAICapabilitiesError | null;
 
   // Download progress
@@ -61,13 +61,10 @@ interface AICapabilitiesResult {
   isDownloading: boolean;
 
   // Model capabilities
-  supportsLanguage: (
-    languageTag: Intl.UnicodeBCP47LocaleIdentifier,
-  ) => AICapabilityAvailability;
   defaultTemperature: number | null;
   defaultTopK: number | null;
   maxTopK: number | null;
-  //maxTemperature: number \ null; not supported yet
+  maxTemperature: number | null;
 
   // Download trigger
   startDownload: () => Promise<void>;
@@ -77,9 +74,8 @@ interface AICapabilitiesResult {
 const AICapabilitiesContext = createContext<AICapabilitiesResult | null>(null);
 
 export function AICapabilitiesProvider({ children }: PropsWithChildren) {
-  const [available, setAvailable] = useState<AICapabilityAvailability>('no');
-  const [capabilities, setCapabilities] =
-    useState<AILanguageModelCapabilities | null>(null);
+  const [available, setAvailable] = useState<Availability>('unavailable');
+  const [params, setParams] = useState<LanguageModelParams | null>(null);
   const [error, setError] = useState<UseAICapabilitiesError | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<{
     loaded: number;
@@ -90,12 +86,12 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
     useState<AbortController | null>(null);
 
   const checkCapabilities = useCallback(async () => {
-    // Add check for window object (SSR safety)
     if (
       typeof window === 'undefined' ||
-      !window.ai.languageModel.capabilities
+      typeof LanguageModel === 'undefined' ||
+      !LanguageModel.params
     ) {
-      setAvailable('no');
+      setAvailable('unavailable');
       setError(
         new AICapabilityError(
           'Language Model API not available',
@@ -106,13 +102,16 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
     }
 
     try {
-      const caps = await window.ai.languageModel.capabilities();
-      setCapabilities(caps);
-      setAvailable(caps.available);
+      const modelParams = await LanguageModel.params();
+      setParams(modelParams);
+
+      // Check availability separately
+      const availability = await LanguageModel.availability();
+      setAvailable(availability);
       setError(null); // Clear any previous errors on success
     } catch (err) {
-      setAvailable('no'); // Set availability to no on error
-      setCapabilities(null); // Clear capabilities on error
+      setAvailable('unavailable'); // Set availability to no on error
+      setParams(null); // Clear capabilities on error
       setError(
         new AICapabilityError(
           err instanceof Error ? err.message : 'Failed to check capabilities',
@@ -120,13 +119,6 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
         ),
       );
     }
-    // usually I'd clean this up but I'm not sure with this one since it's a background process of the browser
-    // TODO: get guidance on implementation best practice
-    // return () =>{
-    //   if(abortController){
-    //     // abortController.abort()
-    //   }
-    // }
   }, []);
 
   // Initial capabilities check
@@ -135,8 +127,7 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
   }, [checkCapabilities]);
 
   const startDownload = useCallback(async () => {
-    // Add additional checks before starting download
-    if (!window.ai.languageModel.create) {
+    if (!LanguageModel || !LanguageModel.create) {
       setError(
         new AIDownloadError(
           'Language Model API not available',
@@ -146,8 +137,7 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    if (available !== 'after-download') {
-      console.log('here');
+    if (available !== 'downloadable') {
       setError(
         new AIDownloadError(
           'Download not required in current state',
@@ -167,9 +157,9 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
     const controller = new AbortController();
     setAbortController(controller);
 
-    let tempSession: AILanguageModel | null = null;
+    let tempSession: LanguageModel | null = null;
     try {
-      tempSession = await window.ai.languageModel.create({
+      tempSession = await LanguageModel.create({
         signal: controller.signal,
         monitor: (monitor) => {
           monitor.addEventListener('downloadprogress', (event) => {
@@ -203,31 +193,22 @@ export function AICapabilitiesProvider({ children }: PropsWithChildren) {
       setDownloadProgress(null);
       setAbortController(null);
     }
-  }, [available, checkCapabilities]);
+  }, [available, checkCapabilities, isDownloading]);
 
   const cancelDownload = useCallback(() => {
     abortController?.abort();
   }, [abortController]);
 
-  const supportsLanguage = useCallback(
-    (
-      languageTag: Intl.UnicodeBCP47LocaleIdentifier,
-    ): AICapabilityAvailability => {
-      return capabilities?.languageAvailable(languageTag) ?? 'no';
-    },
-    [capabilities],
-  );
-
   const value: AICapabilitiesResult = {
     available,
-    capabilities,
+    params,
     error,
     downloadProgress,
     isDownloading,
-    supportsLanguage,
-    defaultTemperature: capabilities?.defaultTemperature ?? null,
-    defaultTopK: capabilities?.defaultTopK ?? null,
-    maxTopK: capabilities?.maxTopK ?? null,
+    defaultTemperature: params?.defaultTemperature ?? null,
+    defaultTopK: params?.defaultTopK ?? null,
+    maxTopK: params?.maxTopK ?? null,
+    maxTemperature: params?.maxTemperature ?? null,
     startDownload,
     cancelDownload,
   };

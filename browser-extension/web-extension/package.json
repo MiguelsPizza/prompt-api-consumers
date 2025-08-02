@@ -2,7 +2,7 @@
   "name": "@local-first-web-ai-monorepo/web-extension",
   "description": "manifest.json description",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -42,7 +42,8 @@
     "sp-progress-bar.js": "link:@spectrum-web-components/progress-bar/sp-progress-bar.js",
     "tailwindcss": "^4.0.1",
     "trpc-browser": "^1.4.2",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@wxt-dev/module-react": "^1.1.2"
   },
   "devDependencies": {
     "@tanstack/router-plugin": "^1.97.3",
@@ -51,8 +52,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@webgpu/types": "^0.1.54",
-    "@wxt-dev/module-react": "^1.1.2",
     "typescript": "catalog:",
-    "wxt": "^0.19.13"
+    "wxt": "^0.19.27"
   }
 }

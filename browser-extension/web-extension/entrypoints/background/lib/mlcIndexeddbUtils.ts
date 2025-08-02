@@ -7,13 +7,15 @@ import { SupportedLLMModel } from './supportedModels';
  */
 export type WebLLMDBName = 'webllm/model' | 'webllm/config' | 'webllm/wasm';
 
-export type ExtensionModelStore = Partial<Record<`local:${SupportedLLMModel}`, ValidatedModelRecord>>
+export type ExtensionModelStore = Partial<Record<SupportedLLMModel, ValidatedModelRecord>>
 
 /**
  * Extension storage location for model metadata.
  * Stores information like download status and version info for each supported model.
  */
-export const makeModelStore = (modelId: SupportedLLMModel) => storage.defineItem<ValidatedModelRecord>(`local:${modelId}`)
+export const modelStore = storage.defineItem<ExtensionModelStore>(`local:models`, {
+  fallback: { chromeAI: { model_id: "chromeAI", vram_required_MB: 20, model: "chromeAI", model_lib: 'N/A' } }
+})
 
 
 // /**

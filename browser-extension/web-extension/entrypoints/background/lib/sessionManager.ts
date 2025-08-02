@@ -189,7 +189,7 @@ export async function addUserMessageAndGetHistory(
     content: msg.content,
   }));
 
-  // // Reload the model with session's current temperature/top_k settings
+  // // // Reload the model with session's current temperature/top_k settings
   await initModel(chatEngine, session.llm_id, {
     temperature: session.temperature,
     // top_p: session.top_k,

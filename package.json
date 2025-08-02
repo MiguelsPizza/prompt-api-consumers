@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "dev": "turbo run dev --filter=@local-first-web-ai-monorepo/pwa --filter=@local-first-web-ai-monorepo/web-extension",
-    "deploy:web": "turbo run build --filter=use-prompt-api --filter=local-first-chat && turbo run deploy:web --filter=local-first-chat",
+    "deploy:web": "turbo run build --filter=@local-first-web-ai-monorepo/pwa && pnpx wrangler pages deploy ./local-first-chat/pwa/dist",
     "deploy:local": "turbo run build --filter=use-prompt-api --filter=local-first-chat && turbo run preview --filter=local-first-chat"
   },
   "keywords": [],
@@ -30,6 +30,6 @@
   "dependencies": {
     "turbo": "^2.3.3",
     "dotenv": "^16.4.7",
-    "pnpm": "10.0.0"
+    "pnpm": "10.6.1"
   }
 }
